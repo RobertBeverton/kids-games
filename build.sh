@@ -2,7 +2,7 @@
 # build.sh — Builds all games into docs/ for GitHub Pages deployment.
 #
 # Usage: bash build.sh
-# Output: docs/index.html (hub), docs/type-trainer.html, docs/opposites.html
+# Output: docs/index.html (hub), docs/type-trainer.html, docs/opposites.html, docs/sentence-blocks.html
 
 set -euo pipefail
 
@@ -52,7 +52,7 @@ for f in "${JS_FILES[@]}"; do
   fi
 done
 
-for game in opposites maths memory-match; do
+for game in opposites maths memory-match sentence-blocks; do
   if [ ! -f "games/$game/index.html" ]; then
     echo "Error: games/$game/index.html not found." >&2
     exit 1
@@ -122,7 +122,7 @@ SHELL_JS_TEMP=$(mktemp)
 JS_COMBINED=$(mktemp)
 _cleanup() {
   rm -f "${TOKENS_BUILT:-}" "$JS_TEMP" "$CSS_TEMP" "$SHELL_JS_TEMP" "$JS_COMBINED" \
-        "${MATHS_JS_TEMP:-}" "${MATHS_CSS_TEMP:-}" "${MATHS_JS_COMBINED:-}"
+        "${MATHS_JS_TEMP:-}" "${MATHS_CSS_TEMP:-}" "${MATHS_JS_COMBINED:-}" \n        "${SB_JS_TEMP:-}" "${SB_CSS_TEMP:-}" "${SB_JS_COMBINED:-}"
 }
 trap _cleanup EXIT
 
@@ -453,6 +453,95 @@ echo "Number Bonds redirect: $DOCS_DIR/number-bonds.html"
 build_simple_game "games/memory-match/index.html"   "$DOCS_DIR/memory-match.html"   "Memory Match"
 
 # ==========================================================================
+# BUILD 5: Sentence Blocks (inline CSS + JS into single HTML), built like Maths.
+# JS order matters: dependencies first, main.js last. The unit tests in games/sentence-blocks/tests run earlier in this script.
+# ==========================================================================
+SB_GAME_DIR="games/sentence-blocks"
+SB_JS_FILES=(
+  "js/engine.js"
+  "js/words.js"
+  "js/scenes.js"
+  "js/pictures.js"
+  "js/main.js"
+)
+
+SB_JS_TEMP=$(mktemp)
+SB_CSS_TEMP=$(mktemp)
+SB_JS_COMBINED=$(mktemp)
+
+echo ""
+echo "--- Building Sentence Blocks ---"
+
+for f in "${SB_JS_FILES[@]}"; do
+  echo "  Inlining $SB_GAME_DIR/$f"
+  echo "// --- $(basename "$f") ---" >> "$SB_JS_TEMP"
+  awk '
+    /^import / || /^import\{/ {
+      if ($0 ~ /;/) { next }
+      while ((getline line) > 0) { if (line ~ /;/) break }
+      next
+    }
+    /^export\s*\{\s*\}\s*;?\s*$/ { next }
+    /^export default / { sub(/^export default /, ""); print; next }
+    /^export / { sub(/^export /, ""); print; next }
+    { print }
+  ' "$SB_GAME_DIR/$f" >> "$SB_JS_TEMP"
+  echo "" >> "$SB_JS_TEMP"
+done
+
+cat "$TOKENS_BUILT" shared/shell.css "$SB_GAME_DIR/css/style.css" > "$SB_CSS_TEMP"
+cat "$SHELL_JS_TEMP" "$SB_JS_TEMP" > "$SB_JS_COMBINED"
+
+echo "Assembling sentence-blocks HTML..."
+
+awk -v css_file="$SB_CSS_TEMP" -v js_file="$SB_JS_COMBINED" -v shell_file="shared/shell.html" '
+  /<link[^>]*shared\/tokens\.css[^>]*>/ { next }
+  /<link[^>]*shared\/shell\.css[^>]*>/ { next }
+  /<link[^>]*css\/style\.css[^>]*>/ {
+    print "  <style>"
+    while ((getline line < css_file) > 0) { print line }
+    close(css_file)
+    print "  </style>"
+    next
+  }
+  /<body/ {
+    print
+    while ((getline line < shell_file) > 0) { print line }
+    close(shell_file)
+    next
+  }
+  /<script[^>]*type="module"[^>]*src=.*main\.js/ || /<script[^>]*src=.*main\.js[^>]*type="module"/ {
+    print "  <script>"
+    while ((getline line < js_file) > 0) { print line }
+    close(js_file)
+    print "  </script>"
+    next
+  }
+  { print }
+' "$SB_GAME_DIR/index.html" > "$DOCS_DIR/sentence-blocks.html"
+
+SB_SIZE=$(wc -c < "$DOCS_DIR/sentence-blocks.html" | tr -d ' ')
+echo "Sentence Blocks built: $DOCS_DIR/sentence-blocks.html ($SB_SIZE bytes)"
+
+if grep -q 'kg-shell' "$DOCS_DIR/sentence-blocks.html"; then
+  echo "  [ok] Shell bar injected"
+else
+  echo "  [WARN] Shell bar missing"
+fi
+
+if grep -q 'buildSceneRound' "$DOCS_DIR/sentence-blocks.html"; then
+  echo "  [ok] JS inlined"
+else
+  echo "  [WARN] JS not found in output"
+fi
+
+if [ "$(grep -c '^import ' "$DOCS_DIR/sentence-blocks.html" || true)" = "0" ] && [ "$(grep -c '^export ' "$DOCS_DIR/sentence-blocks.html" || true)" = "0" ]; then
+  echo "  [ok] No residual import/export statements"
+else
+  echo "  [WARN] Residual import/export statements in sentence-blocks.html"
+fi
+
+# ==========================================================================
 # BUILD 3: Landing Page (inline shared tokens)
 # ==========================================================================
 echo ""
@@ -514,6 +603,7 @@ echo "  $DOCS_DIR/opposites.html      — Opposites Game"
 echo "  $DOCS_DIR/number-bonds.html   — (redirect to Maths)"
 echo "  $DOCS_DIR/maths.html          — Maths"
 echo "  $DOCS_DIR/memory-match.html   — Memory Match"
+echo "  $DOCS_DIR/sentence-blocks.html — Sentence Blocks"
 echo ""
 echo "Test by opening docs/index.html in a browser."
 
@@ -532,12 +622,13 @@ if [ "${1:-}" = "--release" ]; then
     "$DOCS_DIR/number-bonds.html"
     "$DOCS_DIR/maths.html"
     "$DOCS_DIR/memory-match.html"
+    "$DOCS_DIR/sentence-blocks.html"
   )
 
   if command -v zip >/dev/null 2>&1; then
     # Create a README for the zip
     echo "Open index.html in your web browser to play." > "$RELEASE_DIR/README.txt"
-    (cd "$DOCS_DIR" && zip -r "../$ZIP_PATH" index.html type-trainer.html opposites.html number-bonds.html maths.html memory-match.html)
+    (cd "$DOCS_DIR" && zip -r "../$ZIP_PATH" index.html type-trainer.html opposites.html number-bonds.html maths.html memory-match.html sentence-blocks.html)
     (cd "$RELEASE_DIR" && zip "$ZIP_NAME" README.txt && rm README.txt)
   elif command -v powershell >/dev/null 2>&1; then
     # Fallback: use PowerShell Compress-Archive (Windows)
