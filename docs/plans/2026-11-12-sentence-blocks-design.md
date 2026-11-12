@@ -46,6 +46,11 @@ Stage 2 opens after 5 finished describe-the-picture sentences on stage 1, and st
 7. **After 3 wrong tiles on one slot, the right tile gets a gentle outline.** Nothing else is given away.
 8. **Wrong tiles show a cross shape as well as bouncing**, because state is never carried by colour alone in this design system.
 
+## Decisions made (2026-11-12)
+
+- **D1, colour: purple plus the Slot Code exception, chosen.** A purple paint was added to `shared/tokens.css` (Day `#6A3FB5`, Dusk `#B79CFF`; contrast checked at 7.02 / 5.71 / 8.10 / 7.18). The five slot colours may appear together; each also carries a glyph, a word and a keyline.
+- **D2, spike before full art, and D3, hub rebuild for five games:** taken as confirmed by the instruction to follow the plan.
+
 ## Open decisions for the user (the plan stops at each)
 
 - **D1, colour.** The design system's One Paint Rule allows one game paint per screen, and only four game paints exist (red, blue, green, orange), with yellow owned by the system. This game needs five slot colours, plus a paint for its own hub tile. Recommended: add one new purple paint (also the Describe slot, matching the pack), and document a named "Slot Code" exception, where the five slot colours are the game's meaning and each also carries a glyph and a label. The alternative is to keep one paint and carry the slot identity by glyph, label and position only, which loses the method's colour cue.

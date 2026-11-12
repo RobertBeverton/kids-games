@@ -99,6 +99,7 @@
   --paint-red:    #C8242F;  --on-red:    #FFFFFF;
   --paint-blue:   #2456D8;  --on-blue:   #FFFFFF;
   --paint-green:  #0E7C4A;  --on-green:  #FFFFFF;
+  --paint-purple: #6A3FB5;  --on-purple: #FFFFFF;
 
   --right: #0E7C4A;         /* answered right: green + a tick shape */
   --wrong: #C8242F;         /* answered wrong: red + a cross shape */
@@ -123,6 +124,7 @@
   --paint-red:    #FF6B70;  --on-red:    #10141B;
   --paint-blue:   #6E9BFF;  --on-blue:   #10141B;
   --paint-green:  #3FD28A;  --on-green:  #10141B;
+  --paint-purple: #B79CFF;  --on-purple: #10141B;
 
   --right: #3FD28A;
   --wrong: #FF6B70;
@@ -138,6 +140,7 @@
 [data-paint="red"]    { --paint: var(--paint-red);    --on-paint: var(--on-red); }
 [data-paint="blue"]   { --paint: var(--paint-blue);   --on-paint: var(--on-blue); }
 [data-paint="green"]  { --paint: var(--paint-green);  --on-paint: var(--on-green); }
+[data-paint="purple"] { --paint: var(--paint-purple); --on-paint: var(--on-purple); }
 body { --paint: var(--paint-blue); --on-paint: var(--on-blue); }
 
 /* === Legacy aliases ===
