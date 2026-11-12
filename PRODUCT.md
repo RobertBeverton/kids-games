@@ -33,7 +33,7 @@ Hosted on GitHub Pages (`docs/`), built from `games/<name>/index.html` and `hub.
 
 ## Brand Commitments
 
-Product name "Kids Games". Author credit: Robert Beverton, "with a lot of help from Claude". Hub greeting is "Pick a game!". No other voice or identity rules confirmed.
+Product name "Kids Games". Author credit: Robert Beverton. Hub greeting is "Pick a game!". No other voice or identity rules confirmed.
 
 ## Evidence on Hand
 

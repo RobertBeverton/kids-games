@@ -52,4 +52,4 @@ bash build.sh --release
 
 ## Author
 
-Created by **Robert Beverton** with a lot of help from Claude.
+Created by **Robert Beverton**.
