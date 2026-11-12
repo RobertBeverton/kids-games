@@ -264,18 +264,13 @@ function initGameScreen() {
 
 // --- Question rendering ---
 function renderQuestion(question, choiceNums) {
-  // Render equation with blank
-  const { left, op, right, result, blank } = question;
+  const { left, op, right, result } = question;
   const opStr = { '+': '+', '-': '−', '*': '×', '/': '÷' }[op] ?? op;
   const safeLeft = Number(left);
   const safeRight = Number(right);
   const safeResult = Number(result);
-  let html;
-  if (blank === 'left') {
-    html = `<span class="maths-blank">?</span> ${opStr} ${safeRight} = ${safeResult}`;
-  } else {
-    html = `${safeLeft} ${opStr} <span class="maths-blank">?</span> = ${safeResult}`;
-  }
+  // Maths always blanks the RESULT: "9 + 8 = ?"
+  const html = `${safeLeft} ${opStr} ${safeRight} = <span class="maths-blank">?</span>`;
   const hasLargeNum = [safeLeft, safeRight, safeResult].some(n => Math.abs(n) >= 100);
   const qEl = document.getElementById('maths-question');
   qEl.innerHTML = html;
