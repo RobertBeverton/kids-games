@@ -23,6 +23,22 @@
       </h1>
 
       <fieldset class="maths-fieldset">
+        <legend class="kg-label">Style</legend>
+        <div class="kg-seg maths-styles" id="maths-style-row" role="group" aria-label="Style">
+          <button class="kg-seg__opt maths-style" data-style="answer" aria-pressed="true" aria-label="Work it out: seven plus five equals what">
+            <span class="maths-style__eq" aria-hidden="true">7 + 5 = <span class="maths-blank">?</span></span>
+            <span class="maths-style__name">Work it out</span>
+            <svg class="ic maths-style__tick" aria-hidden="true"><use href="#i-check"/></svg>
+          </button>
+          <button class="kg-seg__opt maths-style" data-style="missing" aria-pressed="false" aria-label="Find the missing number: seven plus what equals twelve">
+            <span class="maths-style__eq" aria-hidden="true">7 + <span class="maths-blank">?</span> = 12</span>
+            <span class="maths-style__name">Find the missing number</span>
+            <svg class="ic maths-style__tick" aria-hidden="true"><use href="#i-check"/></svg>
+          </button>
+        </div>
+      </fieldset>
+
+      <fieldset class="maths-fieldset">
         <legend class="kg-label">Sums</legend>
         <div class="kg-seg" id="maths-op-row" role="group" aria-label="Sums">
           <button class="kg-seg__opt maths-op" data-op="+" aria-pressed="true"  aria-label="Add"><svg class="ic ic--lg"><use href="#i-plus"/></svg></button>
@@ -41,7 +57,7 @@
           <button class="kg-seg__opt maths-diff" data-diff="hard"   aria-pressed="false"><span class="kg-squares" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i></span><span>Hard</span></button>
           <button class="kg-seg__opt maths-diff" data-diff="custom" aria-pressed="false"><svg class="ic"><use href="#i-pencil"/></svg><span>Custom</span></button>
         </div>
-        <p class="maths-diff-hint" id="maths-diff-hint">Numbers 1–20, tables to 10</p>
+        <p class="maths-diff-hint" id="maths-diff-hint">Add and take away to 100. Tables 2 to 10</p>
       </fieldset>
 
       <!-- Custom options (hidden unless Custom selected) -->

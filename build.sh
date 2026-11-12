@@ -52,7 +52,7 @@ for f in "${JS_FILES[@]}"; do
   fi
 done
 
-for game in opposites number-bonds maths memory-match; do
+for game in opposites maths memory-match; do
   if [ ! -f "games/$game/index.html" ]; then
     echo "Error: games/$game/index.html not found." >&2
     exit 1
@@ -85,6 +85,14 @@ else
 fi
 echo ""
 
+# --- Maths: unit tests (questions, answer choices, display format, sessions, saved-data migration) ---
+if command -v node >/dev/null 2>&1; then
+  (cd games/maths/tests && node --test ./*.test.js) || { echo "Error: Maths tests failed." >&2; exit 1; }
+else
+  echo "  [WARN] node not found: skipped the Maths tests"
+fi
+echo ""
+
 # --- Create docs directory ---
 mkdir -p "$DOCS_DIR"
 
@@ -106,7 +114,7 @@ SHELL_JS_TEMP=$(mktemp)
 JS_COMBINED=$(mktemp)
 _cleanup() {
   rm -f "${TOKENS_BUILT:-}" "$JS_TEMP" "$CSS_TEMP" "$SHELL_JS_TEMP" "$JS_COMBINED" \
-        "${NB_JS_TEMP:-}" "${NB_CSS_TEMP:-}" "${NB_JS_COMBINED:-}"
+        "${MATHS_JS_TEMP:-}" "${MATHS_CSS_TEMP:-}" "${MATHS_JS_COMBINED:-}"
 }
 trap _cleanup EXIT
 
@@ -352,84 +360,9 @@ build_simple_game() {
 }
 
 # ==========================================================================
-# BUILD 4: Number Bonds (inline CSS + JS into single HTML)
+# BUILD 4: Maths (inline CSS + JS into single HTML). Number Bonds is a style inside Maths now;
+# docs/number-bonds.html is only a redirect so old links and bookmarks keep working.
 # ==========================================================================
-echo ""
-echo "--- Building Number Bonds ---"
-
-NB_GAME_DIR="games/number-bonds"
-NB_JS_FILES=(
-  "js/questions.js"
-  "js/game.js"
-  "js/main.js"
-)
-
-NB_JS_TEMP=$(mktemp)
-NB_CSS_TEMP=$(mktemp)
-NB_JS_COMBINED=$(mktemp)
-
-for f in "${NB_JS_FILES[@]}"; do
-  echo "  Inlining $NB_GAME_DIR/$f"
-  echo "// --- $(basename "$f") ---" >> "$NB_JS_TEMP"
-  awk '
-    /^import / || /^import\{/ {
-      if ($0 ~ /;/) { next }
-      while ((getline line) > 0) { if (line ~ /;/) break }
-      next
-    }
-    /^export\s*\{\s*\}\s*;?\s*$/ { next }
-    /^export default / { sub(/^export default /, ""); print; next }
-    /^export / { sub(/^export /, ""); print; next }
-    { print }
-  ' "$NB_GAME_DIR/$f" >> "$NB_JS_TEMP"
-  echo "" >> "$NB_JS_TEMP"
-done
-
-cat "$TOKENS_BUILT" shared/shell.css "$NB_GAME_DIR/css/style.css" > "$NB_CSS_TEMP"
-cat "$SHELL_JS_TEMP" "$NB_JS_TEMP" > "$NB_JS_COMBINED"
-
-echo "Assembling number-bonds HTML..."
-
-awk -v css_file="$NB_CSS_TEMP" -v js_file="$NB_JS_COMBINED" -v shell_file="shared/shell.html" '
-  /<link[^>]*shared\/tokens\.css[^>]*>/ { next }
-  /<link[^>]*shared\/shell\.css[^>]*>/ { next }
-  /<link[^>]*css\/style\.css[^>]*>/ {
-    print "  <style>"
-    while ((getline line < css_file) > 0) { print line }
-    close(css_file)
-    print "  </style>"
-    next
-  }
-  /<body/ {
-    print
-    while ((getline line < shell_file) > 0) { print line }
-    close(shell_file)
-    next
-  }
-  /<script[^>]*type="module"[^>]*src=.*main\.js/ || /<script[^>]*src=.*main\.js[^>]*type="module"/ {
-    print "  <script>"
-    while ((getline line < js_file) > 0) { print line }
-    close(js_file)
-    print "  </script>"
-    next
-  }
-  { print }
-' "$NB_GAME_DIR/index.html" > "$DOCS_DIR/number-bonds.html"
-
-NB_SIZE=$(wc -c < "$DOCS_DIR/number-bonds.html" | tr -d ' ')
-echo "Number Bonds built: $DOCS_DIR/number-bonds.html ($NB_SIZE bytes)"
-
-if grep -q 'kg-shell' "$DOCS_DIR/number-bonds.html"; then
-  echo "  [ok] Shell bar injected"
-else
-  echo "  [WARN] Shell bar missing"
-fi
-
-if grep -q 'GameSession' "$DOCS_DIR/number-bonds.html"; then
-  echo "  [ok] JS inlined"
-else
-  echo "  [WARN] JS not found in output"
-fi
 MATHS_GAME_DIR="games/maths"
 MATHS_JS_FILES=(
   "js/questions.js"
@@ -506,6 +439,9 @@ if grep -q 'GameSession' "$DOCS_DIR/maths.html"; then
 else
   echo "  [WARN] JS not found in output"
 fi
+# Old Number Bonds address: a tiny page that sends the child to Maths in the "missing number" style.
+cp games/maths/number-bonds-redirect.html "$DOCS_DIR/number-bonds.html"
+echo "Number Bonds redirect: $DOCS_DIR/number-bonds.html"
 build_simple_game "games/memory-match/index.html"   "$DOCS_DIR/memory-match.html"   "Memory Match"
 
 # ==========================================================================
@@ -567,7 +503,7 @@ echo "=== Build Complete ==="
 echo "  $DOCS_DIR/index.html          — Landing page"
 echo "  $DOCS_DIR/type-trainer.html   — Type Trainer"
 echo "  $DOCS_DIR/opposites.html      — Opposites Game"
-echo "  $DOCS_DIR/number-bonds.html   — Number Bonds"
+echo "  $DOCS_DIR/number-bonds.html   — (redirect to Maths)"
 echo "  $DOCS_DIR/maths.html          — Maths"
 echo "  $DOCS_DIR/memory-match.html   — Memory Match"
 echo ""

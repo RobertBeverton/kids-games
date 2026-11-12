@@ -5,6 +5,16 @@
 .maths-fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .maths-fieldset .kg-seg { gap: var(--s3); }
 
+/* Style switcher: two big tiles that show the question itself, so a child who cannot read can choose */
+.maths-styles { flex-wrap: nowrap; gap: var(--s3); }
+.maths-style { position: relative; flex: 1 1 0; min-width: 0; flex-direction: column; gap: var(--s2); min-height: 124px; padding: 30px var(--s2) var(--s3); text-align: center; }
+.maths-style__eq { font-size: clamp(1.5rem, 5.2vw, 2.6rem); font-weight: 700; line-height: 1.1; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.maths-style__eq .maths-blank { animation: none; line-height: 1; padding-bottom: 0.1em; height: 1.1em; }
+.maths-style__name { font-size: var(--t-small); font-weight: 400; line-height: 1.2; }
+.maths-style__tick { display: none; position: absolute; top: 6px; right: 8px; width: 22px; height: 22px; }
+.maths-style[aria-pressed="true"] .maths-style__tick { display: block; }
+:root[data-age="young"] .maths-style { min-height: 108px; }
+
 /* Settings tiles */
 #maths-op-row { gap: var(--s2); }
 .maths-op { flex: 1 1 52px; padding: 0 var(--s2); flex-direction: column; gap: 2px; min-height: 76px; }
@@ -37,7 +47,7 @@
 .maths-hud-center { display: inline-flex; align-items: center; }
 .maths-question-wrap { flex: 1; display: grid; place-items: center; min-height: 0; }
 .maths-question {
-  font-size: var(--t-numeral); font-weight: 700; line-height: 1.1;
+  font-size: min(var(--t-numeral), 12vw); font-weight: 700; line-height: 1.1;
   text-align: center; font-variant-numeric: tabular-nums; overflow-wrap: anywhere;
 }
 .maths-question--long { font-size: clamp(2.5rem, 9vmin, 5rem); }

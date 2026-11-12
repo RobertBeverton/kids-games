@@ -1,20 +1,29 @@
 // main.js — Entry point, wires settings + game together
-import { GameSession } from './game.js';
+import { GameSession, ENDLESS_MIN_ANSWERS } from './game.js';
+import { PRESETS, STYLES, formatQuestion, formatNumber } from './questions.js';
+
+const GAME_ID = 'maths';          // storage and progress id (Number Bonds was merged into this game)
+const OPS = ['+', '-', '*', '/', 'mixed'];
+const MODES = ['sprint', 'round', 'endless'];
 
 // --- Settings state ---
-let settings = {
-  op: '+',
-  difficulty: 'medium',
-  mode: 'sprint',
-  custom: { min: 1, max: 100, maxTable: 12, negatives: false, decimals: false }
-};
+let settings = defaultSettings(null);
 
-const DIFFICULTY_PRESETS = {
-  easy:   { min: 1, max: 10,  maxTable: 5,  negatives: false, decimals: false, hint: 'Numbers 1–10, tables to 5' },
-  medium: { min: 1, max: 20,  maxTable: 10, negatives: false, decimals: false, hint: 'Numbers 1–20, tables to 10' },
-  hard:   { min: 1, max: 100, maxTable: 12, negatives: false, decimals: false, hint: 'Numbers 1–100, tables to 12' },
-  custom: { hint: 'Your own settings' },
-};
+const DIFFICULTIES = ['easy', 'medium', 'hard', 'custom'];
+const CUSTOM_HINT = 'Your own settings';
+
+// Age drives the first-time defaults. Saved choices always win.
+const BRACKET_AGE = { '4-5': 5, '6-8': 7, '9-12': 10, '13+': 14 };
+function defaultSettings(player) {
+  let difficulty = 'medium', mode = 'sprint';
+  if (player) {
+    const age = player.age != null ? player.age : (BRACKET_AGE[player.ageBracket] || 7);
+    if (age <= 7) { difficulty = 'easy'; mode = 'round'; }       // Reception to Year 2: sums to 20, no clock
+    else if (age <= 9) { difficulty = 'medium'; mode = 'sprint'; }
+    else { difficulty = 'hard'; mode = 'sprint'; }
+  }
+  return { op: '+', style: 'answer', difficulty, mode, custom: { min: 1, max: 100, maxTable: 12, negatives: false, decimals: false } };
+}
 
 // --- DOM refs ---
 const screens = {
@@ -22,159 +31,132 @@ const screens = {
   game:     document.getElementById('maths-game'),
   results:  document.getElementById('maths-results'),
 };
+const $ = (id) => document.getElementById(id);
 
 // --- Boot ---
 loadSettings();
+applyStyleFromAddress();
 initSettingsScreen();
 showScreen('settings');
 
 // --- Initialise settings screen ---
 function initSettingsScreen() {
-  // Operation toggles
-  document.getElementById('maths-op-row').addEventListener('click', e => {
+  $('maths-style-row').addEventListener('click', e => {
+    const btn = e.target.closest('[data-style]');
+    if (!btn) return;
+    settings.style = btn.dataset.style;
+    updateToggles('maths-style-row', 'style', settings.style);
+    if (settings.difficulty === 'custom') updateComplexityPreview();
+  });
+
+  $('maths-op-row').addEventListener('click', e => {
     const btn = e.target.closest('[data-op]');
     if (!btn) return;
     settings.op = btn.dataset.op;
-    updateToggles('maths-op-row', 'data-op', settings.op);
+    updateToggles('maths-op-row', 'op', settings.op);
     if (settings.difficulty === 'custom') updateComplexityPreview();
   });
 
-  // Difficulty toggles
-  document.getElementById('maths-diff-row').addEventListener('click', e => {
+  $('maths-diff-row').addEventListener('click', e => {
     const btn = e.target.closest('[data-diff]');
     if (!btn) return;
     settings.difficulty = btn.dataset.diff;
-    updateToggles('maths-diff-row', 'data-diff', settings.difficulty);
+    updateToggles('maths-diff-row', 'diff', settings.difficulty);
     updateDifficultyHint();
-    document.getElementById('maths-custom-opts').hidden = settings.difficulty !== 'custom';
+    $('maths-custom-opts').hidden = settings.difficulty !== 'custom';
     if (settings.difficulty === 'custom') updateComplexityPreview();
   });
 
-  // Mode buttons
-  document.getElementById('maths-mode-row').addEventListener('click', e => {
+  $('maths-mode-row').addEventListener('click', e => {
     const btn = e.target.closest('[data-mode]');
     if (!btn) return;
     settings.mode = btn.dataset.mode;
-    updateModeButtons();
+    updateToggles('maths-mode-row', 'mode', settings.mode);
   });
 
-  // Custom inputs
-  document.getElementById('maths-min').addEventListener('input', e => {
-    settings.custom.min = Number(e.target.value);
-    updateComplexityPreview();
+  $('maths-min').addEventListener('input', e => { settings.custom.min = Number(e.target.value); updateComplexityPreview(); });
+  $('maths-max').addEventListener('input', e => { settings.custom.max = Number(e.target.value); updateComplexityPreview(); });
+  $('maths-table').addEventListener('input', e => { settings.custom.maxTable = Number(e.target.value); updateComplexityPreview(); });
+  // A typed table below 2 would leave nothing to ask: tidy the box when the grown-up leaves it.
+  $('maths-table').addEventListener('change', e => {
+    const t = Math.max(2, Math.min(99, Math.trunc(Number(e.target.value)) || 2));
+    e.target.value = t; settings.custom.maxTable = t; updateComplexityPreview();
   });
-  document.getElementById('maths-max').addEventListener('input', e => {
-    settings.custom.max = Number(e.target.value);
-    updateComplexityPreview();
-  });
-  document.getElementById('maths-table').addEventListener('input', e => {
-    settings.custom.maxTable = Number(e.target.value);
-    updateComplexityPreview();
-  });
-  document.getElementById('maths-negatives').addEventListener('change', e => {
-    settings.custom.negatives = e.target.checked;
-    updateComplexityPreview();
-  });
-  document.getElementById('maths-decimals').addEventListener('change', e => {
-    settings.custom.decimals = e.target.checked;
-    updateComplexityPreview();
-  });
+  $('maths-negatives').addEventListener('change', e => { settings.custom.negatives = e.target.checked; updateComplexityPreview(); });
+  $('maths-decimals').addEventListener('change', e => { settings.custom.decimals = e.target.checked; updateComplexityPreview(); });
 
-  // Start button
-  document.getElementById('maths-start-btn').addEventListener('click', startGame);
-
-  // Restore saved settings into UI
+  $('maths-start-btn').addEventListener('click', startGame);
   applySettingsToUI();
 }
 
-function updateToggles(rowId, attr, activeVal) {
-  document.getElementById(rowId).querySelectorAll(`[${attr}]`).forEach(btn => {
-    const active = btn.dataset[attr.replace('data-', '')] === activeVal;
-    btn.setAttribute('aria-pressed', active ? 'true' : 'false');
-  });
-}
-
-function updateModeButtons() {
-  document.getElementById('maths-mode-row').querySelectorAll('[data-mode]').forEach(btn => {
-    const active = btn.dataset.mode === settings.mode;
-    btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+function updateToggles(rowId, key, activeVal) {
+  $(rowId).querySelectorAll(`[data-${key}]`).forEach(btn => {
+    btn.setAttribute('aria-pressed', btn.dataset[key] === activeVal ? 'true' : 'false');
   });
 }
 
 function updateDifficultyHint() {
-  const preset = DIFFICULTY_PRESETS[settings.difficulty];
-  document.getElementById('maths-diff-hint').textContent = preset.hint;
+  const preset = PRESETS[settings.difficulty];
+  $('maths-diff-hint').textContent = preset ? preset.hint : CUSTOM_HINT;
 }
 
 function applySettingsToUI() {
-  updateToggles('maths-op-row', 'data-op', settings.op);
-  updateToggles('maths-diff-row', 'data-diff', settings.difficulty);
-  updateModeButtons();
+  updateToggles('maths-style-row', 'style', settings.style);
+  updateToggles('maths-op-row', 'op', settings.op);
+  updateToggles('maths-diff-row', 'diff', settings.difficulty);
+  updateToggles('maths-mode-row', 'mode', settings.mode);
   updateDifficultyHint();
-  document.getElementById('maths-custom-opts').hidden = settings.difficulty !== 'custom';
-  document.getElementById('maths-min').value = settings.custom.min;
-  document.getElementById('maths-max').value = settings.custom.max;
-  document.getElementById('maths-table').value = settings.custom.maxTable;
-  document.getElementById('maths-negatives').checked = settings.custom.negatives;
-  document.getElementById('maths-decimals').checked = settings.custom.decimals;
+  $('maths-custom-opts').hidden = settings.difficulty !== 'custom';
+  $('maths-min').value = settings.custom.min;
+  $('maths-max').value = settings.custom.max;
+  $('maths-table').value = settings.custom.maxTable;
+  $('maths-negatives').checked = settings.custom.negatives;
+  $('maths-decimals').checked = settings.custom.decimals;
   if (settings.difficulty === 'custom') updateComplexityPreview();
 }
 
 function getActiveRange() {
   if (settings.difficulty === 'custom') return { ...settings.custom, _difficulty: 'custom' };
-  const p = DIFFICULTY_PRESETS[settings.difficulty];
-  return { min: p.min, max: p.max, maxTable: p.maxTable, negatives: p.negatives, decimals: p.decimals, _difficulty: settings.difficulty };
+  return { ...PRESETS[settings.difficulty], _difficulty: settings.difficulty };
 }
 
-// --- Complexity indicator (custom mode only) ---
-
-const COMPLEXITY_LEVELS = {
-  preschool: { label: 'Preschool', ages: 'Ages 3–5',   colour: '#4caf50' },
-  ks1:       { label: 'KS1',       ages: 'Ages 5–7',   colour: '#3b9acd' },
-  ks2:       { label: 'KS2',       ages: 'Ages 7–11',  colour: '#f5a623' },
-  ks3:       { label: 'KS3',       ages: 'Ages 11–14', colour: '#e07a00' },
-  challenge: { label: 'Challenge', ages: 'Advanced',   colour: '#e53935' },
-};
+// --- Complexity indicator (custom only), set against the English curriculum ---
+const COMPLEXITY_LEVELS = [
+  { label: 'Reception',  ages: 'Ages 4–5' },
+  { label: 'Years 1–2', ages: 'Ages 5–7' },
+  { label: 'Years 3–4', ages: 'Ages 7–9' },
+  { label: 'Years 5–6', ages: 'Ages 9–11' },
+  { label: 'Beyond',     ages: 'Ages 11+' },
+];
 
 function computeComplexity(op, custom) {
-  const { max, maxTable, negatives, decimals } = custom;
-  if (negatives || decimals) return 'challenge';
-  const addSubLevel =
-    max > 100 ? 'challenge' :
-    max > 20  ? 'ks3'       :
-    max > 10  ? 'ks2'       :
-    max > 5   ? 'ks1'       : 'preschool';
-  const mulDivLevel =
-    maxTable > 12 ? 'challenge' :
-    maxTable > 10 ? 'ks3'       :
-    maxTable > 5  ? 'ks2'       :
-    maxTable > 2  ? 'ks1'       : 'preschool';
-  if (op === '+' || op === '-') return addSubLevel;
-  if (op === '*' || op === '/') return mulDivLevel;
-  const order = ['preschool', 'ks1', 'ks2', 'ks3', 'challenge'];
-  return order[Math.max(order.indexOf(addSubLevel), order.indexOf(mulDivLevel))];
+  const max = Math.max(Math.abs(Number(custom.min)) || 0, Math.abs(Number(custom.max)) || 0);
+  const table = Math.max(2, Number(custom.maxTable) || 2);
+  const addSub = max <= 10 ? 0 : max <= 20 ? 1 : max <= 100 ? 2 : max <= 1000 ? 3 : 4;
+  const mulDiv = table <= 5 ? 1 : table <= 12 ? 2 : table <= 20 ? 3 : 4;
+  let level;
+  if (op === '+' || op === '-') level = addSub;
+  else if (op === '*' || op === '/') level = mulDiv;
+  else level = Math.max(addSub, mulDiv);
+  if (custom.negatives || custom.decimals) level = Math.max(level, 3);   // negatives and decimals are Years 5–6
+  return level;
 }
 
-function buildMathsExampleQuestion(op, custom) {
-  const { max, maxTable } = custom;
-  const effectiveOp = (op === '*' || op === '/') ? '*' : '+';
-  if (effectiveOp === '+') {
-    const a = Math.round(max * 0.6);
-    const b = Math.round(max * 0.35);
-    return `${a} + ${b} = ?`;
-  }
-  const a = Math.max(2, maxTable - 1);
-  return `${a} × ${maxTable} = ?`;
+function exampleQuestion(op, custom, style) {
+  const max = Math.max(Math.abs(Number(custom.max)) || 10, 2);
+  const table = Math.max(2, Number(custom.maxTable) || 2);
+  const times = op === '*' || op === '/';
+  const left = times ? Math.max(2, table - 1) : Math.round(max * 0.6);
+  const right = times ? table : Math.round(max * 0.35);
+  const q = { left, op: times ? '*' : '+', right, result: times ? left * right : left + right, blank: style === 'answer' ? 'result' : 'right' };
+  return formatQuestion(q).text;
 }
 
 function updateComplexityPreview() {
-  const level = computeComplexity(settings.op, settings.custom);
-  const info = COMPLEXITY_LEVELS[level];
-  const badge = document.getElementById('maths-complexity-badge');
-  badge.textContent = info.label;
-  document.getElementById('maths-complexity-ages').textContent = info.ages;
-  document.getElementById('maths-complexity-example').textContent =
-    'e.g. ' + buildMathsExampleQuestion(settings.op, settings.custom);
+  const info = COMPLEXITY_LEVELS[computeComplexity(settings.op, settings.custom)];
+  $('maths-complexity-badge').textContent = info.label;
+  $('maths-complexity-ages').textContent = info.ages;
+  $('maths-complexity-example').textContent = 'e.g. ' + exampleQuestion(settings.op, settings.custom, settings.style);
 }
 
 // --- Screen management ---
@@ -183,70 +165,64 @@ function showScreen(name) {
   window.scrollTo(0, 0);
 }
 
-// --- Persistence ---
+// --- Persistence (per player, under the one 'maths' id) ---
 function saveSettings() {
   try {
-    if (window.KidsGames) {
-      const d = window.KidsGames.loadGameData('maths') || {};
-      window.KidsGames.saveGameData('maths', { ...d, settings });
-    } else {
-      localStorage.setItem('maths_settings', JSON.stringify(settings));
-    }
+    const d = window.KidsGames.loadGameData(GAME_ID) || {};
+    window.KidsGames.saveGameData(GAME_ID, { ...d, v: 2, settings });
   } catch (e) { /* ignore */ }
 }
 
 function loadSettings() {
+  const fresh = defaultSettings(window.KidsGames && window.KidsGames.player);
   try {
-    let saved;
-    if (window.KidsGames) {
-      const d = window.KidsGames.loadGameData('maths');
-      saved = d?.settings;
-    } else {
-      const raw = localStorage.getItem('maths_settings');
-      saved = raw ? JSON.parse(raw) : null;
-    }
+    const d = window.KidsGames.loadGameData(GAME_ID);
+    const saved = d && d.settings;
     if (saved) {
-      settings = { ...settings, ...saved };
+      settings = { ...fresh, ...saved, custom: { ...fresh.custom, ...(saved.custom || {}) } };
+    } else {
+      settings = fresh;   // a player who has never played starts from their own age, not the last player's choices
     }
-  } catch (e) { /* ignore */ }
-  applyAgeBracketDefault();
+  } catch (e) { settings = fresh; }
+  if (!OPS.includes(settings.op)) settings.op = '+';
+  if (!STYLES.includes(settings.style)) settings.style = 'answer';
+  if (!DIFFICULTIES.includes(settings.difficulty)) settings.difficulty = fresh.difficulty;
+  if (!MODES.includes(settings.mode)) settings.mode = fresh.mode;
 }
 
-function applyAgeBracketDefault() {
-  // Only if no settings have been saved yet
+// Old Number Bonds links point here as maths.html?style=missing
+function applyStyleFromAddress() {
   try {
-    const existing = window.KidsGames?.loadGameData('maths');
-    if (existing?.settings?.difficulty) return; // already set
-    const bracket = window.KidsGames?.player?.ageBracket;
-    if (bracket === '4-5') { settings.difficulty = 'easy'; settings.mode = 'round'; }
-    else if (bracket === '9-12') settings.difficulty = 'hard';
-    else settings.difficulty = 'medium';
+    const wanted = new URLSearchParams(window.location.search).get('style');
+    if (STYLES.includes(wanted)) {
+      settings.style = wanted;
+      window.history.replaceState(null, '', window.location.pathname);
+    }
   } catch (e) { /* ignore */ }
 }
 
 // --- Game start ---
 let activeSession = null;
+let activeConfig = null;
 
 function startGame() {
   saveSettings();
   if (window.KidsGames) window.KidsGames.sfx('start');
-  const range = getActiveRange();
+  activeConfig = { style: settings.style, op: settings.op, difficulty: settings.difficulty, mode: settings.mode };
   activeSession = new GameSession({
     op: settings.op,
     mode: settings.mode,
-    range,
+    style: settings.style,
+    range: getActiveRange(),
     onQuestion: renderQuestion,
     onAnswer: renderAnswerFeedback,
     onScore: renderHud,
     onEnd: showResults,
     onHint: () => {
-      document.getElementById('maths-choices')
-        ?.querySelectorAll('.maths-choice')
-        .forEach(btn => {
-          if (Number(btn.textContent) === activeSession._currentQuestion.answer) {
-            btn.classList.add('is-hint');
-          }
-        });
+      const answer = activeSession._currentQuestion.answer;
+      $('maths-choices').querySelectorAll('.maths-choice').forEach(btn => {
+        if (btn._value === answer) btn.classList.add('is-hint');
+      });
     },
   });
   showScreen('game');
@@ -255,37 +231,29 @@ function startGame() {
 }
 
 function initGameScreen() {
-  const quitBtn = document.getElementById('maths-quit-btn');
+  const quitBtn = $('maths-quit-btn');
   quitBtn.hidden = false;
-  quitBtn.onclick = () => {
-    activeSession?.end({ quit: true });
-  };
+  quitBtn.onclick = () => { activeSession?.end({ quit: true }); };
 }
 
 // --- Question rendering ---
 function renderQuestion(question, choiceNums) {
-  const { left, op, right, result } = question;
-  const opStr = { '+': '+', '-': '−', '*': '×', '/': '÷' }[op] ?? op;
-  const safeLeft = Number(left);
-  const safeRight = Number(right);
-  const safeResult = Number(result);
-  // Maths always blanks the RESULT: "9 + 8 = ?"
-  const html = `${safeLeft} ${opStr} ${safeRight} = <span class="maths-blank">?</span>`;
-  const hasLargeNum = [safeLeft, safeRight, safeResult].some(n => Math.abs(n) >= 100);
-  const qEl = document.getElementById('maths-question');
-  qEl.innerHTML = html;
-  // Shrink font if any number has 3+ digits (custom large ranges)
+  const { parts } = formatQuestion(question);
+  const qEl = $('maths-question');
+  qEl.innerHTML = parts.map(p => p.blank ? '<span class="maths-blank">?</span>' : p.text).join(' ');
+  // Shrink the font if any number has 3+ digits (custom large ranges)
+  const hasLargeNum = [question.left, question.right, question.result].some(n => Math.abs(Number(n)) >= 100);
   qEl.classList.toggle('maths-question--long', hasLargeNum);
 
-  // Render choice buttons
-  const choicesEl = document.getElementById('maths-choices');
+  const choicesEl = $('maths-choices');
   document.activeElement?.blur();
   choicesEl.innerHTML = '';
   choiceNums.forEach(num => {
     const btn = document.createElement('button');
     btn.className = 'kg-tile maths-choice';
-    btn.textContent = num;
-    btn.setAttribute('aria-label', `Answer: ${num}`);
+    btn.textContent = formatNumber(num);
+    btn._value = num;   // kept off the page: nothing in the markup tells the buttons apart
+    btn.setAttribute('aria-label', `Answer: ${btn.textContent}`);
     btn.addEventListener('click', () => activeSession?.answer(num));
     choicesEl.appendChild(btn);
   });
@@ -293,9 +261,9 @@ function renderQuestion(question, choiceNums) {
 
 function renderAnswerFeedback({ correct, correctAnswer, chosen, requiresConfirmation }) {
   if (window.KidsGames && chosen !== undefined) window.KidsGames.sfx(correct ? 'right' : 'wrong');
-  document.getElementById('maths-choices')?.querySelectorAll('.maths-choice').forEach(btn => {
+  $('maths-choices')?.querySelectorAll('.maths-choice').forEach(btn => {
     btn.classList.remove('is-hint');
-    const num = Number(btn.textContent);
+    const num = btn._value;
     if (num === correctAnswer) {
       btn.classList.add('is-reveal');
       if (!requiresConfirmation) btn.disabled = true;
@@ -309,8 +277,8 @@ function renderAnswerFeedback({ correct, correctAnswer, chosen, requiresConfirma
 }
 
 function renderHud(hudState) {
-  document.getElementById('maths-score').textContent = hudState.score;
-  const center = document.getElementById('maths-hud-center');
+  $('maths-score').textContent = hudState.score;
+  const center = $('maths-hud-center');
   if (hudState.mode === 'sprint') {
     center.innerHTML = '<span class="kg-chip"><svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg><span class="kg-sr">Seconds left</span><strong>' + hudState.timeLeft + '</strong></span>';
   } else if (hudState.mode === 'round') {
@@ -324,23 +292,24 @@ function renderHud(hudState) {
 
 // --- Results rendering ---
 function showResults(stats) {
-  // Accuracy % keeps thresholds consistent across modes and score ranges
+  // A game counts (progress square, personal best, "new best") when it was played through. Round and Sprint end by
+  // themselves; Endless can only be stopped, so it counts once the child has answered enough questions.
+  const finished = !stats.quit || (stats.mode === 'endless' && stats.answered >= ENDLESS_MIN_ANSWERS);
+
   const stars = stats.accuracy >= 80 ? 3 : stats.accuracy >= 50 ? 2 : 1;
-  const starsEl = document.getElementById('maths-results-icon');
-  starsEl.innerHTML = [1, 2, 3].map(i =>
+  $('maths-results-icon').innerHTML = [1, 2, 3].map(i =>
     '<svg class="maths-star' + (i > stars ? ' off' : '') + '" viewBox="0 0 48 48" aria-hidden="true"><use href="#a-star"/></svg>').join('');
-  document.getElementById('maths-results-title').textContent =
+  $('maths-results-title').textContent =
     stats.accuracy >= 80 ? 'Amazing!' : stats.accuracy >= 50 ? 'Well done!' : 'Keep practising!';
 
-  const isBest = savePersonalBest(stats);
-  if (window.KidsGames) {
-    if (!stats.quit) window.KidsGames.recordSession('maths');
-    if (!stats.quit && stats.accuracy >= 50) window.KidsGames.sfx('win');
+  const isBest = finished ? savePersonalBest(stats) : false;
+  if (window.KidsGames && finished) {
+    window.KidsGames.recordSession(GAME_ID);
+    if (stats.accuracy >= 50) window.KidsGames.sfx('win');
   }
 
   const best = isBest ? '<svg class="ic ic--sm" viewBox="0 0 48 48" role="img" aria-label="New best"><use href="#a-star"/></svg>' : '';
-  const statsEl = document.getElementById('maths-stats');
-  statsEl.innerHTML = `
+  $('maths-stats').innerHTML = `
     <div class="maths-stat-row">
       <dt class="maths-stat-label">Score</dt>
       <dd class="maths-stat-value">${stats.score}${best}</dd>
@@ -359,33 +328,23 @@ function showResults(stats) {
     </div>` : ''}
   `;
 
-  document.getElementById('maths-play-again-btn').onclick = startGame;
-  document.getElementById('maths-change-settings-btn').onclick = () => showScreen('settings');
-  document.getElementById('maths-play-again-btn').className =
-    stats.quit ? 'kg-btn kg-btn--ghost' : 'kg-btn';
-  document.getElementById('maths-change-settings-btn').className =
-    stats.quit ? 'kg-btn' : 'kg-btn kg-btn--ghost';
+  $('maths-play-again-btn').onclick = startGame;
+  $('maths-change-settings-btn').onclick = () => showScreen('settings');
+  $('maths-play-again-btn').className = stats.quit ? 'kg-btn kg-btn--ghost' : 'kg-btn';
+  $('maths-change-settings-btn').className = stats.quit ? 'kg-btn' : 'kg-btn kg-btn--ghost';
   showScreen('results');
-  document.getElementById(stats.quit ? 'maths-change-settings-btn' : 'maths-play-again-btn').focus({ preventScroll: true });
+  $(stats.quit ? 'maths-change-settings-btn' : 'maths-play-again-btn').focus({ preventScroll: true });
 }
 
+// Personal bests are kept per style, operation, difficulty and length.
 function savePersonalBest(stats) {
-  const key = `pb_${settings.op}_${settings.difficulty}_${settings.mode}`;
+  const c = activeConfig || settings;
+  const key = `pb_${c.style}_${c.op}_${c.difficulty}_${c.mode}`;
   try {
-    let current;
-    if (window.KidsGames) {
-      const store = window.KidsGames.loadGameData('maths') || {};
-      current = store[key] || 0;
-      if (stats.score > current) {
-        window.KidsGames.saveGameData('maths', { ...store, [key]: stats.score });
-        return true;
-      }
-    } else {
-      current = Number(localStorage.getItem(`maths_${key}`)) || 0;
-      if (stats.score > current) {
-        localStorage.setItem(`maths_${key}`, stats.score);
-        return true;
-      }
+    const store = window.KidsGames.loadGameData(GAME_ID) || {};
+    if (stats.score > (store[key] || 0)) {
+      window.KidsGames.saveGameData(GAME_ID, { ...store, v: 2, [key]: stats.score });
+      return true;
     }
   } catch (e) { /* ignore */ }
   return false;
