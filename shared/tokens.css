@@ -1,178 +1,176 @@
-/* shared/tokens.css — Design tokens for Kids Games hub
-   Two themes: colourful-light, colourful-dark
-   Set via data-theme attribute on <html> */
+/* shared/tokens.css — Kids Games design tokens: "Playground"
+   Ground = tarmac. Colour = playground paint, one paint per game.
+   Two themes via data-theme on <html>:
+     colourful-light  → "Day"   (stored name kept so saved profiles still load)
+     colourful-dark   → "Dusk"
+   Age flex via data-age on <html>: "young" (4-5) | "older" (6+), set by the shell.
+   Motion via data-motion="reduced" (OS preference or grown-ups switch). */
 
-/* === Base Tokens (theme-agnostic) === */
+/* === Font: Andika (SIL OFL, designed for early readers), self-hosted.
+   build.sh swaps these url()s for data URIs so each game stays one file. === */
+@font-face {
+  font-family: 'Andika';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(fonts/andika-Regular.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Andika';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(fonts/andika-Bold.woff2) format('woff2');
+}
+
+/* === Theme-agnostic tokens === */
 :root {
-  /* Typography */
-  --font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  --font: 'Andika', 'Atkinson Hyperlegible', 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
 
-  /* Spacing scale */
-  --space-xs: 4px;
-  --space-sm: 8px;
-  --space-md: 16px;
-  --space-lg: 24px;
-  --space-xl: 32px;
-  --space-2xl: 48px;
-  --space-3xl: 64px;  /* Oversized touch targets for young children */
+  /* Space: 4px base */
+  --s1: 4px;  --s2: 8px;  --s3: 12px; --s4: 16px;
+  --s5: 24px; --s6: 32px; --s7: 48px; --s8: 64px;
 
-  /* Border radius */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-2xl: 24px;
-  --radius-full: 9999px;
+  /* Radius: paint squares stay nearly square, tiles round a little, chips are pills */
+  --r-sq: 6px;
+  --r-1: 12px;
+  --r-2: 22px;
+  --r-pill: 999px;
 
-  /* Font sizes */
-  --text-xs: 11px;   /* Admin/hint text only — not readable by ages 4-5 */
-  --text-sm: 13px;   /* Secondary text — not reliable for pre-readers */
-  --text-base: 16px;
-  --text-lg: 20px;
-  --text-xl: 24px;
-  --text-2xl: 30px;
-  --text-3xl: 36px;
+  /* Line: every painted shape has a keyline, like a marked-out court */
+  --line-w: 3px;
 
-  /* Transitions */
-  --transition-fast: 150ms ease;
-  --transition-normal: 300ms ease;
+  /* Type scale (rem on a 16px root) */
+  --t-small: 1rem;       /* 16 — never smaller anywhere a child must read */
+  --t-body: 1.25rem;     /* 20 */
+  --t-lead: 1.5rem;      /* 24 */
+  --t-title: 2.25rem;    /* 36 */
+  --t-display: 3.5rem;   /* 56 */
+  --t-numeral: clamp(4rem, 14vmin, 8rem); /* painted figures: sums, big words */
 
-  /* === Usage Guide ===
-     --bg:         Main page background
-     --bg-surface: Elevated surfaces (cards, panels, modals)
-     --bg-game:    Game play area (canvas container)
-     --bg-overlay: Semi-transparent overlay behind modals
+  /* Hit sizes: grown to the child. Younger players get more. */
+  --hit: 56px;
+  --gap-tile: 14px;
 
-     Accent colours are for backgrounds, borders, and decorative fills.
-     NOT safe as text colour on light themes — use --text-primary/secondary.
-     On dark themes, all accents pass AA as text.
-     Always pair colour feedback with animation/shape cues.
+  /* Motion: one curve, three durations. Reduced motion zeroes the durations,
+     it never removes the state change. */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-1: 120ms;   /* press */
+  --dur-2: 240ms;   /* state change */
+  --dur-paint: 420ms; /* a painted line landing */
 
-     --text-xs/--text-sm: Not readable by ages 4-5. Use --text-base+ for
-     any content young children need to read.
-  */
-
-  /* TODO Phase 4: @media (prefers-contrast: more) overrides */
-
-  /* Theme swatch colours — static, not theme-dependent (used by shell.css to preview each theme) */
-  --swatch-colourful-light-bg: #FFF8E7;
-  --swatch-colourful-light-border: #FF6B6B;
-  --swatch-colourful-dark-bg: #1A1520;
-  --swatch-colourful-dark-border: #C4A8FF;
+  /* Layout */
+  --bar-h: 64px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
 }
 
-/* === Colourful Light === */
-:root[data-theme="colourful-light"] {
-  /* Backgrounds */
-  --bg: #FFF8E7;
-  --bg-surface: #FFFFFF;
-  --bg-game: #FFFFFF;
-  --bg-overlay: rgba(255, 248, 231, 0.95);
-
-  /* Text */
-  --text-primary: #2D3436;
-  --text-secondary: #636E72;
-  --text-muted: #6E6E7E;       /* Darkened from #8A8A9A — 4.9:1 on white, 4.6:1 on cream */
-
-  /* Borders */
-  --border: #E2E8F0;
-  --border-light: #EEEEEA;
-
-  /* Shadows */
-  --shadow: 0 8px 30px rgba(0,0,0,0.08);
-  --shadow-lg: 0 12px 40px rgba(0,0,0,0.12);
-
-  /* Accent colours — for backgrounds/borders/decorative use, NOT as text on light bg */
-  --accent-primary: #FF6B6B;
-  --accent-secondary: #4ECDC4;
-  --accent-tertiary: #D4A300;   /* Darkened from #FFE66D — visible on cream (3.8:1) */
-  --accent-purple: #A78BFA;
-  --accent-warm: #FB923C;
-  --accent-pink: #F472B6;
-  --accent-blue: #60A5FA;
-
-  /* Feedback */
-  --success-bg: #D1FAE5;
-  --success-text: #065F46;
-  --error-bg: #FEE2E2;
-  --error-text: #B91C1C;       /* Darkened from #DC2626 — 5.3:1 on error-bg */
-  --warning-bg: #FEF3C7;
-  --warning-text: #92400E;
-
-  /* Buttons — MUST be solid colours, not gradients.
-     Colourful gradient applied in component CSS via background: linear-gradient() */
-  --btn-primary-bg: #7C5FE0;   /* Solid purple — used for border-color, outline, etc. */
-  --btn-primary-text: #FFFFFF;  /* 4.8:1 on #7C5FE0 */
-  --btn-primary-hover: #6A4FCC;
-  --btn-secondary-bg: transparent;
-  --btn-secondary-text: #2D3436;
-  --btn-secondary-border: #E2E8F0;
-  --btn-secondary-hover: #F5F5F0;
-
-  /* HUD / Shell bar */
-  --hud-bg: #FFFFFF;
-  --hud-text: #2D3436;
-  --hud-accent: #7C5FE0;       /* Darkened from #A78BFA — 4.6:1 on white */
+:root[data-age="young"] {
+  --hit: 72px;
+  --gap-tile: 20px;
+  --t-body: 1.5rem;
+  --t-lead: 1.75rem;
 }
 
-/* === Colourful Dark === */
-:root[data-theme="colourful-dark"] {
-  /* Backgrounds */
-  --bg: #1A1520;
-  --bg-surface: #251E2C;
-  --bg-game: #1A1520;
-  --bg-overlay: rgba(26, 21, 32, 0.95);
-
-  /* Text */
-  --text-primary: #F0ECF4;
-  --text-secondary: #BDB4C8;
-  --text-muted: #9590A5;       /* Lightened from #8A8098 — 4.8:1 on surface */
-
-  /* Borders */
-  --border: #3A3244;
-  --border-light: #2E2838;
-
-  /* Shadows */
-  --shadow: 0 8px 30px rgba(0,0,0,0.25);
-  --shadow-lg: 0 12px 40px rgba(0,0,0,0.35);
-
-  /* Accent colours (brighter for dark bg contrast) — all pass 7:1+ on dark bg */
-  --accent-primary: #FF8A8A;
-  --accent-secondary: #6EE7D8;
-  --accent-tertiary: #F5DC78;   /* Slightly desaturated from #FFE66D — reduces halation */
-  --accent-purple: #C4A8FF;
-  --accent-warm: #FFB06A;
-  --accent-pink: #F9A8D4;
-  --accent-blue: #80B4FF;
-
-  /* Feedback */
-  --success-bg: rgba(52, 211, 153, 0.15);
-  --success-text: #6EE7B7;
-  --error-bg: rgba(255, 107, 107, 0.15);
-  --error-text: #FF8A8A;
-  --warning-bg: rgba(255, 230, 109, 0.15);
-  --warning-text: #F5DC78;
-
-  /* Buttons — solid colours only */
-  --btn-primary-bg: #C4A8FF;
-  --btn-primary-text: #1A1520;
-  --btn-primary-hover: #A888EE;
-  --btn-secondary-bg: transparent;
-  --btn-secondary-text: #F0ECF4;
-  --btn-secondary-border: #3A3244;
-  --btn-secondary-hover: #2E2838;
-
-  /* HUD / Shell bar */
-  --hud-bg: #251E2C;
-  --hud-text: #F0ECF4;
-  --hud-accent: #C4A8FF;
+:root[data-motion="reduced"] {
+  --dur-1: 0.01ms;
+  --dur-2: 0.01ms;
+  --dur-paint: 0.01ms;
 }
-
-/* === Reduced Motion === */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation: none !important;
-    transition: none !important;
+  :root:not([data-motion="full"]) {
+    --dur-1: 0.01ms;
+    --dur-2: 0.01ms;
+    --dur-paint: 0.01ms;
   }
 }
+
+/* === Day: pale pavement. Paints are the deep set (white or ink text per paint). === */
+:root, :root[data-theme="colourful-light"] {
+  --ground: #E4E8EE;       /* tarmac, day */
+  --ground-2: #D3D9E2;     /* worn patches, inset wells */
+  --chalk: #FBFBF7;        /* white line paint, raised panels */
+  --ink: #141922;
+  --ink-2: #3A4452;        /* secondary text: 8:1 on ground */
+  --line: #141922;         /* keyline around painted shapes */
+  --focus: #2456D8;
+
+  --paint-yellow: #FFC61A;  --on-yellow: #141922;
+  --paint-orange: #FF8A2B;  --on-orange: #141922;
+  --paint-red:    #C8242F;  --on-red:    #FFFFFF;
+  --paint-blue:   #2456D8;  --on-blue:   #FFFFFF;
+  --paint-green:  #0E7C4A;  --on-green:  #FFFFFF;
+
+  --right: #0E7C4A;         /* answered right: green + a tick shape */
+  --wrong: #C8242F;         /* answered wrong: red + a cross shape */
+  --right-wash: #CDEBDB;
+  --wrong-wash: #F6D3D5;
+
+  --scrim: rgba(20, 25, 34, 0.62);
+}
+
+/* === Dusk: dark tarmac, bright paint, ink text on every paint === */
+:root[data-theme="colourful-dark"] {
+  --ground: #1B2028;
+  --ground-2: #252B35;
+  --chalk: #2D3440;
+  --ink: #F3F4EE;
+  --ink-2: #B7BFCB;
+  --line: #F3F4EE;
+  --focus: #FFC61A;
+
+  --paint-yellow: #FFC61A;  --on-yellow: #10141B;
+  --paint-orange: #FF9B45;  --on-orange: #10141B;
+  --paint-red:    #FF6B70;  --on-red:    #10141B;
+  --paint-blue:   #6E9BFF;  --on-blue:   #10141B;
+  --paint-green:  #3FD28A;  --on-green:  #10141B;
+
+  --right: #3FD28A;
+  --wrong: #FF6B70;
+  --right-wash: #1E4A38;
+  --wrong-wash: #5A2A30;
+
+  --scrim: rgba(8, 10, 14, 0.72);
+}
+
+/* === Per-game paint: set data-paint on <body> === */
+[data-paint="yellow"] { --paint: var(--paint-yellow); --on-paint: var(--on-yellow); }
+[data-paint="orange"] { --paint: var(--paint-orange); --on-paint: var(--on-orange); }
+[data-paint="red"]    { --paint: var(--paint-red);    --on-paint: var(--on-red); }
+[data-paint="blue"]   { --paint: var(--paint-blue);   --on-paint: var(--on-blue); }
+[data-paint="green"]  { --paint: var(--paint-green);  --on-paint: var(--on-green); }
+body { --paint: var(--paint-blue); --on-paint: var(--on-blue); }
+
+/* === Legacy aliases ===
+   Pre-redesign game CSS reads these names. They map onto the new palette so
+   anything not yet migrated still renders in-world. Remove when no CSS uses them. */
+:root {
+  --font-family: var(--font);
+  --font-mono: var(--font);
+  --space-xs: var(--s1);  --space-sm: var(--s2);  --space-md: var(--s4);
+  --space-lg: var(--s5);  --space-xl: var(--s6);  --space-2xl: var(--s7); --space-3xl: var(--s8);
+  --radius-sm: var(--r-sq); --radius-md: var(--r-1); --radius-lg: var(--r-1);
+  --radius-xl: var(--r-2);  --radius-2xl: var(--r-2); --radius-full: var(--r-pill);
+  --text-xs: var(--t-small); --text-sm: var(--t-small); --text-base: var(--t-small);
+  --text-lg: var(--t-body);  --text-xl: var(--t-lead);  --text-2xl: var(--t-title); --text-3xl: var(--t-title);
+  --transition-fast: var(--dur-1) var(--ease);
+  --transition-normal: var(--dur-2) var(--ease);
+  --bg: var(--ground); --bg-surface: var(--chalk); --bg-game: var(--ground); --bg-overlay: var(--scrim);
+  --text-primary: var(--ink); --text-secondary: var(--ink-2); --text-muted: var(--ink-2);
+  --border: var(--ground-2); --border-light: var(--ground-2);
+  --shadow: none; --shadow-lg: none;
+  --accent-primary: var(--paint-red);   --accent-secondary: var(--paint-green);
+  --accent-tertiary: var(--paint-yellow); --accent-purple: var(--paint-blue);
+  --accent-warm: var(--paint-orange);   --accent-pink: var(--paint-red);  --accent-blue: var(--paint-blue);
+  --success-bg: var(--right-wash); --success-text: var(--right);
+  --error-bg: var(--wrong-wash);   --error-text: var(--wrong);
+  --warning-bg: var(--ground-2);   --warning-text: var(--ink);
+  --btn-primary-bg: var(--paint); --btn-primary-text: var(--on-paint); --btn-primary-hover: var(--paint);
+  --btn-secondary-bg: transparent; --btn-secondary-text: var(--ink);
+  --btn-secondary-border: var(--line); --btn-secondary-hover: var(--ground-2);
+  --hud-bg: var(--ground); --hud-text: var(--ink); --hud-accent: var(--focus);
+}
+
+/* Browser surfaces carry the design too */
+:root { color-scheme: light; accent-color: var(--paint-blue); }
+:root[data-theme="colourful-dark"] { color-scheme: dark; }
+::selection { background: var(--paint-yellow); color: #141922; }

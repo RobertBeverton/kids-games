@@ -5,38 +5,47 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Type Trainer</title>
   <link rel="stylesheet" href="../../shared/tokens.css">
+  <link rel="stylesheet" href="../../shared/shell.css">
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body data-page="type-trainer" data-page-title="Type Trainer">
+<body data-page="type-trainer" data-page-title="Type Trainer" data-paint="orange">
 
   <div id="game-wrapper">
-    <!-- HUD bar: score, stage, lives, streak, buttons -->
+    <!-- HUD bar: score, stage, lives, streak, buttons. Sound lives in the shell bar. -->
     <div id="hud" class="hud" aria-label="Game status">
-      <div class="hud-item">Score: <span id="hud-score-value" aria-live="polite">0</span></div>
-      <div class="hud-item">Best: <span id="hud-best-value">0</span></div>
-      <div class="hud-item">Stage: <span id="hud-stage-current">1</span>/<span id="hud-stage-total">10</span></div>
-      <div class="hud-item" id="hud-lives">Lives: <span id="hud-lives-value" aria-live="polite">&#9829;&#9829;&#9829;</span></div>
-      <div class="hud-item hud-streak">Streak: <span id="hud-streak-value" aria-live="polite">0</span></div>
-      <button id="keyboard-toggle" class="hud-btn keyboard-toggle-btn" aria-label="Toggle on-screen keyboard" title="Toggle keyboard">
-        <span class="hud-btn__icon">&#9000;</span>
+      <div class="hud-item hud-score">
+        <svg class="ic" aria-hidden="true"><use href="#a-star" style="fill:currentColor"/></svg>
+        <span class="hud-label">Score</span>
+        <strong id="hud-score-value" aria-live="polite">0</strong>
+      </div>
+      <div class="hud-item hud-best"><span class="hud-label">Best</span><strong id="hud-best-value">0</strong></div>
+      <div class="hud-item"><span class="hud-label">Stage</span><strong><span id="hud-stage-current">1</span>/<span id="hud-stage-total">10</span></strong></div>
+      <div class="hud-item" id="hud-lives" role="img" aria-label="Lives"><span id="hud-lives-value" class="hud-lives"></span></div>
+      <div class="hud-item hud-streak">
+        <svg class="ic" aria-hidden="true"><use href="#i-streak"/></svg>
+        <span class="hud-label">Streak</span>
+        <strong id="hud-streak-value" aria-live="polite">0</strong>
+      </div>
+
+      <span class="hud-fill"></span>
+
+      <button id="keyboard-toggle" class="hud-btn keyboard-toggle-btn" type="button" aria-label="Show or hide the on-screen keyboard" title="Toggle keyboard">
+        <svg class="ic" aria-hidden="true"><use href="#i-keyboard"/></svg>
         <span class="hud-btn__label">Keyboard</span>
       </button>
       <div class="hud-speed-wrap">
-        <button id="speed-btn" class="hud-btn" aria-label="Change difficulty" aria-expanded="false" aria-controls="speed-dropdown">
-          <span class="hud-btn__icon">⚡</span>
+        <button id="speed-btn" class="hud-btn" type="button" aria-label="Change difficulty" aria-expanded="false" aria-controls="speed-dropdown">
+          <svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg>
           <span class="hud-btn__label" id="speed-label">Normal</span>
         </button>
         <div id="speed-dropdown" class="speed-dropdown" hidden>
           <!-- Populated by main.js -->
         </div>
       </div>
-      <button id="mute-btn" class="hud-btn mute-btn" aria-label="Mute audio" aria-pressed="false" title="Toggle sound">
-        <span class="mute-icon" aria-hidden="true">&#x1F50A;</span>
-      </button>
-      <button id="pause-btn" class="hud-btn" aria-label="Pause game">⏸</button>
+      <button id="pause-btn" class="hud-btn" type="button" aria-label="Pause game"><svg class="ic" aria-hidden="true"><use href="#i-pause"/></svg></button>
     </div>
 
-    <!-- Stage progress bar -->
+    <!-- Stage progress: a painted line -->
     <div id="stage-bar" class="stage-bar">
       <span id="play-stage-label" class="stage-label" aria-live="polite">Home row only</span>
       <div class="stage-track">
@@ -64,7 +73,7 @@
 
     <!-- Overlay container for modal screens -->
     <div id="overlay" class="overlay">
-      <!-- Player select, mode select, pause, game over injected here -->
+      <!-- Pause and game over injected here -->
     </div>
   </div>
 

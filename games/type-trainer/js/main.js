@@ -32,6 +32,7 @@ function enterPlayMode(bracket, speed) {
     getPlayerName: () => window.KidsGames?.player?.name || 'Player',
     onGameOver: (stats) => {
       if (!window.KidsGames) return;
+      window.KidsGames.recordSession('type-trainer');
       const existing = window.KidsGames.loadGameData('typetrainer');
 
       // Rolling accuracy (70% historical, 30% this game)
@@ -116,7 +117,7 @@ function checkKeyboard() {
   if ('ontouchstart' in window && !matchMedia('(pointer: fine)').matches) {
     const warn = document.createElement('div');
     warn.className = 'keyboard-warning';
-    warn.innerHTML = '<p>This game works best with a keyboard! 🎹</p>';
+    warn.innerHTML = '<p>This game works best with a keyboard.</p>';
     document.getElementById('game-wrapper').prepend(warn);
   }
 }
@@ -177,7 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
     SPEEDS.forEach(s => {
       const btn = document.createElement('button');
       btn.className = 'speed-option' + (s.label === currentLabel ? ' speed-option--active' : '');
-      btn.innerHTML = `${s.label}<span class="speed-option__check">✓</span>`;
+      btn.innerHTML = `<span>${s.label}</span><svg class="ic speed-option__check" aria-hidden="true"><use href="#i-check"/></svg>`;
       btn.addEventListener('click', () => {
         setSpeedPreference(s.value);
         if (window.KidsGames) {

@@ -869,7 +869,7 @@ bash build.sh
 
 ## Author
 
-Created by **Robert Beverton** with a lot of help from Claude.
+Created by **Robert Beverton**.
 ```
 
 **Step 2: Commit**

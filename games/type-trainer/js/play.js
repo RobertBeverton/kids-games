@@ -22,7 +22,10 @@ import {
 } from './adaptive.js';
 import { trapFocus, releaseFocus } from './utils.js';
 
-const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function refreshMotionPref() {
+  prefersReducedMotion = window.KidsGames ? window.KidsGames.reducedMotion : window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
 
 // roundRect polyfill for Safari < 16, older Firefox (#8)
 if (typeof CanvasRenderingContext2D !== 'undefined' &&
@@ -135,6 +138,7 @@ const H = () => canvas ? canvas.height : 0;
 
 let cachedColours = {};
 let cachedZoneColours = {};  // zone name → resolved hex colour
+let cachedZoneText = {};     // zone colour → label colour that passes contrast on it
 let cachedDangerGrad = null;
 let cachedDangerH = 0;
 
@@ -148,7 +152,8 @@ function cacheThemeColours() {
     textMuted:  s.getPropertyValue('--text-muted').trim()   || '#8A8A9A',
     hudAccent:  s.getPropertyValue('--hud-accent').trim()   || '#2563EB',
     overlayBg:  s.getPropertyValue('--overlay-bg').trim()   || 'rgba(250,250,248,0.95)',
-    fontMono:   s.getPropertyValue('--font-mono').trim()    || 'Consolas, monospace',
+    fontMono:   s.getPropertyValue('--font-mono').trim()    || 'Andika, system-ui, sans-serif',
+    line:       s.getPropertyValue('--line').trim()         || '#141922',
   };
 
   // Cache resolved zone colours for canvas drawing
@@ -159,6 +164,7 @@ function cacheThemeColours() {
   for (const z of zones) {
     const cssVar = getZoneCSSVar(z);
     cachedZoneColours[z] = s.getPropertyValue(cssVar).trim() || '#666';
+    cachedZoneText[cachedZoneColours[z]] = s.getPropertyValue(cssVar.replace('--zone-', '--on-zone-')).trim() || '#141922';
   }
 
   // Invalidate danger gradient
@@ -254,16 +260,18 @@ function drawBackground(w, h) {
     ctx.stroke();
   }
 
-  // Danger zone gradient — bottom 15% (cached, Fix W6)
+  // Danger zone: a flat painted band with a dashed line, like a marked-out court edge
   const dangerStart = h * 0.85;
-  if (!cachedDangerGrad || cachedDangerH !== h) {
-    cachedDangerGrad = ctx.createLinearGradient(0, dangerStart, 0, h);
-    cachedDangerGrad.addColorStop(0, 'transparent');
-    cachedDangerGrad.addColorStop(1, cachedColours.dangerZone);
-    cachedDangerH = h;
-  }
-  ctx.fillStyle = cachedDangerGrad;
+  ctx.fillStyle = cachedColours.dangerZone;
   ctx.fillRect(0, dangerStart, w, h - dangerStart);
+  ctx.strokeStyle = cachedColours.line;
+  ctx.lineWidth = 3;
+  ctx.setLineDash([18, 12]);
+  ctx.beginPath();
+  ctx.moveTo(0, dangerStart);
+  ctx.lineTo(w, dangerStart);
+  ctx.stroke();
+  ctx.setLineDash([]);
 }
 
 
@@ -283,41 +291,33 @@ function drawItem(item) {
   const by = y - fontSize - 4;
   const bw = item.tw + pad * 2;
   const bh = fontSize + 16;
-  const radius = 8;
+  const radius = 14;
+  const label = cachedZoneText[zoneColour] || '#141922';
 
-  // Pill background in finger-zone colour
+  // Pill: solid paint in the finger-zone colour with a keyline
   ctx.fillStyle = zoneColour;
-  ctx.globalAlpha = 0.88;
   ctx.beginPath();
   ctx.roundRect(bx, by, bw, bh, radius);
   ctx.fill();
-
-  // Subtle border
-  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-  ctx.lineWidth = 1;
-  ctx.stroke();
-  ctx.globalAlpha = 1.0;
-
-  // Text stroke for contrast (M8)
-  ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+  ctx.strokeStyle = cachedColours.line;
   ctx.lineWidth = 3;
-  ctx.lineJoin = 'round';
+  ctx.stroke();
 
-  // Text rendering
+  ctx.textBaseline = 'alphabetic';
   if (typed > 0) {
-    // Typed portion: dimmed
+    // Typed part is struck out by a line and dimmed, so progress never relies on colour alone
     const done = text.slice(0, typed);
     const rest = text.slice(typed);
     const dw = ctx.measureText(done).width;
-    ctx.strokeText(done, x, y);
-    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.globalAlpha = 0.4;
+    ctx.fillStyle = label;
     ctx.fillText(done, x, y);
-    ctx.strokeText(rest, x + dw, y);
-    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(x, y - fontSize * 0.32, dw, 3);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = label;
     ctx.fillText(rest, x + dw, y);
   } else {
-    ctx.strokeText(text, x, y);
-    ctx.fillStyle = '#FFFFFF';
+    ctx.fillStyle = label;
     ctx.fillText(text, x, y);
   }
 }
@@ -911,13 +911,9 @@ function updateHUD() {
   if (hudEls.lives) {
     let hearts = '';
     for (let i = 0; i < ov.livesOverride; i++) {
-      if (i < gameState.lives) {
-        hearts += '\u2665 ';
-      } else {
-        hearts += '\u2661 ';
-      }
+      hearts += '<svg class="ic' + (i < gameState.lives ? '' : ' lost') + '" viewBox="0 0 48 48" aria-hidden="true"><use href="#i-heart"/></svg>';
     }
-    hudEls.lives.textContent = hearts.trim();
+    hudEls.lives.innerHTML = hearts;
   }
   if (hudEls.livesWrap) {
     hudEls.livesWrap.setAttribute('aria-label', `${gameState.lives} lives remaining`);
@@ -998,14 +994,14 @@ function showPauseOverlay() {
   }
 
   const resumeBtn = document.createElement('button');
-  resumeBtn.className = 'btn btn-primary btn-lg';
-  resumeBtn.textContent = isYoung ? '▶ Play' : 'Resume';
+  resumeBtn.className = 'kg-btn';
+  resumeBtn.innerHTML = '<svg class="ic" aria-hidden="true"><use href="#i-play"/></svg><span>' + (isYoung ? 'Play' : 'Resume') + '</span>';
   resumeBtn.id = 'pause-resume-btn';
   resumeBtn.addEventListener('click', () => resumeGame(), { once: true });
   overlay.appendChild(resumeBtn);
 
   const quitBtn = document.createElement('button');
-  quitBtn.className = 'btn btn-secondary btn-sm';
+  quitBtn.className = 'kg-btn kg-btn--ghost';
   quitBtn.textContent = isYoung ? 'Stop playing' : 'Back to Menu';
   quitBtn.addEventListener('click', () => quitToMenu(), { once: true });
   overlay.appendChild(quitBtn);
@@ -1076,7 +1072,7 @@ function showGameOverOverlay(stats) {
   if (stats.score > prevHigh && stats.score > 0) {
     const banner = document.createElement('div');
     banner.className = 'new-high-score-banner';
-    banner.textContent = '\u2605 New High Score! \u2605';
+    banner.innerHTML = '<svg class="ic ic--sm" viewBox="0 0 48 48" aria-hidden="true"><use href="#a-star"/></svg><span>New high score!</span>';
     banner.setAttribute('aria-live', 'assertive');
     overlay.appendChild(banner);
   }
@@ -1107,9 +1103,7 @@ function showGameOverOverlay(stats) {
     // 4-5: simplified, encouraging stats only
     const starRow = document.createElement('div');
     starRow.className = 'gameover-stat-row gameover-star';
-    starRow.textContent = '\u2605';
-    starRow.style.fontSize = '3rem';
-    starRow.style.textAlign = 'center';
+    starRow.innerHTML = '<svg class="ic" viewBox="0 0 48 48" aria-hidden="true"><use href="#a-star"/></svg>';
     statsDiv.appendChild(starRow);
 
     lines = [
@@ -1196,23 +1190,21 @@ function showGameOverOverlay(stats) {
   if (suggestedIdx >= 0) {
     const nextDiff = DIFFS[suggestedIdx];
     const suggestion = document.createElement('div');
-    suggestion.style.cssText = 'text-align: center; margin: 8px 0; padding: 8px 16px; border-radius: 8px; background: var(--bg-surface); font-size: 13px;';
+    suggestion.className = 'game-suggestion';
     const isHarder = suggestedIdx > currentIdx;
     const suggText = document.createElement('span');
     suggText.textContent = isHarder
-      ? `\u26A1 You're fast! Try ${nextDiff.label}? `
+      ? `You're fast! Try ${nextDiff.label}? `
       : `Try ${nextDiff.label}? It might help! `;
     const suggBtn = document.createElement('button');
-    suggBtn.className = 'btn btn-sm';
+    suggBtn.className = 'kg-btn kg-btn--ghost';
     suggBtn.textContent = isHarder ? 'Yes!' : 'OK';
-    suggBtn.style.cssText = 'margin-left: 8px; padding: 4px 12px; font-size: 12px;';
     suggBtn.addEventListener('click', () => {
       gameState.speedPreference = nextDiff.speed;
       if (gameState.callbacks && gameState.callbacks.onSpeedChange) {
         gameState.callbacks.onSpeedChange(nextDiff.speed);
       }
-      suggestion.textContent = `\u2713 Difficulty set to ${nextDiff.label}`;
-      suggestion.style.color = 'var(--success-text, #059669)';
+      suggestion.textContent = `Difficulty set to ${nextDiff.label}`;
     }, { once: true });
     suggestion.appendChild(suggText);
     suggestion.appendChild(suggBtn);
@@ -1221,8 +1213,8 @@ function showGameOverOverlay(stats) {
 
   // Play Again button
   const playAgainBtn = document.createElement('button');
-  playAgainBtn.className = 'btn btn-primary btn-lg';
-  playAgainBtn.textContent = 'Play Again';
+  playAgainBtn.className = 'kg-btn';
+  playAgainBtn.innerHTML = '<svg class="ic" aria-hidden="true"><use href="#i-replay"/></svg><span>Play again</span>';
   playAgainBtn.addEventListener('click', () => {
     releaseFocus();
     hideGameOverOverlay();
@@ -1232,8 +1224,8 @@ function showGameOverOverlay(stats) {
 
   // Back to Menu button
   const menuBtn = document.createElement('button');
-  menuBtn.className = 'btn btn-secondary btn-sm';
-  menuBtn.textContent = 'Back to Menu';
+  menuBtn.className = 'kg-btn kg-btn--ghost';
+  menuBtn.innerHTML = '<svg class="ic" aria-hidden="true"><use href="#i-home"/></svg><span>All games</span>';
   menuBtn.addEventListener('click', () => {
     releaseFocus();
     hideGameOverOverlay();
@@ -1574,6 +1566,9 @@ export function startGame(bracket, stageList, callbacks) {
     }
   }, 5000);
 
+  refreshMotionPref();
+  if (window.KidsGames) window.KidsGames.sfx('start');
+
   // Set keyboard visible
   setVisibilityMode('show');
 
@@ -1584,12 +1579,12 @@ export function startGame(bracket, stageList, callbacks) {
   if (hudEls.pauseBtn) {
     hudEls.pauseBtn.style.display = '';
     hudEls.pauseBtn.className = 'hud-btn'; // reset classes
-    hudEls.pauseBtn.textContent = '⏸';
+    hudEls.pauseBtn.innerHTML = '<svg class="ic" aria-hidden="true"><use href="#i-pause"/></svg>';
     if (bracket === '4-5') {
       hudEls.pauseBtn.classList.add('pause-btn--large');
     } else if (bracket === '6-8') {
       hudEls.pauseBtn.classList.add('pause-btn--labelled');
-      hudEls.pauseBtn.textContent = '⏸ Pause';
+      hudEls.pauseBtn.innerHTML = '<svg class="ic" aria-hidden="true"><use href="#i-pause"/></svg><span>Pause</span>';
     }
     // First-play pulse
     if (callbacks && callbacks.totalGamesPlayed === 0) {

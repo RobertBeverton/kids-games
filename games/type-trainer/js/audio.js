@@ -437,7 +437,8 @@ function saveAudioSettings() {
  */
 function applyVolume() {
   if (!masterGain) return;
-  masterGain.gain.setValueAtTime(_muted ? 0 : _volume, audioCtx.currentTime);
+  const shellMuted = !!(window.KidsGames && window.KidsGames.muted);
+  masterGain.gain.setValueAtTime((_muted || shellMuted) ? 0 : _volume, audioCtx.currentTime);
 }
 
 /**
@@ -514,6 +515,10 @@ function updateMuteButtonUI() {
  * Call this once from main.js after DOM is ready.
  */
 export function setupMuteButton() {
+  // The shell's sound button is the one mute control: follow it.
+  if (window.KidsGames && window.KidsGames.onMuteChange) {
+    window.KidsGames.onMuteChange(() => applyVolume());
+  }
   const btn = document.getElementById('mute-btn');
   if (!btn) return;
 

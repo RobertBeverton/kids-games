@@ -47,7 +47,7 @@ function getPlayer(name) {
   return players[name] || null;
 }
 
-function createPlayer(name, { dob, manualAge }) {
+function createPlayer(name, { dob, manualAge, avatar }) {
   name = sanitiseName(name);
   if (!name) return false;
   const players = getAllPlayers();
@@ -57,6 +57,7 @@ function createPlayer(name, { dob, manualAge }) {
     dob: dob || null,
     manualAge: dob ? null : (manualAge || null),
     theme: getDefaultTheme(),
+    avatar: Number.isInteger(avatar) ? avatar : null,
     createdAt: new Date().toISOString().slice(0, 10)
   };
   // Return the sanitised name on success so callers can look up the right key
@@ -134,3 +135,37 @@ function saveGameData(gameId, data) {
   if (!player) return;
   _write(STORAGE_PREFIX + gameId + '_' + player.name, data);
 }
+
+// --- Player shape (avatar): 8 painted shapes. Older profiles get one from their name. ---
+const AVATAR_COUNT = 8;
+function getAvatarIndex(player) {
+  if (player && Number.isInteger(player.avatar) && player.avatar >= 0 && player.avatar < AVATAR_COUNT) return player.avatar;
+  let h = 0;
+  const n = (player && player.name) || '';
+  for (let i = 0; i < n.length; i++) h = (h * 31 + n.charCodeAt(i)) >>> 0;
+  return h % AVATAR_COUNT;
+}
+
+// --- Progress: finished sessions per game, one hopscotch square each ---
+function getProgress(name) {
+  return _read(STORAGE_PREFIX + 'progress_' + name) || {};
+}
+function recordSession(gameId) {
+  const p = getActivePlayer();
+  if (!p || !gameId) return;
+  const prog = getProgress(p.name);
+  prog[gameId] = (prog[gameId] || 0) + 1;
+  _write(STORAGE_PREFIX + 'progress_' + p.name, prog);
+}
+
+// --- Last game played, so the hub can offer 'carry on' ---
+function getLastGame(name) {
+  return _read(STORAGE_PREFIX + 'last_' + name);
+}
+function setLastGame(name, gameId) {
+  _write(STORAGE_PREFIX + 'last_' + name, gameId);
+}
+
+// --- Device preferences (not per player) ---
+function getPref(key) { return _read(STORAGE_PREFIX + 'pref_' + key); }
+function setPref(key, val) { _write(STORAGE_PREFIX + 'pref_' + key, val); }

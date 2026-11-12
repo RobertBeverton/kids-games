@@ -1,0 +1,359 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-12T08:55:03.668Z",
+  "title": "Design System: Kids Games",
+  "extensions": {
+    "colorMeta": {
+      "tarmac-day": {
+        "role": "neutral",
+        "displayName": "Pale Pavement",
+        "canonical": "#E4E8EE",
+        "tonalRamp": [
+          "#0a0c12",
+          "#484b51",
+          "#878a90",
+          "#c5c9cf",
+          "#e7eaef",
+          "#eceff1",
+          "#f2f4f3",
+          "#f8f8f5"
+        ]
+      },
+      "tarmac-day-worn": {
+        "role": "neutral",
+        "displayName": "Worn Pavement",
+        "canonical": "#D3D9E2",
+        "tonalRamp": [
+          "#0a0c12",
+          "#43474d",
+          "#7d8189",
+          "#b6bcc4",
+          "#d8dde5",
+          "#e2e6ea",
+          "#eceeef",
+          "#f6f7f4"
+        ]
+      },
+      "chalk": {
+        "role": "neutral",
+        "displayName": "Chalk",
+        "canonical": "#FBFBF7",
+        "tonalRamp": [
+          "#0a0c12",
+          "#4f5053",
+          "#949595",
+          "#d9d9d6",
+          "#fbfbf7",
+          "#fbfbf7",
+          "#fafaf6",
+          "#fafaf6"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#141922",
+        "tonalRamp": [
+          "#0a0c12",
+          "#0d1017",
+          "#10131b",
+          "#131720",
+          "#32363d",
+          "#6d7074",
+          "#a8aaaa",
+          "#e3e4e1"
+        ]
+      },
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Soft Ink",
+        "canonical": "#3A4452",
+        "tonalRamp": [
+          "#0a0c12",
+          "#181c24",
+          "#252c37",
+          "#333c49",
+          "#535b67",
+          "#848a91",
+          "#b5b9bb",
+          "#e7e8e6"
+        ]
+      },
+      "tarmac-dusk": {
+        "role": "neutral",
+        "displayName": "Dusk Slate",
+        "canonical": "#1B2028",
+        "tonalRamp": [
+          "#0a0c12",
+          "#0f1218",
+          "#14171f",
+          "#191d25",
+          "#383c42",
+          "#717477",
+          "#aaacac",
+          "#e4e4e1"
+        ]
+      },
+      "paint-yellow": {
+        "role": "primary",
+        "displayName": "Playground Yellow",
+        "canonical": "#FFC61A",
+        "tonalRamp": [
+          "#0a0c12",
+          "#504114",
+          "#967617",
+          "#dcab19",
+          "#fecd36",
+          "#fdda6f",
+          "#fce7a7",
+          "#fbf5e0"
+        ]
+      },
+      "paint-red-day": {
+        "role": "secondary",
+        "displayName": "Court Red",
+        "canonical": "#C8242F",
+        "tonalRamp": [
+          "#0a0c12",
+          "#40131a",
+          "#771a23",
+          "#ad212b",
+          "#ce4049",
+          "#db777c",
+          "#e8aeaf",
+          "#f5e5e2"
+        ]
+      },
+      "paint-blue-day": {
+        "role": "secondary",
+        "displayName": "Line Blue",
+        "canonical": "#2456D8",
+        "tonalRamp": [
+          "#0a0c12",
+          "#11214b",
+          "#193683",
+          "#204bbc",
+          "#406bdc",
+          "#7795e4",
+          "#aebfeb",
+          "#e5eaf3"
+        ]
+      },
+      "paint-green-day": {
+        "role": "secondary",
+        "displayName": "Pitch Green",
+        "canonical": "#0E7C4A",
+        "tonalRamp": [
+          "#0a0c12",
+          "#0b2c22",
+          "#0c4c32",
+          "#0d6c42",
+          "#2c8c60",
+          "#69ad8c",
+          "#a6cdb9",
+          "#e2ede5"
+        ]
+      },
+      "paint-orange-day": {
+        "role": "secondary",
+        "displayName": "Cone Orange",
+        "canonical": "#FF8A2B",
+        "tonalRamp": [
+          "#0a0c12",
+          "#503019",
+          "#965420",
+          "#dc7827",
+          "#fe9845",
+          "#fdb579",
+          "#fcd2ae",
+          "#fbefe2"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Game titles and result headlines."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Sheet titles, the hub greeting, question words."
+      },
+      "lead": {
+        "displayName": "Lead",
+        "purpose": "Button labels and tile names."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Sentences. Larger for young players."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Chips and field labels. 16px floor."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "ease",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "The one curve for everything that moves."
+      },
+      {
+        "name": "dur-press",
+        "value": "120ms",
+        "purpose": "Press feedback."
+      },
+      {
+        "name": "dur-state",
+        "value": "240ms",
+        "purpose": "State changes (right, wrong, flip)."
+      },
+      {
+        "name": "dur-paint",
+        "value": "420ms",
+        "purpose": "A painted line landing."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "phone",
+        "value": "640px"
+      },
+      {
+        "name": "tablet",
+        "value": "760px"
+      },
+      {
+        "name": "short-landscape",
+        "value": "520px (height)"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one big action on a station, in the game paint.",
+      "html": "<button class=\"ds-btn\"><svg viewBox=\"0 0 48 48\"><path d=\"M15 9l24 15-24 15z\" style=\"fill:currentColor\"/></svg>Play</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;gap:12px;min-height:56px;padding:0 24px;background:#FFC61A;color:#141922;border:3px solid #141922;border-radius:12px;font:700 1.5rem/1 Andika,system-ui,sans-serif;cursor:pointer;transition:transform 120ms cubic-bezier(.22,1,.36,1)}.ds-btn:active{transform:scale(.97)}.ds-btn:focus-visible{outline:4px solid #2456D8;outline-offset:3px}.ds-btn svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:5;stroke-linecap:round;stroke-linejoin:round}"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Secondary actions: back, change settings, all games.",
+      "html": "<button class=\"ds-ghost\">All games</button>",
+      "css": ".ds-ghost{display:inline-flex;align-items:center;gap:12px;min-height:56px;padding:0 24px;background:#FBFBF7;color:#141922;border:3px solid #141922;border-radius:12px;font:700 1.5rem/1 Andika,system-ui,sans-serif;cursor:pointer}.ds-ghost:focus-visible{outline:4px solid #2456D8;outline-offset:3px}"
+    },
+    {
+      "name": "Answer Tile",
+      "kind": "custom",
+      "refersTo": "answer-tile",
+      "description": "A choice. Right adds a green wash, a heavier line and a tick.",
+      "html": "<div class=\"ds-tile right\">Small</div>",
+      "css": ".ds-tile{display:flex;align-items:center;justify-content:center;position:relative;width:240px;min-height:96px;background:#FBFBF7;color:#141922;border:3px solid #141922;border-radius:22px;font:700 2.25rem/1.1 Andika,system-ui,sans-serif}.ds-tile.right{background:#CDEBDB;border:5px solid #0E7C4A}.ds-tile.right::after{content:\"\";position:absolute;top:8px;right:8px;width:30px;height:30px;background:#0E7C4A;-webkit-mask:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath d='M9 26l11 11L40 13' fill='none' stroke='black' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E\") center/contain no-repeat;mask:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath d='M9 26l11 11L40 13' fill='none' stroke='black' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E\") center/contain no-repeat}"
+    },
+    {
+      "name": "Hopscotch Progress",
+      "kind": "custom",
+      "description": "Ten squares, one painted per finished game or question. Only ever goes up.",
+      "html": "<span class=\"ds-sq\"><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>",
+      "css": ".ds-sq{display:inline-flex;gap:3px}.ds-sq i{display:block;width:18px;height:18px;border:2px solid #141922;border-radius:6px}.ds-sq i.on{background:#FFC61A}"
+    },
+    {
+      "name": "HUD Chip",
+      "kind": "chip",
+      "refersTo": "hud-chip",
+      "description": "A number with an icon: score, streak, time.",
+      "html": "<span class=\"ds-chip\">12</span>",
+      "css": ".ds-chip{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:8px 16px;background:#FBFBF7;color:#141922;border:3px solid #141922;border-radius:999px;font:700 1.25rem/1 Andika,system-ui,sans-serif;font-variant-numeric:tabular-nums}"
+    },
+    {
+      "name": "Segmented Options",
+      "kind": "custom",
+      "description": "Settings choices. Selected is inverted so it reads without colour.",
+      "html": "<div class=\"ds-seg\"><button aria-pressed=\"true\">Easy</button><button aria-pressed=\"false\">Medium</button><button aria-pressed=\"false\">Hard</button></div>",
+      "css": ".ds-seg{display:flex;gap:8px}.ds-seg button{min-height:56px;padding:0 16px;background:#FBFBF7;color:#141922;border:3px solid #141922;border-radius:12px;font:700 1.5rem/1 Andika,system-ui,sans-serif}.ds-seg button[aria-pressed=true]{background:#141922;color:#E4E8EE}"
+    },
+    {
+      "name": "Game Court",
+      "kind": "custom",
+      "description": "A game on the hub: its paint as a court with a white line marking.",
+      "html": "<div class=\"ds-court\"><svg viewBox=\"0 0 96 96\"><circle cx=\"48\" cy=\"48\" r=\"38\"/><path d=\"M48 10v76M10 48h76\"/></svg></div>",
+      "css": ".ds-court{width:200px;height:200px;display:grid;place-items:center;background:#C8242F;border:3px solid #141922;border-radius:22px}.ds-court svg{width:70%;height:70%;fill:none;stroke:#fff;stroke-width:6;stroke-linecap:round;stroke-linejoin:round}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Playground",
+    "overview": "**Creative North Star: \"The Playground\"**\n\nThe product is a school playground, not an app. The ground is tarmac. Each game is a coloured court with white line markings painted on it: hopscotch squares for Number Bonds, a quartered circle for Maths, opposing arrows for Opposites, a grid of painted rings for Memory Match, a keycap for Type Trainer. Every painted shape has a keyline, like a marked-out court. Nothing is raised, glowing or glossy: depth comes from layering flat paint and from outline weight.\n\nThe system is calm in structure, loud in colour and quiet in motion. Colour and shape are bold and saturated so a five-year-old can find their game by looking. Layout is simple and consistent so they can find it by feel. Nothing moves until the child has done something, and then one thing moves once.\n\nIt flexes by age rather than splitting into two products. Younger players (4–5) get bigger targets (72px), larger body text, pictures before words, and no clock by default. Older players (6+) get 56px targets, short labels, descriptions, counts and best scores. The shell sets this through `data-age` on the root.",
+    "keyCharacteristics": [
+      "Flat matte tarmac ground in two moods: Day (cool pale pavement) and Dusk (near-black slate). Never cream.",
+      "Five playground paints, one owned by each game, plus chalk white.",
+      "Every painted shape carries a 3px keyline. State is never carried by colour alone.",
+      "Drawn SVG icons, one stroke weight. No emoji for any control or status. (Memory Match card pictures are emoji content.)",
+      "Self-hosted Andika, built for early readers. No third-party requests.",
+      "Progress is cumulative hopscotch squares and never resets or shames."
+    ],
+    "rules": [
+      {
+        "name": "The One Paint Rule",
+        "body": "A screen belongs to one game, so it uses that game's paint as its accent and nothing else coloured. Right and wrong are the only other colours allowed, and they always arrive with a shape.",
+        "section": "general"
+      },
+      {
+        "name": "The Keyline Rule",
+        "body": "Any filled shape that matters has a 3px line in `--line` (ink at Day, chalk at Dusk). Yellow on pale grey is 1.3:1, so the line is what makes the shape findable.",
+        "section": "general"
+      },
+      {
+        "name": "The No Cream Rule",
+        "body": "No warm off-white page grounds. The ground is cool tarmac.",
+        "section": "general"
+      },
+      {
+        "name": "The Sixteen Rule",
+        "body": "Nothing a child reads is below 16px. Meta text for grown-ups only is allowed to be quiet, not small. One honest exception: the letters on the on-screen keyboard shrink with their keys (12–16px) because it is a reference diagram of fourteen keys across, and the falling letters the child actually reads are large.",
+        "section": "general"
+      },
+      {
+        "name": "The Painted Figure Rule",
+        "body": "Big numbers and words are set like painted figures: heavy, tight, unadorned. No gradient text, ever.",
+        "section": "general"
+      },
+      {
+        "name": "The One Dominant Region Rule",
+        "body": "Every screen has one thing that is plainly the point. If two regions compete, one is too big.",
+        "section": "general"
+      },
+      {
+        "name": "The Thumb Zone Rule",
+        "body": "Answers and the primary action sit in the lower half.",
+        "section": "general"
+      },
+      {
+        "name": "The Flat Paint Rule",
+        "body": "If it would not exist as a coat of paint, it does not exist. No drop shadows, no glow, no gradient.",
+        "section": "general"
+      }
+    ],
+    "dos": [
+      "Do give each screen one paint and one dominant region.",
+      "Do pair every colour state with a shape (tick, cross, dashed line, inverted fill).",
+      "Do keep the 3px keyline on any filled shape that matters.",
+      "Do size touch targets to 56px (72px young) and answer tiles to 88px or more.",
+      "Do keep every game's three stations in the same order and place.",
+      "Do read the age bracket from the profile and flex size and text density with it."
+    ],
+    "donts": [
+      "Don't use emoji for controls, status or icons.",
+      "Don't add gradients, glows, blur, drop shadows, bounce easing or gradient text.",
+      "Don't let anything animate at rest, loop, or pulse for attention.",
+      "Don't use cream or beige grounds, or a second accent colour on a screen.",
+      "Don't add streak-loss, daily-return or loot mechanics, and don't make a clock the default for young players (Sprint's 60 seconds stays an opt-in choice). Progress only goes up.",
+      "Don't put a link a child can follow off the product anywhere outside the grown-ups sheet.",
+      "Don't load fonts, scripts or images from another host."
+    ]
+  }
+}
