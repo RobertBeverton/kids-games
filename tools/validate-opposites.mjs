@@ -153,14 +153,17 @@ if (entries.length >= 40) {
 }
 
 // Length bias: simulate the game's choose mode and see how often length gives the answer away.
-function biasCheck(distractorCount, label) {
+// Easy and Medium always offer the first (simplest) answer; Hard may offer either of the first two. This mirrors the game.
+function biasCheck(distractorCount, label, offeredCount, levels) {
   let s = 20240601;
   const rnd = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
   const pick = (arr, n) => { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a.slice(0, n); };
   let shortest = 0, longest = 0, total = 0;
-  for (const e of entries) {
+  const pool = entries.filter((e) => levels.includes(e.level));
+  for (const e of pool) {
     for (let r = 0; r < 200; r++) {
-      const right = e.answers[Math.floor(rnd() * e.answers.length)];
+      const offered = e.answers.filter((a) => !e.typedOnly.includes(a)).slice(0, offeredCount);
+      const right = offered[Math.floor(rnd() * offered.length)];
       const wrong = pick(e.distractors, distractorCount);
       const lens = wrong.map((w) => w.length);
       total++;
@@ -171,7 +174,7 @@ function biasCheck(distractorCount, label) {
   const chance = 1 / (distractorCount + 1);
   const rs = shortest / total, rl = longest / total;
   console.log(`  length bias, ${label}: right option strictly shortest ${(rs * 100).toFixed(0)}%, strictly longest ${(rl * 100).toFixed(0)}% (chance ${(chance * 100).toFixed(0)}% each, ties excluded)`);
-  if (entries.length >= BIAS_MIN_ENTRIES) {
+  if (pool.length >= BIAS_MIN_ENTRIES) {
     if (rs > chance + BIAS_MARGIN) errors.push(`length bias (${label}): the right answer is the shortest option ${(rs * 100).toFixed(0)}% of the time`);
     if (rl > chance + BIAS_MARGIN) errors.push(`length bias (${label}): the right answer is the longest option ${(rl * 100).toFixed(0)}% of the time`);
   }
@@ -180,7 +183,7 @@ function biasCheck(distractorCount, label) {
 const byLevel = {};
 for (const e of entries) byLevel[e.level] = (byLevel[e.level] || 0) + 1;
 console.log(`${path.relative(process.cwd(), file)}: ${entries.length} entries, by level ${JSON.stringify(byLevel)}`);
-if (entries.length) { biasCheck(2, '3 options (age 4-5)'); biasCheck(3, '4 options (age 6+)'); }
+if (entries.length) { biasCheck(2, 'Easy (level 1), 3 options', 1, [1]); biasCheck(3, 'Medium (levels 1-2), 4 options', 1, [1, 2]); biasCheck(3, 'Hard (level 2), 4 options, first two answers', 2, [2]); }
 if (warnings.length) { console.log(`\n${warnings.length} warning(s):`); warnings.forEach((w) => console.log('  ' + w)); }
 if (errors.length) {
   console.error(`\n${errors.length} error(s):`);
