@@ -50,11 +50,6 @@ typography:
     fontSize: "clamp(2.5rem, 9vmin, 5rem)"
     fontWeight: 700
     lineHeight: 1.1
-  card-picture:
-    fontFamily: "Andika, Atkinson Hyperlegible, Segoe UI, system-ui, sans-serif"
-    fontSize: "clamp(2rem, calc(var(--cw) * 0.5), 5rem)"
-    fontWeight: 400
-    lineHeight: 1
   key-label:
     fontFamily: "Andika, Atkinson Hyperlegible, Segoe UI, system-ui, sans-serif"
     fontSize: "clamp(0.75rem, 1.7vh, 1rem)"
@@ -121,7 +116,7 @@ It flexes by age rather than splitting into two products. Younger players (4–5
 - Flat matte tarmac ground in two moods: Day (cool pale pavement) and Dusk (near-black slate). Never cream.
 - Five playground paints, one owned by each game, plus chalk white.
 - Every painted shape carries a 3px keyline. State is never carried by colour alone.
-- Drawn SVG icons, one stroke weight. No emoji for any control or status. (Memory Match card pictures are emoji content.)
+- Drawn SVG icons, one stroke weight. No emoji anywhere: Memory Match card pictures are drawn too (see Shapes).
 - Self-hosted Andika, built for early readers. No third-party requests.
 - Progress is cumulative hopscotch squares and never resets or shames.
 
@@ -163,7 +158,6 @@ A restrained neutral ground, five committed paints, and two functional washes. P
 - **Label** (700, 1rem): chips, field labels. 16px is the floor anywhere a child must read.
 - **Numeral** (700, clamp(4rem, 14vmin, 8rem)): sums, scores. Tabular numerals.
 - **Question** (700, clamp(2.5rem, 9vmin, 5rem)): long sums and long words, which would overflow at Numeral size.
-- **Card picture** (clamp(2rem, half the card width, 5rem)): the emoji on a Memory Match card.
 - **Key label** (700, clamp(0.75rem, 1.7vh, 1rem)): letters on the on-screen keyboard.
 
 ### Named Rules
@@ -189,7 +183,7 @@ Flat by default and flat in every state. There are no shadows, glows, blurs or g
 
 ## Shapes
 
-Painted squares stay nearly square (6px). Tiles and buttons round gently (12px). Panels and game tiles round more (22px). Chips, avatars and track ends are pills. Line ends are round. Drawn icons use one 5-in-48 stroke with round caps and joins; markings use 6-in-96. The eight player shapes (circle, square, triangle, diamond, star, plus, heart, hexagon) are filled paint with a keyline.
+Painted squares stay nearly square (6px). Tiles and buttons round gently (12px). Panels and game tiles round more (22px). Chips, avatars and track ends are pills. Line ends are round. Drawn icons use one 5-in-48 stroke with round caps and joins; markings use 6-in-96. The eight player shapes (circle, square, triangle, diamond, star, plus, heart, hexagon) are filled paint with a keyline. Memory Match card pictures are line drawings in the style of the Stories icons: a bold main shape (5 in 96) with thinner detail lines (3) and small filled dots, in the keyline colour on a chalk card. They are data in the game file, chosen so every pair of pictures has a clearly different silhouette, with no themes.
 
 ## Components
 

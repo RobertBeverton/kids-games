@@ -14,7 +14,7 @@
 .mm-fieldset .kg-seg { gap: var(--s3); }
 
 /* Settings tiles */
-.mm-size { flex-direction: column; gap: var(--s2); min-height: 124px; }
+.mm-size { flex-direction: column; gap: var(--s1); min-height: 124px; padding-block: var(--s3); }
 .mm-size small { font-size: var(--t-small); font-weight: 400; }
 .mm-size .mm-best { font-weight: 700; }
 .mm-size .mm-best:empty { display: none; }
@@ -68,6 +68,7 @@
 .mm-card-front { background: var(--chalk); transform: rotateY(180deg); }
 /* A bold main shape and thinner detail lines, round ends, like the Stories icons. 5 and 3 in 96 stay clear at 56px. */
 .mm-pic { width: 80%; height: 80%; fill: none; stroke: var(--line); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.mm-pic--wide { width: 100%; height: auto; }   /* 120x82 drawings, same scale as the 96x96 ones at 80% */
 .mm-pic .d { stroke-width: 3; }
 .mm-pic .dot { fill: var(--line); stroke: none; }
 .mm-card--matched .mm-card-front { background: var(--right-wash); border-color: var(--right); border-width: 5px; }
@@ -88,7 +89,7 @@
 
 /* Win */
 .mm-win { width: 100%; max-width: 520px; display: grid; justify-items: center; gap: var(--s4); text-align: center; margin: auto; }
-.mm-win .mk { width: clamp(120px, 26vmin, 200px); height: clamp(120px, 26vmin, 200px); color: var(--on-paint); background: var(--paint); border: var(--line-w) solid var(--line); border-radius: var(--r-2); padding: 18px; animation: kg-paint-on var(--dur-paint) var(--ease) both; }
+.mm-win .mk { width: clamp(88px, 18vmin, 200px); height: clamp(88px, 18vmin, 200px); color: var(--on-paint); background: var(--paint); border: var(--line-w) solid var(--line); border-radius: var(--r-2); padding: 14px; animation: kg-paint-on var(--dur-paint) var(--ease) both; }
 .mm-win h2 { margin: 0; font-size: var(--t-display); line-height: 1.05; }
 .mm-win p { margin: 0; font-size: var(--t-lead); }
 .mm-win .kg-actions { width: 100%; justify-content: center; }
@@ -184,11 +185,21 @@ function say(text) { if (window.KidsGames) window.KidsGames.say(text); }
 //   detail thinner stroked lines (optional)
 //   dots   small filled shapes: eyes, noses, hubs (optional)
 //   label  the short name, used as the card's accessible name
+//   wide   true for drawings on a 120x82 box (the Stories icons, copied as they are); otherwise 96x96
 // There are no themes: every picture is chosen to have a clearly different silhouette from the others, because
 // telling pictures apart at a glance matters more than their subject. To add or change a picture, edit only this
 // block (and list a new key in POOL). Nothing else needs to change.
 // BEGIN_PICTURES
 const PICTURES = {
+  // from the Stories icon set (120x82 box)
+  sun: { label: "sun", wide: true, line: "M18 59c15-20 24-35 42-35s27 15 42 35Z", detail: "M60 18v-8M40 23l-5-7M80 23l5-7M29 39h-9M91 39h9" },
+  boat: { label: "boat", wide: true, line: "M22 50h76c-4 12-14 18-26 18H48c-12 0-22-6-26-18ZM59 46V14l24 32ZM51 46V24L32 46Z", detail: "M55 8v42M14 77c8-4 16-4 24 0s16 4 24 0s16-4 24 0s16 4 20 0" },
+  berries: { label: "berries", wide: true, line: "M40 46a10 10 0 1 0 20 0a10 10 0 1 0-20 0ZM60 46a10 10 0 1 0 20 0a10 10 0 1 0-20 0ZM50 62a10 10 0 1 0 20 0a10 10 0 1 0-20 0Z", detail: "M60 38V18M60 26c-4-8-14-10-22-6c4 8 14 10 22 6ZM60 26c4-8 14-10 22-6c-4 8-14 10-22 6Z" },
+  cloud: { label: "cloud", wide: true, line: "M35 49c-5-13 12-24 23-14 9-18 36-8 30 9 14 0 16 17 3 21H34c-14-1-13-17 1-16Z", detail: "M40 56h40" },
+  pawprint: { label: "paw print", wide: true, line: "M60 40c-12 0-20 8-20 16s6 10 20 10s20-2 20-10s-8-16-20-16ZM30 34a6 6 0 1 0 12 0a6 6 0 1 0-12 0ZM44 22a6 6 0 1 0 12 0a6 6 0 1 0-12 0ZM64 22a6 6 0 1 0 12 0a6 6 0 1 0-12 0ZM78 34a6 6 0 1 0 12 0a6 6 0 1 0-12 0Z", detail: "M50 54c6 4 14 4 20 0" },
+  gate: { label: "gate", wide: true, line: "M14 20c14 5 78 5 92 0l-4 10H18ZM32 30h8v40h-8ZM80 30h8v40h-8Z", detail: "M30 44h60" },
+  lotus: { label: "lotus flower", wide: true, line: "M60 12c12 12 12 32 0 48c-12-16-12-36 0-48ZM60 62C44 60 30 50 26 34c14 2 26 10 34 28ZM60 62c16-2 30-12 34-28-14 2-26 10-34 28Z", detail: "M30 70h60" },
+  eye: { label: "eye", wide: true, line: "M16 40c14-18 74-18 88 0c-14 18-74 18-88 0ZM60 31a9 9 0 1 0 0 18a9 9 0 1 0 0-18Z", detail: "M28 26c20-10 44-10 64 0M58 52l-4 14h12" },
   // animals
   cat: { label: "cat", line: "M20 52L17 16L40 31Q48 29 56 31L79 16L76 52Q80 82 48 82Q16 82 20 52Z", detail: "M6 56H21 M8 68L21 63 M90 56H75 M88 68L75 63 M48 66v3 M42 72q6 4 6-3 0 7 6 3", dots: "M34 51a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0M55 51a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0M44 59h8l-4 5Z" },
   rabbit: { label: "rabbit", line: "M38 40C28 26 30 6 38 6C46 6 46 28 46 38 M50 38C50 28 50 6 58 6C66 6 68 26 58 40 M24 62a24 22 0 1 0 48 0a24 22 0 1 0-48 0", detail: "M48 70q-5 5-9 2 M48 70q5 5 9 2", dots: "M36 60a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M54 60a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M45 67a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" },
@@ -196,33 +207,18 @@ const PICTURES = {
   snail: { label: "snail", line: "M36 38a22 22 0 1 0 44 0a22 22 0 1 0-44 0 M82 66C88 76 84 82 74 82H22C10 82 8 70 14 62C18 56 20 50 20 44C20 40 26 40 26 46C26 54 30 60 38 61", detail: "M58 38a4 4 0 0 1 4 4a8 8 0 0 1-8 8a12 12 0 0 1-12-12a16 16 0 0 1 16-16 M20 41L15 27 M26 41L31 27", dots: "M12 25.5a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M28 25.5a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" },
   elephant: { label: "elephant", line: "M28 47a20 20 0 1 0 40 0a20 20 0 1 0-40 0 M31 36.5A15 15 0 1 0 31 57.5 M65 36.5A15 15 0 1 1 65 57.5 M42 64V82Q42 88 48 88Q54 88 54 82V64", dots: "M37 44a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M53 44a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" },
   butterfly: { label: "butterfly", line: "M48 44C40 20 14 14 12 30C10 44 28 52 48 50 M48 52C30 52 20 70 28 76C36 82 46 70 48 60 M48 44C56 20 82 14 84 30C86 44 68 52 48 50 M48 52C66 52 76 70 68 76C60 82 50 70 48 60 M48 28V76", detail: "M48 28L40 14 M48 28L56 14", dots: "M23 32a4 4 0 1 0 8 0a4 4 0 1 0 -8 0M65 32a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" },
-  // food
-  apple: { label: "apple", line: "M30 30H66V66H30Z", todo: true },
-  banana: { label: "banana", line: "M30 30H66V66H30Z", todo: true },
-  carrot: { label: "carrot", line: "M30 30H66V66H30Z", todo: true },
-  cherries: { label: "cherries", line: "M30 30H66V66H30Z", todo: true },
-  icecream: { label: "ice cream", line: "M30 30H66V66H30Z", todo: true },
-  // vehicles
-  car: { label: "car", line: "M30 30H66V66H30Z", todo: true },
-  plane: { label: "plane", line: "M30 30H66V66H30Z", todo: true },
-  sailboat: { label: "sailboat", line: "M30 30H66V66H30Z", todo: true },
-  rocket: { label: "rocket", line: "M30 30H66V66H30Z", todo: true },
   // things
-  sun: { label: "sun", line: "M30 30H66V66H30Z", todo: true },
-  moon: { label: "moon", line: "M30 30H66V66H30Z", todo: true },
-  star: { label: "star", line: "M30 30H66V66H30Z", todo: true },
-  heart: { label: "heart", line: "M30 30H66V66H30Z", todo: true },
-  house: { label: "house", line: "M30 30H66V66H30Z", todo: true },
-  tree: { label: "tree", line: "M30 30H66V66H30Z", todo: true },
-  flower: { label: "flower", line: "M30 30H66V66H30Z", todo: true },
-  umbrella: { label: "umbrella", line: "M30 30H66V66H30Z", todo: true },
-  bell: { label: "bell", line: "M30 30H66V66H30Z", todo: true },
+  apple: { label: "apple", line: "M48 30C36 22 18 30 18 52C18 70 30 84 40 84C44 84 46 82 48 82C50 82 52 84 56 84C66 84 78 70 78 52C78 30 60 22 48 30Z", detail: "M48 30C48 22 52 15 58 11 M52 22C58 14 68 14 72 17C68 25 58 27 52 22Z" },
+  car: { label: "car", line: "M10 62V54Q10 47 17 46L28 44L38 28H62L74 44L83 46Q90 48 90 55V62Z M19 62a9 9 0 1 0 18 0a9 9 0 1 0-18 0 M63 62a9 9 0 1 0 18 0a9 9 0 1 0-18 0", detail: "M34 44L41 33H48V44Z M54 33H60L68 44H54Z" },
+  star: { label: "star", line: "M48 12L57.4 37.1L84.1 38.3L63.2 54.9L70.3 80.7L48 66L25.7 80.7L32.8 54.9L11.9 38.3L38.6 37.1Z" },
+  house: { label: "house", line: "M12 48L48 16L84 48 M22 42V82H74V42", detail: "M41 82V60H55V82 M66 30V20H74V36" },
+  heart: { label: "heart", line: "M48 82C20 62 10 46 10 32C10 20 20 12 30 12C38 12 44 16 48 24C52 16 58 12 66 12C76 12 86 20 86 32C86 46 76 62 48 82Z", detail: "M22 32q2-9 9-11" },
+  moon: { label: "moon", line: "M62 12C36 14 22 38 30 62C38 84 70 90 86 72C64 74 50 50 62 12Z", dots: "M73 26a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M81.5 44a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0" },
 };
 const POOL = [
-  'cat', 'rabbit', 'fish', 'snail', 'elephant', 'butterfly',  // animals
-  'apple', 'banana', 'carrot', 'cherries', 'icecream',  // food
-  'car', 'plane', 'sailboat', 'rocket',  // vehicles
-  'sun', 'moon', 'star', 'heart', 'house', 'tree', 'flower', 'umbrella', 'bell',  // things
+  'sun', 'boat', 'berries', 'cloud', 'pawprint', 'gate', 'lotus', 'eye',
+  'cat', 'rabbit', 'fish', 'snail', 'elephant', 'butterfly',
+  'apple', 'car', 'star', 'house', 'heart', 'moon',
 ];
 // END_PICTURES
 
@@ -243,7 +239,7 @@ function picture(key) {
 }
 function pictureSvg(key) {
   const p = picture(key);
-  return '<svg class="mm-pic" viewBox="0 0 96 96" aria-hidden="true"><path d="' + p.line + '"/>' +
+  return '<svg class="mm-pic' + (p.wide ? ' mm-pic--wide' : '') + '" viewBox="' + (p.wide ? '0 0 120 82' : '0 0 96 96') + '" aria-hidden="true"><path d="' + p.line + '"/>' +
     (p.detail ? '<path class="d" d="' + p.detail + '"/>' : '') +
     (p.dots ? '<path class="dot" d="' + p.dots + '"/>' : '') + '</svg>';
 }
@@ -546,7 +542,10 @@ function showWin(elapsed) {
   const top = bestTimes(state.size);
   let note;
   if (res.previousBest === null) note = 'Your first time. Can you beat it?';
-  else if (res.rank === 0) note = 'New best! ' + Math.max(1, Math.round((res.previousBest - elapsed) / 1000)) + 's faster';
+  else if (res.rank === 0) {
+    const gain = Math.max(1, Math.round((res.previousBest - elapsed) / 1000));
+    note = 'New best! ' + (gain >= 60 ? fmtTime(gain * 1000) : gain + 's') + ' faster';
+  }
   else if (res.rank > 0) note = 'Top ' + BEST_KEEP + '!';
   else note = 'Have another go!';
   let usedMark = false;
