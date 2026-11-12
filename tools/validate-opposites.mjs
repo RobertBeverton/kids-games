@@ -111,6 +111,34 @@ if (fs.existsSync(missFile)) {
   console.log(`  misspellings: ${seenSlip.size} accepted slips`);
 }
 
+// Forms file: tools/opposites-forms.txt  ("answer: form form"). Real words (smaller, pulled, went) accepted when typed.
+// A form may not be a word that appears elsewhere in the list, so it can never also be a wrong answer.
+const formsFile = path.join(path.dirname(file), 'opposites-forms.txt');
+if (fs.existsSync(formsFile)) {
+  const vocab = new Set(entries.flatMap((e) => [e.word, ...e.answers, ...e.distractors, ...e.typedOnly]));
+  const answerSet = new Set(entries.flatMap((e) => e.answers));
+  const forms = new Map(); // answer -> [forms]
+  fs.readFileSync(formsFile, 'utf8').split(/\r?\n/).forEach((raw, i) => {
+    const line = raw.replace(/#.*$/, '').trim();
+    if (!line) return;
+    const m = line.match(/^([a-z]+):\s*([a-z ]+)$/);
+    if (!m) { errors.push(`forms line ${i + 1}: expected "answer: form form", got "${line}"`); return; }
+    if (!answerSet.has(m[1])) errors.push(`forms line ${i + 1}: "${m[1]}" is not an accepted answer of any entry`);
+    if (forms.has(m[1])) errors.push(`forms line ${i + 1}: "${m[1]}" is listed twice`);
+    const list = m[2].trim().split(/\s+/);
+    forms.set(m[1], list);
+    for (const f of list) if (vocab.has(f)) errors.push(`forms line ${i + 1}: "${f}" is already a word in the list (question word, answer or distractor)`);
+  });
+  // an entry's accepted forms may not overlap the forms of its own question word (it would be accepting the word itself)
+  for (const e of entries) {
+    const own = new Set([...(forms.get(e.word) || [])]);
+    for (const a of e.answers) for (const f of forms.get(a) || []) {
+      if (own.has(f)) errors.push(`line ${e.line} (${e.word}): form "${f}" of answer "${a}" is also a form of the question word`);
+    }
+  }
+  console.log(`  forms: ${[...forms.values()].reduce((s, l) => s + l.length, 0)} accepted word forms for ${forms.size} answers`);
+}
+
 // Distractor variety: a word that is wrong in too many questions becomes a giveaway ("apple is never the answer").
 const DISTRACTOR_CAP = 0.10; // a distractor may appear in at most 10% of entries
 if (entries.length >= 40) {

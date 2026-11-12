@@ -13,7 +13,7 @@
 //  - the answer is never printed on the page before the child answers.
 // For the 6-8 bracket it also runs an exhaustive pass: every accepted word, every distractor and random other words for every
 // entry through the real input box, and every entry rendered in choose mode repeatedly at both distractor counts.
-// Expected answers are read from tools/opposites-words.txt and tools/opposites-misspellings.txt, not from the page, so this
+// Expected answers are read from tools/opposites-words.txt, opposites-misspellings.txt and opposites-forms.txt, not from the page, so this
 // also proves the data embedded in the game matches the list.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -25,15 +25,20 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.
 const URL = process.env.PAGE || pathToFileURL(path.join(ROOT, 'docs', 'opposites.html')).href;
 // Expected data comes from the SOURCE list files, not from the page, so the test also proves the embedded copy is right.
 const { entries } = parseWords(fs.readFileSync(`${ROOT}/tools/opposites-words.txt`, 'utf8'));
-const slips = new Map();
-for (const raw of fs.readFileSync(`${ROOT}/tools/opposites-misspellings.txt`, 'utf8').split(/\r?\n/)) {
-  const m = raw.replace(/#.*$/, '').trim().match(/^([a-z]+):\s*([a-z ]+)$/);
-  if (m) slips.set(m[1], m[2].trim().split(/\s+/));
-}
+const readMap = (file) => {
+  const out = new Map();
+  for (const raw of fs.readFileSync(`${ROOT}/tools/${file}`, 'utf8').split(/\r?\n/)) {
+    const m = raw.replace(/#.*$/, '').trim().match(/^([a-z]+):\s*([a-z ]+)$/);
+    if (m) out.set(m[1], m[2].trim().split(/\s+/));
+  }
+  return out;
+};
+const slips = readMap('opposites-misspellings.txt');
+const forms = readMap('opposites-forms.txt');
 const src = new Map(entries.map((e) => {
   const choosable = e.answers.filter((a) => !e.typedOnly.includes(a));
   const typed = new Set(e.typedOnly);
-  for (const a of e.answers) for (const s of slips.get(a) || []) typed.add(s);
+  for (const a of e.answers) for (const s of [...(forms.get(a) || []), ...(slips.get(a) || [])]) typed.add(s);
   const accepted = new Set([...choosable, ...typed]);
   return [e.word, { level: e.level, choosable, typed: [...typed], accepted, distractors: e.distractors }];
 }));
