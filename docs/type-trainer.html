@@ -519,1241 +519,133 @@ button { font: inherit; color: inherit; }
   :root { --t-display: 2.5rem; --t-title: 1.75rem; }
   .kg-sheet { padding: var(--s4); }
 }
-@charset "UTF-8";
+/* Type Trainer — game styles. Shared parts live in shared/shell.css (kg-*).
+   Finger zones: four paint hues (pinky blue, ring green, middle yellow, index orange)
+   mirrored across both hands, and each of the eight zones keeps its own PATTERN so
+   no zone is ever told apart by colour alone. */
 
-/* ========================================
-   THEME SYSTEM — CSS Custom Properties
-   ======================================== */
+:root, :root[data-theme="colourful-light"] {
+  --zone-left-pinky: var(--paint-blue);    --on-zone-left-pinky: var(--on-blue);
+  --zone-right-pinky: var(--paint-blue);   --on-zone-right-pinky: var(--on-blue);
+  --zone-left-ring: var(--paint-green);    --on-zone-left-ring: var(--on-green);
+  --zone-right-ring: var(--paint-green);   --on-zone-right-ring: var(--on-green);
+  --zone-left-middle: var(--paint-yellow); --on-zone-left-middle: var(--on-yellow);
+  --zone-right-middle: var(--paint-yellow);--on-zone-right-middle: var(--on-yellow);
+  --zone-left-index: var(--paint-orange);  --on-zone-left-index: var(--on-orange);
+  --zone-right-index: var(--paint-orange); --on-zone-right-index: var(--on-orange);
 
-:root {
-  /* --- Finger zone colours (light theme — WCAG AAA 7:1+ against #FFF) --- */
-  --zone-left-pinky:   #1E3A5F;
-  --zone-left-ring:    #0F766E;
-  --zone-left-middle:  #166534;
-  --zone-left-index:   #7C4A03;
-  --zone-right-index:  #8B3510;
-  --zone-right-middle: #9D174D;
-  --zone-right-ring:   #6B21A8;
-  --zone-right-pinky:  #3F4E5F;
+  /* read by the canvas (js/play.js) */
+  --bg-grid: rgba(20, 25, 34, 0.10);
+  --danger-zone: rgba(200, 36, 47, 0.16);
+  --overlay-bg: var(--chalk);
 }
-
-/* --- Clean light theme (default for ages 9-12, Adult) --- */
-:root[data-theme="clean-light"] {
-  /* These override or supplement shared tokens */
-  --bg-grid: #F0F0EC;
-
-  --border: #E0E0D8;   /* Was --border-default */
-  --danger-zone: #FEE2E2;
-  --danger-text: #DC2626;
-
-  --stage-bar-bg: #F5F5F0;
-  --stage-bar-fill: #536E7A;
-
-  --overlay-bg: rgba(250, 250, 248, 0.95);
-  --overlay-text: #1A1A2E;
-
-  --kbd-bg: #FFFFFF;
-  --kbd-border: #D0D0C8;
-  --kbd-shadow: rgba(0, 0, 0, 0.08);
-  --kbd-text: #1A1A2E;
-}
-
-/* --- Clean dark theme (default for ages 9-12, Adult) --- */
-:root[data-theme="clean-dark"] {
-  --bg-grid: rgba(20, 20, 60, 0.8);
-
-  --border: #1A1A4A;   /* Was --border-default */
-  --danger-zone: rgba(220, 60, 60, 0.15);
-  --danger-text: #FF6B6B;
-
-  --stage-bar-bg: #0C0C25;
-  --stage-bar-fill: #7AF;
-
-  --overlay-bg: rgba(5, 5, 20, 0.93);
-  --overlay-text: #FFFFFF;
-
-  --kbd-bg: #141428;
-  --kbd-border: #1A1A4A;
-  --kbd-shadow: rgba(0, 0, 0, 0.3);
-  --kbd-text: #C0C0D8;
-
-  /* Finger zone colours (dark theme) */
-  --zone-left-pinky:   #3B82F6;
-  --zone-left-ring:    #14B8A6;
-  --zone-left-middle:  #22C55E;
-  --zone-left-index:   #F59E0B;
-  --zone-right-index:  #F97316;
-  --zone-right-middle: #F472B6;
-  --zone-right-ring:   #A855F7;
-  --zone-right-pinky:  #94A3B8;
-}
-
-/* Colourful themes use same game-specific tokens as clean themes */
-:root[data-theme="colourful-light"] {
-  --bg-grid: #F0F0EC;
-  --border: #E2E8F0;
-  --danger-zone: #FEE2E2;
-  --danger-text: #DC2626;
-  --stage-bar-bg: #FFFFFF;
-  --stage-bar-fill: #7C5FE0;
-  --overlay-bg: rgba(255, 248, 231, 0.95);
-  --overlay-text: #2D3436;
-  --kbd-bg: #FFFFFF;
-  --kbd-border: #E2E8F0;
-  --kbd-shadow: rgba(0, 0, 0, 0.06);
-  --kbd-text: #2D3436;
-}
-
 :root[data-theme="colourful-dark"] {
-  --bg-grid: rgba(37, 30, 44, 0.8);
-  --border: #3A3244;
-  --danger-zone: rgba(255, 107, 107, 0.15);
-  --danger-text: #FF8A8A;
-  --stage-bar-bg: #251E2C;
-  --stage-bar-fill: #C4A8FF;
-  --overlay-bg: rgba(26, 21, 32, 0.95);
-  --overlay-text: #F0ECF4;
-  --kbd-bg: #251E2C;
-  --kbd-border: #3A3244;
-  --kbd-shadow: rgba(0, 0, 0, 0.25);
-  --kbd-text: #BDB4C8;
-  /* Finger zone colours (colourful dark — same as clean dark) */
-  --zone-left-pinky:   #3B82F6;
-  --zone-left-ring:    #14B8A6;
-  --zone-left-middle:  #22C55E;
-  --zone-left-index:   #F59E0B;
-  --zone-right-index:  #F97316;
-  --zone-right-middle: #F472B6;
-  --zone-right-ring:   #A855F7;
-  --zone-right-pinky:  #94A3B8;
+  --bg-grid: rgba(243, 244, 238, 0.10);
+  --danger-zone: rgba(255, 107, 112, 0.22);
 }
 
-
-/* ========================================
-   RESET & BASE
-   ======================================== */
-
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-html, body {
-  height: 100%;
-  font-family: var(--font-family);
-  font-size: var(--text-base);
-  color: var(--text-primary);
-  background: var(--bg);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-body {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-md);
-  padding-top: 56px;
-}
-
-.keyboard-warning {
-  background: var(--warning-bg);
-  color: var(--text-primary);
-  padding: var(--space-sm) var(--space-md);
-  border-radius: var(--radius-lg);
-  text-align: center;
-  font-size: var(--text-sm);
-  margin-bottom: var(--space-sm);
-}
-
-
-/* ========================================
-   GLOBAL FOCUS STYLES (Fix W8)
-   ======================================== */
-
-:focus-visible {
-  outline: 3px solid var(--btn-primary-bg);
-  outline-offset: 2px;
-}
-
-
-/* ========================================
-   GAME WRAPPER
-   ======================================== */
-
+/* === Layout === */
 #game-wrapper {
-  width: 100%;
-  max-width: 1200px;
-  height: 90vh;
-  max-height: 95vh;
-  background: var(--bg-game);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
-  overflow: hidden;
   position: relative;
-  display: flex;
-  flex-direction: column;
-  font-family: var(--font-mono);
+  height: calc(100dvh - var(--bar-h));
+  display: flex; flex-direction: column;
+  background: var(--ground);
+  overflow: hidden;
 }
 
-
-/* ========================================
-   HUD
-   ======================================== */
-
+/* === HUD === */
 .hud {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--space-sm) var(--space-md);
-  background: var(--hud-bg);
-  border-bottom: 1px solid var(--border);
-  color: var(--hud-text);
-  font-size: var(--text-xs);
+  display: flex; align-items: center; flex-wrap: wrap; gap: var(--s2);
+  padding: var(--s2) var(--s3);
+  background: var(--ground);
+  border-bottom: var(--line-w) solid var(--line);
   flex-shrink: 0;
 }
-
+.hud-fill { flex: 1; }
 .hud-item {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
+  display: inline-flex; align-items: center; gap: var(--s2);
+  min-height: 44px; padding: var(--s1) var(--s3);
+  background: var(--chalk); color: var(--ink);
+  border: var(--line-w) solid var(--line); border-radius: var(--r-pill);
+  font-size: var(--t-small); font-variant-numeric: tabular-nums; line-height: 1;
 }
-
-.hud-item span {
-  color: var(--text-primary);
-  font-weight: 600;
-}
+.hud-item strong { font-size: var(--t-body); }
+.hud-item .ic { width: 22px; height: 22px; }
+.hud-score { background: var(--paint); color: var(--on-paint); }
+.hud-lives { display: inline-flex; gap: 4px; }
+.hud-lives .ic { width: 24px; height: 24px; color: var(--paint-red); stroke: var(--line); stroke-width: 3; }
+.hud-lives .ic.lost { color: transparent; }
+.hud-streak[data-hot="true"], #hud-streak-value[data-streak="max"] { font-weight: 700; }
+.hud--simplified .hud-streak, .hud--simplified .keyboard-toggle-btn, .hud--simplified .hud-best { display: none !important; }
 
 .hud-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: var(--text-base);
-  padding: var(--space-xs);
-  border-radius: var(--radius-sm);
-  line-height: 1;
-  min-width: 44px;
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--hud-text);
-  transition: background var(--transition-fast);
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--s2);
+  min-width: 48px; min-height: 48px; padding: 0 var(--s3);
+  background: var(--chalk); color: var(--ink);
+  border: var(--line-w) solid var(--line); border-radius: var(--r-1);
+  font-size: var(--t-small); font-weight: 700; line-height: 1; cursor: pointer;
+  transition: transform var(--dur-1) var(--ease), background var(--dur-1) var(--ease);
 }
-
-.hud-btn:hover {
-  background: var(--border-light);
+.hud-btn:active { transform: scale(0.95); }
+@media (hover: hover) { .hud-btn:hover { background: var(--ground-2); } }
+.hud-btn--active { background: var(--ink); color: var(--ground); }
+.pause-btn--large { min-width: 72px; min-height: 72px; }
+.pause-btn--large .ic { width: 36px; height: 36px; }
+.pause-btn--labelled { padding: 0 var(--s4); }
+.pause-btn--pulse { outline: 5px dashed var(--ink); outline-offset: 3px; }
+.hud-speed-wrap { position: relative; }
+.speed-dropdown {
+  position: absolute; top: calc(100% + 6px); right: 0; z-index: 200; min-width: 200px;
+  display: grid; gap: var(--s2); padding: var(--s2);
+  background: var(--chalk); border: var(--line-w) solid var(--line); border-radius: var(--r-2);
 }
-
-.hud-btn:focus-visible {
-  outline: 3px solid var(--btn-primary-bg);
-  outline-offset: 2px;
+.speed-option {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s3);
+  min-height: 52px; padding: 0 var(--s4);
+  background: var(--ground); color: var(--ink);
+  border: var(--line-w) solid var(--line); border-radius: var(--r-1);
+  font-size: var(--t-body); font-weight: 700; cursor: pointer;
 }
+.speed-option--active { background: var(--ink); color: var(--ground); }
+.speed-option__check { visibility: hidden; width: 22px; height: 22px; }
+.speed-option--active .speed-option__check { visibility: visible; }
 
-/* Simplified HUD for youngest players (4-5 bracket) */
-.hud--simplified .hud-streak,
-.hud--simplified .keyboard-toggle-btn {
-  display: none !important;
-}
-
-/* ── Mute Button ─────────────────────────────────────────── */
-
-.mute-btn[aria-pressed="true"] {
-  opacity: 0.5;
-}
-
-.mute-icon {
-  pointer-events: none;
-}
-
-
-/* ========================================
-   STAGE BAR
-   ======================================== */
-
+/* === Stage line === */
 .stage-bar {
-  padding: var(--space-xs) var(--space-md);
-  background: var(--stage-bar-bg);
-  font-size: var(--text-xs);
-  color: var(--text-muted);
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  flex-shrink: 0;
+  display: flex; align-items: center; gap: var(--s3);
+  padding: var(--s2) var(--s4); flex-shrink: 0;
+  font-size: var(--t-small); color: var(--ink-2);
 }
+.stage-label { color: var(--ink); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 240px; }
+.stage-track { flex: 1; height: 16px; border: var(--line-w) solid var(--line); border-radius: var(--r-pill); overflow: hidden; }
+.stage-fill { height: 100%; background: var(--paint); transition: width var(--dur-paint) var(--ease); }
+.stage-progress { white-space: nowrap; font-variant-numeric: tabular-nums; }
 
-.stage-label {
-  color: var(--hud-accent);
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 200px;
-}
-
-.stage-track {
-  flex: 1;
-  height: 3px;
-  background: var(--border-light);
-  border-radius: var(--radius-full);
-  overflow: hidden;
-}
-
-.stage-fill {
-  height: 100%;
-  background: var(--stage-bar-fill);
-  border-radius: var(--radius-full);
-  transition: width 0.4s ease;
-}
-
-.stage-progress {
-  font-size: var(--text-xs);
-  color: var(--text-muted);
-  white-space: nowrap;
-}
-
-
-/* ========================================
-   CANVAS AREA
-   ======================================== */
-
-.canvas-wrap {
-  flex: 1;
-  position: relative;
-  overflow: hidden;
-  min-height: 0;
-}
-
-.canvas-wrap canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-/* Play area container */
-.play-area {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
+/* === Canvas === */
+.canvas-wrap { flex: 1; position: relative; overflow: hidden; min-height: 0; }
+.canvas-wrap canvas { display: block; width: 100%; height: 100%; }
+.play-area { flex: 1; display: flex; flex-direction: column; min-height: 0; }
 .play-area[hidden] { display: none; }
 
-
-/* ========================================
-   KEYBOARD CONTAINER (wrapper in game layout)
-   ======================================== */
-
-.keyboard-container {
-  flex-shrink: 0;
-  padding: var(--space-sm) var(--space-md);
-  background: var(--bg-surface);
-  border-top: 1px solid var(--border);
-  display: none;  /* Hidden until keyboard.js activates it */
-}
-
-
-/* ========================================
-   TYPED ROW
-   ======================================== */
-
 .typed-row {
-  background: var(--bg-game);
-  padding: var(--space-xs) var(--space-md);
-  min-height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  border-top: 1px solid var(--border-light);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  min-height: 56px; padding: var(--s1) var(--s4);
+  border-top: var(--line-w) solid var(--line);
 }
+.typed-display { font-size: var(--t-title); font-weight: 700; letter-spacing: 0.12em; min-height: 1.2em; }
 
-.typed-display {
-  font-size: var(--text-lg);
-  color: var(--hud-accent);
-  letter-spacing: 4px;
-  font-weight: 600;
-  min-height: 22px;
-}
-
-
-/* ========================================
-   OVERLAY (modal screens)
-   ======================================== */
-
-.overlay {
-  position: absolute;
-  inset: 0;
-  background: var(--overlay-bg);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-md);
-  color: var(--overlay-text);
-  padding: var(--space-xl);
-  z-index: 100;
-}
-
-.overlay[hidden] {
-  display: none;
-}
-
-.overlay h2 {
-  font-family: var(--font-family);
-  font-size: var(--text-xl);
-  font-weight: 700;
-  color: var(--hud-accent);
-  letter-spacing: 1px;
-}
-
-.overlay p {
-  font-family: var(--font-family);
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
-  text-align: center;
-  max-width: 360px;
-  line-height: 1.7;
-}
-
-
-/* ========================================
-   BUTTONS
-   ======================================== */
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-sm) var(--space-xl);
-  border-radius: var(--radius-md);
-  font-family: var(--font-family);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  cursor: pointer;
-  letter-spacing: 0.5px;
-  transition: background var(--transition-fast), border-color var(--transition-fast);
-  border: 2px solid transparent;
-  min-width: 120px;
-  min-height: 44px;
-  text-align: center;
-  text-decoration: none;
-}
-
-.btn:focus-visible {
-  outline: 3px solid var(--btn-primary-bg);
-  outline-offset: 2px;
-}
-
-.btn-primary {
-  background: var(--btn-primary-bg);
-  color: var(--btn-primary-text);
-  border-color: var(--btn-primary-bg);
-}
-
-.btn-primary:hover {
-  background: var(--btn-primary-hover);
-  border-color: var(--btn-primary-hover);
-}
-
-.btn-secondary {
-  background: var(--btn-secondary-bg);
-  color: var(--btn-secondary-text);
-  border-color: var(--btn-secondary-border);
-}
-
-.btn-secondary:hover {
-  background: var(--btn-secondary-hover);
-}
-
-.btn-lg {
-  padding: var(--space-md) var(--space-xl);
-  font-size: var(--text-base);
-  min-width: 180px;
-}
-
-.btn-sm {
-  padding: var(--space-xs) var(--space-md);
-  font-size: var(--text-xs);
-  min-width: 80px;
-}
-
-/* Go button — prominent call-to-action variant */
-.go-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-md) var(--space-2xl);
-  border-radius: var(--radius-lg);
-  font-family: var(--font-family);
-  font-size: var(--text-lg);
-  font-weight: 700;
-  cursor: pointer;
-  letter-spacing: 1px;
-  transition: background var(--transition-fast), transform var(--transition-fast);
-  border: 2px solid transparent;
-  min-width: 180px;
-  min-height: 44px;
-  text-align: center;
-  background: var(--btn-primary-bg);
-  color: var(--btn-primary-text);
-  border-color: var(--btn-primary-bg);
-}
-
-.go-btn:hover {
-  background: var(--btn-primary-hover);
-  border-color: var(--btn-primary-hover);
-  transform: translateY(-1px);
-}
-
-.go-btn:focus-visible {
-  outline: 3px solid var(--btn-primary-bg);
-  outline-offset: 2px;
-}
-
-/* Disabled state for all buttons */
-.btn:disabled, .btn[disabled],
-.go-btn:disabled, .go-btn[disabled] {
-  opacity: 0.4;
-  cursor: not-allowed;
-  pointer-events: none;
-}
-
-
-/* ========================================
-   PLAYER SELECT
-   ======================================== */
-
-.player-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-  width: 100%;
-  max-width: 300px;
-  margin: var(--space-md) 0;
-}
-
-.player-btn {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: var(--space-sm) var(--space-md);
-  min-height: 44px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  font-family: var(--font-family);
-  font-size: var(--text-base);
-  font-weight: 600;
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: border-color var(--transition-fast), background var(--transition-fast);
-}
-
-.player-btn:hover {
-  border-color: var(--hud-accent);
-  background: var(--btn-secondary-hover);
-}
-
-.player-btn:focus-visible {
-  outline: 3px solid var(--btn-primary-bg);
-  outline-offset: 2px;
-}
-
-.player-btn .player-bracket {
-  font-size: var(--text-xs);
-  font-weight: 400;
-  color: var(--text-muted);
-}
-
-.player-btn-delete {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-size: var(--text-sm);
-  padding: var(--space-xs);
-  border-radius: var(--radius-sm);
-  transition: color var(--transition-fast);
-  flex-shrink: 0;
-  margin-left: var(--space-sm);
-  min-width: 44px;
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.player-btn-delete:hover {
-  color: var(--danger-text);
-}
-
-.player-btn-delete:focus-visible {
-  outline: 3px solid var(--btn-primary-bg);
-  outline-offset: 2px;
-}
-
-.add-player-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  padding: var(--space-sm) var(--space-md);
-  min-height: 44px;
-  background: transparent;
-  border: 2px dashed var(--border);
-  border-radius: var(--radius-md);
-  font-family: var(--font-family);
-  font-size: var(--text-base);
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: border-color var(--transition-fast), color var(--transition-fast);
-}
-
-.add-player-btn:hover {
-  border-color: var(--hud-accent);
-  color: var(--hud-accent);
-}
-
-.add-player-btn:focus-visible {
-  outline: 3px solid var(--btn-primary-bg);
-  outline-offset: 2px;
-}
-
-
-/* ========================================
-   PLAYER SELECT — GRID CARDS
-   ======================================== */
-
-/* Landing: scroll the overlay if cards overflow */
-.overlay--player-select {
-  overflow-y: auto;
-  justify-content: flex-start;
-  padding-top: var(--space-2xl);
-  padding-bottom: var(--space-xl);
-}
-
-/* Footer credit on landing screen */
-.game-footer {
-  margin-top: auto;
-  padding-top: var(--space-lg);
-  font-family: var(--font-family);
-  font-size: var(--font-sm);
-  color: var(--text-muted);
-  text-align: center;
-  line-height: 1.6;
-}
-
-.game-footer a {
-  color: var(--hud-accent);
-  text-decoration: none;
-  transition: color var(--transition-fast);
-}
-
-.game-footer a:hover {
-  color: var(--text-primary);
-  text-decoration: underline;
-}
-
-/* Game title / branding on landing screen */
-.game-title {
-  font-family: var(--font-family);
-  font-size: var(--text-2xl);
-  font-weight: 800;
-  color: var(--btn-primary-bg);
-  letter-spacing: 2px;
-  text-align: center;
-  margin-bottom: 0;
-}
-
-.game-tagline {
-  font-family: var(--font-family);
-  font-size: var(--text-sm);
-  color: var(--text-muted);
-  letter-spacing: 1px;
-  text-align: center;
-  margin-bottom: var(--space-md);
-}
-
-/* 3-column grid */
-.player-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-md);
-  width: 100%;
-  max-width: 600px;
-  margin: var(--space-md) 0;
-}
-
-/* Square card */
-.player-card {
-  aspect-ratio: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  padding: var(--space-md) var(--space-sm);
-  background: var(--bg-surface);
-  border: 2px solid var(--border);
-  border-radius: var(--radius-lg);
-  cursor: pointer;
-  transition: border-color var(--transition-fast), transform var(--transition-fast), background var(--transition-fast);
-  position: relative;
-  overflow: hidden;
-  gap: var(--space-sm);
-  text-align: center;
-}
-
-.player-card:hover {
-  border-color: var(--btn-primary-bg);
-  transform: translateY(-2px);
-  background: var(--btn-secondary-hover);
-}
-
-.player-card:focus-visible {
-  outline: 3px solid var(--btn-primary-bg);
-  outline-offset: 2px;
-}
-
-/* Large initial letter avatar */
-.player-card-avatar {
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-full);
-  background: var(--btn-primary-bg);
-  color: var(--btn-primary-text);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-family);
-  font-size: var(--text-lg);
-  font-weight: 800;
-  flex-shrink: 0;
-  margin-bottom: 2px;
-}
-
-.player-card-name {
-  font-family: var(--font-family);
-  font-size: var(--text-sm);
-  font-weight: 700;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-  margin-bottom: 4px;
-}
-
-/* Coloured age bracket pill */
-.player-card-badge {
-  font-family: var(--font-family);
-  font-size: var(--text-xs);
-  font-weight: 600;
-  color: var(--btn-primary-bg);
-  background: var(--btn-secondary-hover);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-full);
-  padding: 1px 8px;
-  white-space: nowrap;
-}
-
-/* Stats mini-grid (2 columns) */
-.player-card-stats {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2px var(--space-xs);
-  width: 100%;
-  margin-top: auto;
-}
-
-.player-card-stat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.player-card-stat-value {
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
-  font-weight: 700;
-  color: var(--hud-accent);
-  line-height: 1.2;
-}
-
-.player-card-stat-label {
-  font-family: var(--font-family);
-  font-size: 11px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  line-height: 1.2;
-}
-
-/* Delete button on card (top-right corner) */
-.player-card-delete {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-size: 14px;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-sm);
-  transition: color var(--transition-fast), background var(--transition-fast);
-  line-height: 1;
-  padding: 0;
-}
-
-.player-card-delete:hover {
-  color: var(--danger-text);
-  background: var(--danger-zone);
-}
-
-.player-card-delete:focus-visible {
-  outline: 2px solid var(--btn-primary-bg);
-  outline-offset: 1px;
-}
-
-/* "Add Player" card — dashed style */
-.player-card--add {
-  background: transparent;
-  border-style: dashed;
-  border-color: var(--border);
-  color: var(--text-muted);
-  cursor: pointer;
-}
-
-.player-card--add:hover {
-  border-color: var(--hud-accent);
-  color: var(--hud-accent);
-  background: var(--btn-secondary-hover);
-  transform: translateY(-2px);
-}
-
-.player-card-add-icon {
-  font-size: var(--text-2xl);
-  font-weight: 300;
-  color: inherit;
-  margin-bottom: var(--space-xs);
-  line-height: 1;
-}
-
-.player-card-add-label {
-  font-family: var(--font-family);
-  font-size: var(--text-xs);
-  font-weight: 600;
-  color: inherit;
-}
-
-/* Responsive: 2-col on narrow viewports */
-@media (max-width: 500px) {
-  .player-grid {
-    grid-template-columns: repeat(2, 1fr);
-    max-width: 400px;
-  }
-}
-
-
-/* ========================================
-   AGE BRACKET PICKER
-   ======================================== */
-
-.bracket-picker {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-sm);
-  width: 100%;
-  max-width: 300px;
-  margin: var(--space-sm) 0;
-}
-
-.bracket-btn {
-  padding: var(--space-sm) var(--space-md);
-  min-height: 44px;
-  background: var(--bg-surface);
-  border: 2px solid var(--border);
-  border-radius: var(--radius-md);
-  font-family: var(--font-family);
-  font-size: var(--text-sm);
-  font-weight: 600;
-  color: var(--text-primary);
-  cursor: pointer;
-  text-align: center;
-  transition: border-color var(--transition-fast), background var(--transition-fast);
-}
-
-.bracket-btn:hover {
-  border-color: var(--hud-accent);
-}
-
-.bracket-btn:focus-visible {
-  outline: 3px solid var(--btn-primary-bg);
-  outline-offset: 2px;
-}
-
-.bracket-btn.selected {
-  border-color: var(--btn-primary-bg);
-  background: var(--btn-secondary-hover);
-  color: var(--btn-primary-bg);
-}
-
-
-/* ========================================
-   MODE SELECT
-   ======================================== */
-
-.mode-select-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-md);
-  align-items: center;
-  margin: var(--space-md) 0;
-}
-
-.mode-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-xs);
-  width: 220px;
-  padding: var(--space-lg) var(--space-md);
-  min-height: 44px;
-  border-radius: var(--radius-lg);
-  font-family: var(--font-family);
-  cursor: pointer;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-  border: 2px solid var(--border);
-  background: var(--bg-surface);
-  color: var(--text-primary);
-}
-
-.mode-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.mode-btn:focus-visible {
-  outline: 3px solid var(--btn-primary-bg);
-  outline-offset: 2px;
-}
-
-.mode-btn--active {
-  background: var(--btn-primary-bg);
-  color: var(--btn-primary-text);
-  border-color: var(--btn-primary-bg);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-.mode-btn-title {
-  font-size: var(--text-lg);
-  font-weight: 700;
-}
-
-.mode-btn-desc {
-  font-size: var(--text-xs);
-  opacity: 0.8;
-  text-align: center;
-}
-
-.mode-btn.prominent {
-  background: var(--btn-primary-bg);
-  color: var(--btn-primary-text);
-  border-color: var(--btn-primary-bg);
-}
-
-.mode-btn.prominent:hover {
-  background: var(--btn-primary-hover);
-}
-
-.mode-btn.subtle {
-  background: var(--bg-surface);
-  color: var(--text-primary);
-  border-color: var(--border);
-}
-
-.mode-btn.subtle:hover {
-  border-color: var(--hud-accent);
-}
-
-
-/* ========================================
-   FORM INPUTS
-   ======================================== */
-
-.input-label {
-  display: block;
-  font-size: var(--text-base);
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: var(--space-xs);
-  text-align: center;
-}
-
-.input-field {
-  width: 100%;
-  max-width: 300px;
-  padding: var(--space-sm) var(--space-md);
-  min-height: 44px;
-  border: 2px solid var(--border);
-  border-radius: var(--radius-md);
-  font-family: var(--font-family);
-  font-size: var(--text-base);
-  color: var(--text-primary);
-  background: var(--bg-game);
-  transition: border-color var(--transition-fast);
-}
-
-/* Fix W8: visible focus ring instead of outline: none */
-.input-field:focus-visible {
-  outline: 3px solid var(--btn-primary-bg);
-  outline-offset: 2px;
-  border-color: var(--btn-primary-bg);
-}
-
-.input-field::placeholder {
-  color: var(--text-muted);
-}
-
-
-/* ========================================
-   RESPONSIVE
-   ======================================== */
-
-/* Tablet */
-@media (max-width: 1024px) {
-  #game-wrapper {
-    max-width: 100%;
-    height: 100%;
-    max-height: 100vh;
-    border-radius: 0;
-    border: none;
-  }
-
-  body {
-    padding: 0;
-  }
-}
-
-/* Mobile — keyboard required message */
-@media (max-width: 767px) {
-  #game-wrapper {
-    max-width: 100%;
-    height: 100%;
-    max-height: 100vh;
-    border-radius: 0;
-    border: none;
-  }
-
-  body {
-    padding: 0;
-  }
-
-  .hud {
-    font-size: 10px;
-    padding: var(--space-xs) var(--space-sm);
-  }
-
-  .mode-select-buttons {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  .mode-btn {
-    width: 160px;
-    padding: var(--space-md) var(--space-sm);
-  }
-
-}
-
-
-/* ========================================
-   DELETE CONFIRMATION (Fix W3)
-   ======================================== */
-
-.delete-confirm-panel {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-md);
-  background: var(--overlay-bg);
-  z-index: 110;
-  padding: var(--space-xl);
-}
-
-.delete-confirm-text {
-  font-family: var(--font-family);
-  font-size: var(--text-lg);
-  font-weight: 700;
-  color: var(--text-primary);
-  text-align: center;
-}
-
-.delete-confirm-buttons {
-  display: flex;
-  gap: var(--space-md);
-  align-items: center;
-}
-
-/* ========================================
-   NEW HIGH SCORE CELEBRATION
-   ======================================== */
-
-@keyframes hs-pulse {
-  0%   { transform: scale(0.6); opacity: 0; }
-  60%  { transform: scale(1.15); opacity: 1; }
-  80%  { transform: scale(0.95); }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-@keyframes hs-glow {
-  0%, 100% { text-shadow: 0 0 8px var(--hud-accent); }
-  50%       { text-shadow: 0 0 24px var(--hud-accent), 0 0 48px var(--hud-accent); }
-}
-
-.new-high-score-banner {
-  display: inline-block;
-  font-family: var(--font-family);
-  font-size: var(--text-lg);
-  font-weight: 800;
-  letter-spacing: 2px;
-  color: var(--hud-accent);
-  text-transform: uppercase;
-  animation: hs-pulse 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards,
-             hs-glow 1.5s ease-in-out 0.5s infinite;
-  margin-top: var(--space-xs);
-}
-
-/* Danger button variant */
-.btn-danger {
-  background: var(--danger-text);
-  color: #FFFFFF;
-  border-color: var(--danger-text);
-}
-
-.btn-danger:hover {
-  opacity: 0.9;
-}
-
-
-/* ========================================
-   INPUT ERROR MESSAGE
-   ======================================== */
-
-.input-error {
-  font-family: var(--font-family);
-  font-size: var(--text-sm);
-  color: var(--danger-text);
-  text-align: center;
-  max-width: 300px;
-  margin: var(--space-xs) 0;
-}
-
-
-/* ========================================
-   LEARN PROGRESS DOTS (Fix W10)
-   ======================================== */
-
-.mode-btn-dots {
-  display: flex;
-  gap: var(--space-xs);
-  justify-content: center;
-  margin-top: var(--space-xs);
-}
-
-.progress-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: var(--radius-full);
-  background: var(--border);
-  display: inline-block;
-}
-
-.progress-dot.filled {
-  background: var(--btn-primary-bg);
-}
-
-/* Prominent mode button dots need inverted colours */
-.mode-btn.prominent .progress-dot {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.mode-btn.prominent .progress-dot.filled {
-  background: #FFFFFF;
-}
-
-
-/* ========================================
-   UTILITIES
-   ======================================== */
-
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-.fade-in {
-  animation: fadeIn 0.3s ease forwards;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-
-/* ========================================
-   ON-SCREEN KEYBOARD (Task 6)
-   ======================================== */
+.keyboard-warning { padding: var(--s3) var(--s4); background: var(--paint-yellow); color: #141922; border-bottom: var(--line-w) solid var(--line); text-align: center; font-weight: 700; }
+.keyboard-warning p { margin: 0; }
 
+/* === On-screen keyboard === */
+.keyboard-container { flex-shrink: 0; padding: var(--s2) var(--s3); background: var(--ground-2); border-top: var(--line-w) solid var(--line); display: none; }
 .keyboard {
-  --key-gap: 4px;
-  --key-height: 48px;
-  display: flex;
-  flex-direction: column;
-  gap: var(--key-gap);
-  width: 100%;
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 12px;
-  user-select: none;
-  transition: opacity 0.4s ease;
+  --key-gap: 4px; --key-height: clamp(34px, 6.2vh, 54px);
+  display: flex; flex-direction: column; gap: var(--key-gap);
+  width: 100%; max-width: 960px; margin: 0 auto; user-select: none;
 }
-
-.keyboard[aria-hidden="true"] {
-  /* still visible — aria-hidden means "not interactive", not "display:none" */
-}
-
-.keyboard--hidden {
-  display: none !important;
-}
-
-.keyboard-row {
-  display: grid;
-  gap: var(--key-gap);
-}
-
-/* Row grid templates (UK QWERTY stagger)
-   Each row uses fractional units. Standard key = 1fr.
-   Wider keys use larger fractions for correct stagger. */
+.keyboard--hidden { display: none !important; }
+.keyboard-row { display: grid; gap: var(--key-gap); }
 .keyboard-row--number { grid-template-columns: repeat(13, 1fr) 2fr; }
 .keyboard-row--top    { grid-template-columns: 1.5fr repeat(10, 1fr) 1.5fr; }
 .keyboard-row--home   { grid-template-columns: 1.75fr repeat(10, 1fr) 2.25fr; }
@@ -1761,451 +653,88 @@ body {
 .keyboard-row--space  { grid-template-columns: 3fr 6fr 3fr; }
 
 .key {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
   height: var(--key-height);
-  border-radius: 6px;
-  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
-  font-size: 14px;
-  font-weight: 600;
-  color: #fff;
-  opacity: 0.75;                /* idle = low intensity */
-  position: relative;
-  overflow: hidden;             /* contain pattern pseudo-element */
-  transition: opacity 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+  border: 2px solid var(--line); border-radius: 8px;
+  font-size: clamp(0.75rem, 1.7vh, 1rem); font-weight: 700;
+  transition: transform var(--dur-1) var(--ease), background var(--dur-1) var(--ease);
 }
+.key[data-zone="left-pinky"]   { background: var(--zone-left-pinky);   color: var(--on-zone-left-pinky); }
+.key[data-zone="left-ring"]    { background: var(--zone-left-ring);    color: var(--on-zone-left-ring); }
+.key[data-zone="left-middle"]  { background: var(--zone-left-middle);  color: var(--on-zone-left-middle); }
+.key[data-zone="left-index"]   { background: var(--zone-left-index);   color: var(--on-zone-left-index); }
+.key[data-zone="right-index"]  { background: var(--zone-right-index);  color: var(--on-zone-right-index); }
+.key[data-zone="right-middle"] { background: var(--zone-right-middle); color: var(--on-zone-right-middle); }
+.key[data-zone="right-ring"]   { background: var(--zone-right-ring);   color: var(--on-zone-right-ring); }
+.key[data-zone="right-pinky"]  { background: var(--zone-right-pinky);  color: var(--on-zone-right-pinky); }
 
-/* -- Zone background colours (applied via data attribute) -- */
-.key[data-zone="left-pinky"]   { background: var(--zone-left-pinky); }
-.key[data-zone="left-ring"]    { background: var(--zone-left-ring); }
-.key[data-zone="left-middle"]  { background: var(--zone-left-middle); }
-.key[data-zone="left-index"]   { background: var(--zone-left-index); }
-.key[data-zone="right-index"]  { background: var(--zone-right-index); }
-.key[data-zone="right-middle"] { background: var(--zone-right-middle); }
-.key[data-zone="right-ring"]   { background: var(--zone-right-ring); }
-.key[data-zone="right-pinky"]  { background: var(--zone-right-pinky); }
+/* Eight patterns, one per zone: the non-colour way to tell fingers apart */
+.key::after { content: ''; position: absolute; inset: 0; opacity: 0.22; pointer-events: none; }
+.key[data-zone="left-pinky"]::after   { background-image: radial-gradient(circle, currentColor 1px, transparent 1.5px); background-size: 6px 6px; }
+.key[data-zone="left-ring"]::after    { background-image: repeating-linear-gradient(0deg, currentColor 0 1px, transparent 1px 5px); }
+.key[data-zone="left-middle"]::after  { background-image: repeating-linear-gradient(90deg, currentColor 0 1px, transparent 1px 5px); }
+.key[data-zone="left-index"]::after   { background-image: repeating-linear-gradient(45deg, currentColor 0 1px, transparent 1px 6px); }
+.key[data-zone="right-index"]::after  { background-image: repeating-linear-gradient(-45deg, currentColor 0 1px, transparent 1px 6px); }
+.key[data-zone="right-middle"]::after { background-image: repeating-linear-gradient(45deg, currentColor 0 1px, transparent 1px 6px), repeating-linear-gradient(-45deg, currentColor 0 1px, transparent 1px 6px); }
+.key[data-zone="right-ring"]::after   { background-image: radial-gradient(circle, currentColor 2px, transparent 2.5px); background-size: 10px 10px; }
+.key[data-zone="right-pinky"]::after  { background-image: repeating-linear-gradient(90deg, currentColor 0 4px, transparent 4px 8px); background-size: 8px 5px; }
 
-/* -- Colour-blind pattern fills (pseudo-element overlay) --
-   Opacity 0.18 per Addendum 1 O3 for better visibility */
-.key::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  opacity: 0.18;
-  pointer-events: none;
-}
-.key[data-zone="left-pinky"]::after {
-  /* dots */
-  background-image: radial-gradient(circle, #fff 1px, transparent 1px);
-  background-size: 6px 6px;
-}
-.key[data-zone="left-ring"]::after {
-  /* horizontal lines */
-  background-image: repeating-linear-gradient(
-    0deg, #fff 0px, #fff 1px, transparent 1px, transparent 5px
-  );
-}
-.key[data-zone="left-middle"]::after {
-  /* vertical lines */
-  background-image: repeating-linear-gradient(
-    90deg, #fff 0px, #fff 1px, transparent 1px, transparent 5px
-  );
-}
-.key[data-zone="left-index"]::after {
-  /* diagonal lines (top-left to bottom-right) */
-  background-image: repeating-linear-gradient(
-    45deg, #fff 0px, #fff 1px, transparent 1px, transparent 6px
-  );
-}
-.key[data-zone="right-index"]::after {
-  /* diagonal lines (top-right to bottom-left) */
-  background-image: repeating-linear-gradient(
-    -45deg, #fff 0px, #fff 1px, transparent 1px, transparent 6px
-  );
-}
-.key[data-zone="right-middle"]::after {
-  /* crosshatch */
-  background-image:
-    repeating-linear-gradient(
-      45deg, #fff 0px, #fff 1px, transparent 1px, transparent 6px
-    ),
-    repeating-linear-gradient(
-      -45deg, #fff 0px, #fff 1px, transparent 1px, transparent 6px
-    );
-}
-.key[data-zone="right-ring"]::after {
-  /* large dots */
-  background-image: radial-gradient(circle, #fff 2px, transparent 2px);
-  background-size: 10px 10px;
-}
-.key[data-zone="right-pinky"]::after {
-  /* dashes */
-  background-image: repeating-linear-gradient(
-    90deg, #fff 0px, #fff 4px, transparent 4px, transparent 8px
-  );
-  background-size: 8px 5px;
-}
+/* F and J bumps */
+.key--home-indicator::before { content: ''; position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); width: 14px; height: 3px; background: currentColor; border-radius: 2px; z-index: 1; }
 
-/* -- Home-row indicator (tactile bumps on F and J) -- */
-.key--home-indicator::before {
-  content: '';
-  position: absolute;
-  bottom: 6px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 12px;
-  height: 2px;
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 1px;
-}
+/* Interaction states: shape and weight, not just colour */
+.key--target { outline: 5px solid var(--ink); outline-offset: 1px; transform: scale(1.12); z-index: 2; }
+.key--correct { background: var(--right-wash) !important; color: var(--ink) !important; border-color: var(--right); animation: kg-settle var(--dur-2) var(--ease); }
+.key--wrong { outline: 5px dashed var(--wrong); outline-offset: 1px; animation: kg-nudge var(--dur-2) var(--ease); }
+.keyboard--spotlight .key { opacity: 0.4; }
+.keyboard--spotlight .key--target { opacity: 1; }
 
-/* -- Responsive scaling -- */
-@media (max-width: 1024px) {
-  .keyboard { max-width: 100%; padding: 8px; }
-  .key { --key-height: 42px; font-size: 13px; }
-}
-@media (max-width: 768px) {
-  .key { --key-height: 36px; font-size: 11px; }
-}
+@media (max-width: 760px) { .keyboard-container { padding: var(--s1) var(--s2); } .keyboard { --key-height: clamp(30px, 5.4vh, 44px); } .key { font-size: 0.7rem; } }
 
-
-/* ========================================
-   KEYBOARD INTERACTION STATES (Task 7)
-   ======================================== */
-
-/* -- Idle state (default) --
-   Keys are at opacity: 0.55 (set on .key base class above).
-   No additional class needed. */
-
-/* -- Target: gentle pulse glow -- */
-@keyframes key-pulse {
-  0%, 100% { opacity: 0.75; box-shadow: 0 0 8px rgba(255, 255, 255, 0.2); }
-  50%      { opacity: 1;    box-shadow: 0 0 18px rgba(255, 255, 255, 0.45); }
-}
-
-.key--target {
-  opacity: 1;
-  animation: key-pulse 1.5s ease-in-out infinite;
-}
-
-/* -- Correct: bright flash, then return to idle -- */
-@keyframes key-correct-flash {
-  0%   { opacity: 1; box-shadow: 0 0 24px rgba(255, 255, 255, 0.7); transform: scale(1.08); }
-  100% { opacity: 0.55; box-shadow: none; transform: scale(1); }
-}
-
-.key--correct {
-  animation: key-correct-flash 0.4s ease-out forwards;
-}
-
-/* -- Wrong: subtle shake on the wrong key -- */
-@keyframes key-shake {
-  0%, 100% { transform: translateX(0); }
-  15%      { transform: translateX(-4px); }
-  30%      { transform: translateX(4px); }
-  45%      { transform: translateX(-3px); }
-  60%      { transform: translateX(3px); }
-  75%      { transform: translateX(-1px); }
-  90%      { transform: translateX(1px); }
-}
-
-.key--wrong {
-  animation: key-shake 0.4s ease-out;
-  opacity: 0.55;
-}
-
-/* -- Spotlight mode (4-5 bracket): dim all keys except target -- */
-.keyboard--spotlight .key {
-  opacity: 0.2;
-  transition: opacity 0.3s ease;
-}
-
-.keyboard--spotlight .key--target {
-  opacity: 1;
-  transform: scale(1.12);
-  z-index: 1;
-  animation: key-pulse 1.2s ease-in-out infinite;
-}
-
-
-/* ========================================
-   HUD KEYBOARD TOGGLE (Task 8)
-   ======================================== */
-
-.hud-btn__label {
-  font-size: var(--text-xs);
-}
-
-.hud-btn--active {
-  background: var(--text-secondary, #4A4A5A);
-  color: var(--bg-primary, #FAFAF8);
-}
-
-/* Speed dropdown */
-.hud-speed-wrap {
-  position: relative;
-}
-
-.speed-dropdown {
-  position: absolute;
-  top: calc(100% + 4px);
-  right: 0;
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  min-width: 140px;
-  z-index: 200;
-  overflow: hidden;
-}
-
-.speed-option {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: var(--space-sm) var(--space-md);
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-family: var(--font-family);
-  font-size: var(--text-sm);
-  font-weight: 700;
-  color: var(--text-primary);
-  text-align: left;
-  min-height: 44px;
-  transition: background var(--transition-fast);
-}
-
-.speed-option:hover {
-  background: var(--border);
-}
-
-.speed-option--active {
-  color: var(--hud-accent, var(--btn-primary-bg));
-}
-
-.speed-option__check {
-  opacity: 0;
-  font-size: var(--text-base);
-}
-
-.speed-option--active .speed-option__check {
-  opacity: 1;
-}
-
-
-/* ========================================
-   PLAY MODE — THEME VARIABLES (Task 19)
-   ======================================== */
-
-:root[data-theme="light"] {
-  --heart-colour: #EF4444;
-  --streak-colour: #D97706;
-  --streak-glow: rgba(217, 119, 6, 0.4);
-  --streak-colour-max: #B45309;
-  --streak-glow-max: rgba(180, 83, 9, 0.5);
-}
-
-:root[data-theme="dark"] {
-  --heart-colour: #F87171;
-  --streak-colour: #FBBF24;
-  --streak-glow: rgba(251, 191, 36, 0.4);
-  --streak-colour-max: #F59E0B;
-  --streak-glow-max: rgba(245, 158, 11, 0.5);
-}
-
-
-/* ========================================
-   PLAY MODE — PLAY AREA
-   ======================================== */
-
-.play-area {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  position: relative;
-}
-
-
-/* ========================================
-   PLAY MODE — STREAK GLOW (Task 18)
-   ======================================== */
-
-#hud-streak-value[data-streak="high"] {
-  color: var(--streak-colour) !important;
-  text-shadow: 0 0 8px var(--streak-glow);
-  transition: text-shadow 0.3s ease, transform 0.3s ease;
-  display: inline-block;
-  transform: scale(1.1);
-}
-
-#hud-streak-value[data-streak="max"] {
-  color: var(--streak-colour-max) !important;
-  text-shadow: 0 0 12px var(--streak-glow-max), 0 0 24px var(--streak-glow-max);
-  display: inline-block;
-  transform: scale(1.2);
-  animation: streak-shimmer 1.5s ease-in-out infinite;
-}
-
-@keyframes streak-shimmer {
-  0%, 100% { opacity: 1; }
-  50%      { opacity: 0.8; }
-}
-
-
-/* ========================================
-   PLAY MODE — GAME OVER OVERLAY (Task 19)
-   ======================================== */
-
-.gameover-score {
-  font-size: var(--text-3xl);
-  font-weight: 700;
-  color: var(--hud-accent);
-  font-family: var(--font-mono);
-  letter-spacing: 2px;
-}
-
-.gameover-stats {
-  font-family: var(--font-family);
-  font-size: var(--text-sm);
-  line-height: 2;
-  color: var(--text-secondary);
+/* === Overlays (pause, game over): a full chalk panel === */
+.overlay {
+  position: absolute; inset: 0; z-index: 100; overflow-y: auto;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: var(--s4); padding: var(--s5) var(--s4);
+  background: var(--chalk); color: var(--ink);
   text-align: center;
-  max-width: 320px;
 }
+.overlay[hidden] { display: none; }
+.overlay h2 { margin: 0; font-size: var(--t-display); line-height: 1.05; font-weight: 700; }
+.overlay p { margin: 0; font-size: var(--t-body); color: var(--ink-2); max-width: 420px; }
+.overlay .kg-btn { min-width: 240px; }
+.overlay h3 { margin: 0; font-size: var(--t-body); }
 
-.gameover-stats strong {
-  color: var(--text-primary);
-  font-weight: 600;
+.gameover-score { font-size: var(--t-numeral); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.new-high-score-banner { display: inline-flex; align-items: center; gap: var(--s2); padding: var(--s2) var(--s4); background: var(--paint-yellow); color: #141922; border: var(--line-w) solid var(--line); border-radius: var(--r-pill); font-weight: 700; font-size: var(--t-body); }
+.new-high-score-banner .ic { fill: #141922; stroke: #141922; stroke-width: 2; }
+.gameover-stats { width: 100%; max-width: 480px; display: grid; gap: var(--s2); }
+.gameover-stat-row { display: flex; justify-content: space-between; gap: var(--s3); padding: var(--s2) var(--s4); background: var(--ground); border: var(--line-w) solid var(--line); border-radius: var(--r-1); font-size: var(--t-body); text-align: left; }
+.gameover-star { justify-content: center; background: none; border: 0; font-size: 0; }
+.gameover-star .ic { width: 72px; height: 72px; fill: var(--paint); stroke: var(--line); stroke-width: 3; }
+.gameover-stat-label { color: var(--ink-2); }
+.weak-keys-section { display: grid; gap: var(--s2); justify-items: center; }
+.weak-key-list { display: flex; gap: var(--s2); flex-wrap: wrap; justify-content: center; }
+.weak-key-badge { display: grid; place-items: center; min-width: 44px; height: 44px; padding: 0 var(--s2); background: var(--paint); color: var(--on-paint); border: var(--line-w) solid var(--line); border-radius: 8px; font-weight: 700; }
+.game-suggestion { display: flex; align-items: center; justify-content: center; gap: var(--s3); flex-wrap: wrap; padding: var(--s2) var(--s4); background: var(--ground); border: var(--line-w) solid var(--line); border-radius: var(--r-1); font-size: var(--t-small); }
+.game-suggestion .kg-btn { min-height: 48px; min-width: 0 !important; font-size: var(--t-small); padding: 0 var(--s4); }
+
+.sr-only, .visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.fade-in { animation: kg-settle var(--dur-2) var(--ease) both; }
+
+/* Compact HUD on mid-size screens: icons carry Score and Streak, labels return when there is room */
+@media (max-width: 1180px) {
+  .hud { gap: var(--s1); padding: var(--s2); }
+  .hud-item { padding: var(--s1) var(--s2); gap: var(--s1); }
+  .hud-score .hud-label, .hud-streak .hud-label, .hud-btn.keyboard-toggle-btn .hud-btn__label { display: none; }
 }
-
-.gameover-stat-row {
-  display: block;
-}
-
-.gameover-stat-label {
-  color: var(--text-muted);
-}
-
-/* Weak-key badges on game-over overlay (Task 20) */
-.weak-keys-section {
-  margin-top: var(--space-md);
-}
-
-.weak-key-list {
-  display: flex;
-  gap: var(--space-sm);
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.weak-key-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 8px;
-  font-family: var(--font-mono);
-  font-size: 1.2rem;
-  font-weight: 700;
-  background: #FEE2E2;
-  color: #991B1B;
-  border: 2px solid #FECACA;
-}
-
-[data-theme="dark"] .weak-key-badge {
-  background: #3B1111;
-  color: #FCA5A5;
-  border-color: #7F1D1D;
-}
-
-
-/* ========================================
-   PLAY MODE — HEARTS / LIVES (Task 19)
-   ======================================== */
-
-#hud-lives-value {
-  color: var(--heart-colour, #EF4444);
-  font-size: var(--text-lg);
-  letter-spacing: 2px;
-}
-
-
-/* ========================================
-   PAUSE BUTTON (Task T3)
-   ======================================== */
-
-#pause-btn {
-  /* base pause button in HUD — inherits .hud-btn styles */
-}
-
-.pause-btn--large {
-  width: 56px;
-  height: 56px;
-  font-size: 24px;
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 10;
-  border-radius: 50%;
-  background: var(--btn-primary-bg);
-  color: white;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.pause-btn--labelled {
-  min-width: 80px;
-  height: 44px;
-  font-size: 14px;
-}
-
-.pause-btn--pulse {
-  animation: pausePulse 0.5s ease-in-out 4;
-}
-
-@keyframes pausePulse {
-  0%, 100% { transform: scale(1); }
-  50%      { transform: scale(1.15); }
-}
-
-
-
-
-/* ========================================
-   REDUCED MOTION (Task T3 — Accessibility)
-   ======================================== */
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation: none !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-
-/* Screen-reader only — visually hidden but accessible */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+@media (max-width: 640px) {
+  .hud-best, .hud-btn__label { display: none; }
 }
   </style>
 </head>
-<body data-page="type-trainer" data-page-title="Type Trainer">
+<body data-page="type-trainer" data-page-title="Type Trainer" data-paint="orange">
 <!-- Kids Games shell: icon sprite, bar, overlays. Injected after <body> by build.sh. -->
 <svg class="kg-sprite" width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
   <defs>
@@ -2380,7 +909,7 @@ body {
         Feedback or bug? Raise it on GitHub
         <svg class="ic ic--sm"><use href="#i-link"/></svg>
       </a>
-      <p>Version cab8141 12 Nov 08:41</p>
+      <p>Version 43086c9 12 Nov 08:46</p>
     </section>
   </div>
 </div>
@@ -2402,33 +931,41 @@ body {
 <div id="kg-live" class="kg-sr" role="status" aria-live="polite"></div>
 
   <div id="game-wrapper">
-    <!-- HUD bar: score, stage, lives, streak, buttons -->
+    <!-- HUD bar: score, stage, lives, streak, buttons. Sound lives in the shell bar. -->
     <div id="hud" class="hud" aria-label="Game status">
-      <div class="hud-item">Score: <span id="hud-score-value" aria-live="polite">0</span></div>
-      <div class="hud-item">Best: <span id="hud-best-value">0</span></div>
-      <div class="hud-item">Stage: <span id="hud-stage-current">1</span>/<span id="hud-stage-total">10</span></div>
-      <div class="hud-item" id="hud-lives">Lives: <span id="hud-lives-value" aria-live="polite">&#9829;&#9829;&#9829;</span></div>
-      <div class="hud-item hud-streak">Streak: <span id="hud-streak-value" aria-live="polite">0</span></div>
-      <button id="keyboard-toggle" class="hud-btn keyboard-toggle-btn" aria-label="Toggle on-screen keyboard" title="Toggle keyboard">
-        <span class="hud-btn__icon">&#9000;</span>
+      <div class="hud-item hud-score">
+        <svg class="ic" aria-hidden="true"><use href="#a-star" style="fill:currentColor"/></svg>
+        <span class="hud-label">Score</span>
+        <strong id="hud-score-value" aria-live="polite">0</strong>
+      </div>
+      <div class="hud-item hud-best"><span class="hud-label">Best</span><strong id="hud-best-value">0</strong></div>
+      <div class="hud-item"><span class="hud-label">Stage</span><strong><span id="hud-stage-current">1</span>/<span id="hud-stage-total">10</span></strong></div>
+      <div class="hud-item" id="hud-lives" role="img" aria-label="Lives"><span id="hud-lives-value" class="hud-lives"></span></div>
+      <div class="hud-item hud-streak">
+        <svg class="ic" aria-hidden="true"><use href="#i-streak"/></svg>
+        <span class="hud-label">Streak</span>
+        <strong id="hud-streak-value" aria-live="polite">0</strong>
+      </div>
+
+      <span class="hud-fill"></span>
+
+      <button id="keyboard-toggle" class="hud-btn keyboard-toggle-btn" type="button" aria-label="Show or hide the on-screen keyboard" title="Toggle keyboard">
+        <svg class="ic" aria-hidden="true"><use href="#i-keyboard"/></svg>
         <span class="hud-btn__label">Keyboard</span>
       </button>
       <div class="hud-speed-wrap">
-        <button id="speed-btn" class="hud-btn" aria-label="Change difficulty" aria-expanded="false" aria-controls="speed-dropdown">
-          <span class="hud-btn__icon">⚡</span>
+        <button id="speed-btn" class="hud-btn" type="button" aria-label="Change difficulty" aria-expanded="false" aria-controls="speed-dropdown">
+          <svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg>
           <span class="hud-btn__label" id="speed-label">Normal</span>
         </button>
         <div id="speed-dropdown" class="speed-dropdown" hidden>
           <!-- Populated by main.js -->
         </div>
       </div>
-      <button id="mute-btn" class="hud-btn mute-btn" aria-label="Mute audio" aria-pressed="false" title="Toggle sound">
-        <span class="mute-icon" aria-hidden="true">&#x1F50A;</span>
-      </button>
-      <button id="pause-btn" class="hud-btn" aria-label="Pause game">⏸</button>
+      <button id="pause-btn" class="hud-btn" type="button" aria-label="Pause game"><svg class="ic" aria-hidden="true"><use href="#i-pause"/></svg></button>
     </div>
 
-    <!-- Stage progress bar -->
+    <!-- Stage progress: a painted line -->
     <div id="stage-bar" class="stage-bar">
       <span id="play-stage-label" class="stage-label" aria-live="polite">Home row only</span>
       <div class="stage-track">
@@ -2456,7 +993,7 @@ body {
 
     <!-- Overlay container for modal screens -->
     <div id="overlay" class="overlay">
-      <!-- Player select, mode select, pause, game over injected here -->
+      <!-- Pause and game over injected here -->
     </div>
   </div>
 
@@ -3717,7 +2254,8 @@ function saveAudioSettings() {
  */
 function applyVolume() {
   if (!masterGain) return;
-  masterGain.gain.setValueAtTime(_muted ? 0 : _volume, audioCtx.currentTime);
+  const shellMuted = !!(window.KidsGames && window.KidsGames.muted);
+  masterGain.gain.setValueAtTime((_muted || shellMuted) ? 0 : _volume, audioCtx.currentTime);
 }
 
 /**
@@ -3794,6 +2332,10 @@ function updateMuteButtonUI() {
  * Call this once from main.js after DOM is ready.
  */
 function setupMuteButton() {
+  // The shell's sound button is the one mute control: follow it.
+  if (window.KidsGames && window.KidsGames.onMuteChange) {
+    window.KidsGames.onMuteChange(() => applyVolume());
+  }
   const btn = document.getElementById('mute-btn');
   if (!btn) return;
 
@@ -5130,7 +3672,10 @@ function setVisibilityMode(mode) {
 //   O6: gameState.celebrating flag — ignore keys during transitions
 
 
-const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function refreshMotionPref() {
+  prefersReducedMotion = window.KidsGames ? window.KidsGames.reducedMotion : window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
 
 // roundRect polyfill for Safari < 16, older Firefox (#8)
 if (typeof CanvasRenderingContext2D !== 'undefined' &&
@@ -5243,6 +3788,7 @@ const H = () => canvas ? canvas.height : 0;
 
 let cachedColours = {};
 let cachedZoneColours = {};  // zone name → resolved hex colour
+let cachedZoneText = {};     // zone colour → label colour that passes contrast on it
 let cachedDangerGrad = null;
 let cachedDangerH = 0;
 
@@ -5256,7 +3802,8 @@ function cacheThemeColours() {
     textMuted:  s.getPropertyValue('--text-muted').trim()   || '#8A8A9A',
     hudAccent:  s.getPropertyValue('--hud-accent').trim()   || '#2563EB',
     overlayBg:  s.getPropertyValue('--overlay-bg').trim()   || 'rgba(250,250,248,0.95)',
-    fontMono:   s.getPropertyValue('--font-mono').trim()    || 'Consolas, monospace',
+    fontMono:   s.getPropertyValue('--font-mono').trim()    || 'Andika, system-ui, sans-serif',
+    line:       s.getPropertyValue('--line').trim()         || '#141922',
   };
 
   // Cache resolved zone colours for canvas drawing
@@ -5267,6 +3814,7 @@ function cacheThemeColours() {
   for (const z of zones) {
     const cssVar = getZoneCSSVar(z);
     cachedZoneColours[z] = s.getPropertyValue(cssVar).trim() || '#666';
+    cachedZoneText[cachedZoneColours[z]] = s.getPropertyValue(cssVar.replace('--zone-', '--on-zone-')).trim() || '#141922';
   }
 
   // Invalidate danger gradient
@@ -5362,16 +3910,18 @@ function drawBackground(w, h) {
     ctx.stroke();
   }
 
-  // Danger zone gradient — bottom 15% (cached, Fix W6)
+  // Danger zone: a flat painted band with a dashed line, like a marked-out court edge
   const dangerStart = h * 0.85;
-  if (!cachedDangerGrad || cachedDangerH !== h) {
-    cachedDangerGrad = ctx.createLinearGradient(0, dangerStart, 0, h);
-    cachedDangerGrad.addColorStop(0, 'transparent');
-    cachedDangerGrad.addColorStop(1, cachedColours.dangerZone);
-    cachedDangerH = h;
-  }
-  ctx.fillStyle = cachedDangerGrad;
+  ctx.fillStyle = cachedColours.dangerZone;
   ctx.fillRect(0, dangerStart, w, h - dangerStart);
+  ctx.strokeStyle = cachedColours.line;
+  ctx.lineWidth = 3;
+  ctx.setLineDash([18, 12]);
+  ctx.beginPath();
+  ctx.moveTo(0, dangerStart);
+  ctx.lineTo(w, dangerStart);
+  ctx.stroke();
+  ctx.setLineDash([]);
 }
 
 
@@ -5391,41 +3941,33 @@ function drawItem(item) {
   const by = y - fontSize - 4;
   const bw = item.tw + pad * 2;
   const bh = fontSize + 16;
-  const radius = 8;
+  const radius = 14;
+  const label = cachedZoneText[zoneColour] || '#141922';
 
-  // Pill background in finger-zone colour
+  // Pill: solid paint in the finger-zone colour with a keyline
   ctx.fillStyle = zoneColour;
-  ctx.globalAlpha = 0.88;
   ctx.beginPath();
   ctx.roundRect(bx, by, bw, bh, radius);
   ctx.fill();
-
-  // Subtle border
-  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-  ctx.lineWidth = 1;
-  ctx.stroke();
-  ctx.globalAlpha = 1.0;
-
-  // Text stroke for contrast (M8)
-  ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+  ctx.strokeStyle = cachedColours.line;
   ctx.lineWidth = 3;
-  ctx.lineJoin = 'round';
+  ctx.stroke();
 
-  // Text rendering
+  ctx.textBaseline = 'alphabetic';
   if (typed > 0) {
-    // Typed portion: dimmed
+    // Typed part is struck out by a line and dimmed, so progress never relies on colour alone
     const done = text.slice(0, typed);
     const rest = text.slice(typed);
     const dw = ctx.measureText(done).width;
-    ctx.strokeText(done, x, y);
-    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.globalAlpha = 0.4;
+    ctx.fillStyle = label;
     ctx.fillText(done, x, y);
-    ctx.strokeText(rest, x + dw, y);
-    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(x, y - fontSize * 0.32, dw, 3);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = label;
     ctx.fillText(rest, x + dw, y);
   } else {
-    ctx.strokeText(text, x, y);
-    ctx.fillStyle = '#FFFFFF';
+    ctx.fillStyle = label;
     ctx.fillText(text, x, y);
   }
 }
@@ -6019,13 +4561,9 @@ function updateHUD() {
   if (hudEls.lives) {
     let hearts = '';
     for (let i = 0; i < ov.livesOverride; i++) {
-      if (i < gameState.lives) {
-        hearts += '\u2665 ';
-      } else {
-        hearts += '\u2661 ';
-      }
+      hearts += '<svg class="ic' + (i < gameState.lives ? '' : ' lost') + '" viewBox="0 0 48 48" aria-hidden="true"><use href="#i-heart"/></svg>';
     }
-    hudEls.lives.textContent = hearts.trim();
+    hudEls.lives.innerHTML = hearts;
   }
   if (hudEls.livesWrap) {
     hudEls.livesWrap.setAttribute('aria-label', `${gameState.lives} lives remaining`);
@@ -6106,14 +4644,14 @@ function showPauseOverlay() {
   }
 
   const resumeBtn = document.createElement('button');
-  resumeBtn.className = 'btn btn-primary btn-lg';
-  resumeBtn.textContent = isYoung ? '▶ Play' : 'Resume';
+  resumeBtn.className = 'kg-btn';
+  resumeBtn.innerHTML = '<svg class="ic" aria-hidden="true"><use href="#i-play"/></svg><span>' + (isYoung ? 'Play' : 'Resume') + '</span>';
   resumeBtn.id = 'pause-resume-btn';
   resumeBtn.addEventListener('click', () => resumeGame(), { once: true });
   overlay.appendChild(resumeBtn);
 
   const quitBtn = document.createElement('button');
-  quitBtn.className = 'btn btn-secondary btn-sm';
+  quitBtn.className = 'kg-btn kg-btn--ghost';
   quitBtn.textContent = isYoung ? 'Stop playing' : 'Back to Menu';
   quitBtn.addEventListener('click', () => quitToMenu(), { once: true });
   overlay.appendChild(quitBtn);
@@ -6184,7 +4722,7 @@ function showGameOverOverlay(stats) {
   if (stats.score > prevHigh && stats.score > 0) {
     const banner = document.createElement('div');
     banner.className = 'new-high-score-banner';
-    banner.textContent = '\u2605 New High Score! \u2605';
+    banner.innerHTML = '<svg class="ic ic--sm" viewBox="0 0 48 48" aria-hidden="true"><use href="#a-star"/></svg><span>New high score!</span>';
     banner.setAttribute('aria-live', 'assertive');
     overlay.appendChild(banner);
   }
@@ -6215,9 +4753,7 @@ function showGameOverOverlay(stats) {
     // 4-5: simplified, encouraging stats only
     const starRow = document.createElement('div');
     starRow.className = 'gameover-stat-row gameover-star';
-    starRow.textContent = '\u2605';
-    starRow.style.fontSize = '3rem';
-    starRow.style.textAlign = 'center';
+    starRow.innerHTML = '<svg class="ic" viewBox="0 0 48 48" aria-hidden="true"><use href="#a-star"/></svg>';
     statsDiv.appendChild(starRow);
 
     lines = [
@@ -6304,23 +4840,21 @@ function showGameOverOverlay(stats) {
   if (suggestedIdx >= 0) {
     const nextDiff = DIFFS[suggestedIdx];
     const suggestion = document.createElement('div');
-    suggestion.style.cssText = 'text-align: center; margin: 8px 0; padding: 8px 16px; border-radius: 8px; background: var(--bg-surface); font-size: 13px;';
+    suggestion.className = 'game-suggestion';
     const isHarder = suggestedIdx > currentIdx;
     const suggText = document.createElement('span');
     suggText.textContent = isHarder
-      ? `\u26A1 You're fast! Try ${nextDiff.label}? `
+      ? `You're fast! Try ${nextDiff.label}? `
       : `Try ${nextDiff.label}? It might help! `;
     const suggBtn = document.createElement('button');
-    suggBtn.className = 'btn btn-sm';
+    suggBtn.className = 'kg-btn kg-btn--ghost';
     suggBtn.textContent = isHarder ? 'Yes!' : 'OK';
-    suggBtn.style.cssText = 'margin-left: 8px; padding: 4px 12px; font-size: 12px;';
     suggBtn.addEventListener('click', () => {
       gameState.speedPreference = nextDiff.speed;
       if (gameState.callbacks && gameState.callbacks.onSpeedChange) {
         gameState.callbacks.onSpeedChange(nextDiff.speed);
       }
-      suggestion.textContent = `\u2713 Difficulty set to ${nextDiff.label}`;
-      suggestion.style.color = 'var(--success-text, #059669)';
+      suggestion.textContent = `Difficulty set to ${nextDiff.label}`;
     }, { once: true });
     suggestion.appendChild(suggText);
     suggestion.appendChild(suggBtn);
@@ -6329,8 +4863,8 @@ function showGameOverOverlay(stats) {
 
   // Play Again button
   const playAgainBtn = document.createElement('button');
-  playAgainBtn.className = 'btn btn-primary btn-lg';
-  playAgainBtn.textContent = 'Play Again';
+  playAgainBtn.className = 'kg-btn';
+  playAgainBtn.innerHTML = '<svg class="ic" aria-hidden="true"><use href="#i-replay"/></svg><span>Play again</span>';
   playAgainBtn.addEventListener('click', () => {
     releaseFocus();
     hideGameOverOverlay();
@@ -6340,8 +4874,8 @@ function showGameOverOverlay(stats) {
 
   // Back to Menu button
   const menuBtn = document.createElement('button');
-  menuBtn.className = 'btn btn-secondary btn-sm';
-  menuBtn.textContent = 'Back to Menu';
+  menuBtn.className = 'kg-btn kg-btn--ghost';
+  menuBtn.innerHTML = '<svg class="ic" aria-hidden="true"><use href="#i-home"/></svg><span>All games</span>';
   menuBtn.addEventListener('click', () => {
     releaseFocus();
     hideGameOverOverlay();
@@ -6682,6 +5216,9 @@ function startGame(bracket, stageList, callbacks) {
     }
   }, 5000);
 
+  refreshMotionPref();
+  if (window.KidsGames) window.KidsGames.sfx('start');
+
   // Set keyboard visible
   setVisibilityMode('show');
 
@@ -6692,12 +5229,12 @@ function startGame(bracket, stageList, callbacks) {
   if (hudEls.pauseBtn) {
     hudEls.pauseBtn.style.display = '';
     hudEls.pauseBtn.className = 'hud-btn'; // reset classes
-    hudEls.pauseBtn.textContent = '⏸';
+    hudEls.pauseBtn.innerHTML = '<svg class="ic" aria-hidden="true"><use href="#i-pause"/></svg>';
     if (bracket === '4-5') {
       hudEls.pauseBtn.classList.add('pause-btn--large');
     } else if (bracket === '6-8') {
       hudEls.pauseBtn.classList.add('pause-btn--labelled');
-      hudEls.pauseBtn.textContent = '⏸ Pause';
+      hudEls.pauseBtn.innerHTML = '<svg class="ic" aria-hidden="true"><use href="#i-pause"/></svg><span>Pause</span>';
     }
     // First-play pulse
     if (callbacks && callbacks.totalGamesPlayed === 0) {
@@ -6828,6 +5365,7 @@ function enterPlayMode(bracket, speed) {
     getPlayerName: () => window.KidsGames?.player?.name || 'Player',
     onGameOver: (stats) => {
       if (!window.KidsGames) return;
+      window.KidsGames.recordSession('type-trainer');
       const existing = window.KidsGames.loadGameData('typetrainer');
 
       // Rolling accuracy (70% historical, 30% this game)
@@ -6912,7 +5450,7 @@ function checkKeyboard() {
   if ('ontouchstart' in window && !matchMedia('(pointer: fine)').matches) {
     const warn = document.createElement('div');
     warn.className = 'keyboard-warning';
-    warn.innerHTML = '<p>This game works best with a keyboard! 🎹</p>';
+    warn.innerHTML = '<p>This game works best with a keyboard.</p>';
     document.getElementById('game-wrapper').prepend(warn);
   }
 }
@@ -6973,7 +5511,7 @@ document.addEventListener('DOMContentLoaded', () => {
     SPEEDS.forEach(s => {
       const btn = document.createElement('button');
       btn.className = 'speed-option' + (s.label === currentLabel ? ' speed-option--active' : '');
-      btn.innerHTML = `${s.label}<span class="speed-option__check">✓</span>`;
+      btn.innerHTML = `<span>${s.label}</span><svg class="ic speed-option__check" aria-hidden="true"><use href="#i-check"/></svg>`;
       btn.addEventListener('click', () => {
         setSpeedPreference(s.value);
         if (window.KidsGames) {
