@@ -5,13 +5,16 @@
 //   (playwright-core is deliberately not a repo dependency: install it anywhere, e.g. `npm i playwright-core` in a scratch folder.
 //    The test drives Microsoft Edge: change `channel` below to use another browser.)
 //
-// What it asserts, per age bracket (4-5, 6-8, 9-12, 13+):
+// What it asserts, per difficulty (Easy, Medium, Hard):
 //  - 200+ questions played in choose mode and 200+ in typed mode through the real UI, in games of the right length and level mix,
 //    with no repeated word inside a game, missed words coming back, and nothing but missed words repeating between games;
 //  - choose mode never shows two acceptable options, and every option is an answer or a listed distractor;
+//  - choose mode offers the first, simplest answer on Easy and Medium, and one of the first two on Hard;
 //  - typed mode accepts every curated answer and misspelling (capitals and spaces ignored) and rejects distractors;
 //  - the answer is never printed on the page before the child answers.
-// For the 6-8 bracket it also runs an exhaustive pass: every accepted word, every distractor and random other words for every
+// It also checks that difficulty defaults from the player's age, is saved per player and survives a reload, and that the header
+// controls fit at phone, tablet and laptop widths in both themes.
+// For Medium it also runs an exhaustive pass: every accepted word, every distractor and random other words for every
 // entry through the real input box, and every entry rendered in choose mode repeatedly at both distractor counts.
 // Expected answers are read from tools/opposites-words.txt, opposites-misspellings.txt and opposites-forms.txt, not from the page, so this
 // also proves the data embedded in the game matches the list.
@@ -49,23 +52,39 @@ const fail = (m) => { if (failures.length < 40) failures.push(m); else if (failu
 const rnd = (n) => Math.floor(Math.random() * n);
 const pick = (a) => a[rnd(a.length)];
 
-const AGES = { '4-5': 5, '6-8': 7, '9-12': 10, '13+': 14 };
-const CFG = { '4-5': { len: 10, dist: 2, levels: { 1: 10 } }, '6-8': { len: 20, dist: 3, levels: { 1: 5, 2: 15 } }, '9-12': { len: 20, dist: 3, levels: { 1: 5, 2: 15 } }, '13+': { len: 20, dist: 3, levels: { 1: 5, 2: 15 } } };
+const DIFFS = ['easy', 'medium', 'hard'];
+const CFG = {
+  easy: { len: 10, dist: 2, levels: { 1: 10 }, any: false },
+  medium: { len: 20, dist: 3, levels: { 1: 5, 2: 15 }, any: false },
+  hard: { len: 20, dist: 3, levels: { 2: 20 }, any: true },
+};
+const DEFAULTS = { 5: 'easy', 7: 'medium', 10: 'hard', 14: 'hard' }; // seeded age -> difficulty the game should start on
 
-async function open(browser, age) {
-  const ctx = await browser.newContext({ viewport: { width: 900, height: 900 } });
-  await ctx.addInitScript((a) => {
-    localStorage.setItem('kidsgames_players', JSON.stringify({ Mia: { name: 'Mia', dob: null, manualAge: a, theme: 'day', avatar: 0, createdAt: '2026-01-01' } }));
-    localStorage.setItem('kidsgames_activePlayer', JSON.stringify('Mia'));
+async function open(browser, age, { players, active, viewport, theme } = {}) {
+  const ctx = await browser.newContext({ viewport: viewport || { width: 900, height: 900 } });
+  const seed = players || { Mia: age };
+  await ctx.addInitScript(([pl, act, th]) => {
+    if (!localStorage.getItem('__seeded')) { // seed once, so a reload keeps what the page saved
+      const out = {};
+      for (const [name, a] of Object.entries(pl)) out[name] = { name, dob: null, manualAge: a, theme: th, avatar: 0, createdAt: '2026-01-01' };
+      localStorage.setItem('kidsgames_players', JSON.stringify(out));
+      localStorage.setItem('kidsgames_activePlayer', JSON.stringify(act));
+      localStorage.setItem('__seeded', '1');
+    }
     const st = window.setTimeout; // the game waits ~2 s between questions; shorten waits so 1000s of questions run quickly
     window.setTimeout = (f, ms, ...r) => st(f, ms >= 300 ? 4 : ms, ...r);
-  }, age);
+  }, [seed, active || Object.keys(seed)[0], theme || 'day']);
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e)));
   page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
   await page.goto(URL);
   await page.waitForSelector('#gameCard .opp-word');
+  await hook(page);
+  return { ctx, page, errors };
+}
+
+async function hook(page) {
   await page.evaluate(() => {
     const oc = checkChoice, ot = checkTyped;
     window.checkChoice = function (b, c) { window.__at = shuffledPairs[currentIndex].w; return oc(b, c); };
@@ -74,7 +93,6 @@ async function open(browser, age) {
     window.handleCorrect = function () { window.__res = 'right'; return hc.apply(this, arguments); };
     window.handleWrong = function () { window.__res = 'wrong'; return hw.apply(this, arguments); };
   });
-  return { ctx, page, errors };
 }
 
 const state = (page) => page.evaluate(() => ({
@@ -129,6 +147,10 @@ async function playFlow(page, bracket, mode, minQuestions, stats) {
         if (right.length !== 1) fail(`${bracket}: "${s.w}" shows ${right.length} acceptable options: ${s.options.join(', ')}`);
         if (new Set(s.options).size !== s.options.length) fail(`${bracket}: duplicate options for "${s.w}"`);
         for (const o of s.options) if (!e.choosable.includes(o) && !e.distractors.includes(o)) fail(`${bracket}: option "${o}" for "${s.w}" is neither an answer nor a listed distractor`);
+        if (right.length === 1) {
+          const allowed = cfg.any ? e.choosable.slice(0, 2) : e.choosable.slice(0, 1);
+          if (!allowed.includes(right[0])) fail(`${bracket}: "${s.w}" offered "${right[0]}" as the answer; ${cfg.any ? 'expected one of ' : 'expected '}${allowed.join(' / ')}`);
+        }
         stats.longest += right.length === 1 && s.options.every((o) => o === right[0] || o.length < right[0].length) ? 1 : 0;
         stats.shortest += right.length === 1 && s.options.every((o) => o === right[0] || o.length > right[0].length) ? 1 : 0;
         wantRight = q % 3 !== 0; // every third question is answered wrongly on purpose
@@ -187,44 +209,110 @@ async function exhaustiveTyped(page, stats) {
   }
 }
 
-// Every entry rendered in choose mode several times, at every distractor count.
+// Every entry rendered in choose mode several times, at every difficulty.
 async function exhaustiveChoice(page, stats) {
   await page.click('#choiceMode');
   const bad = await page.evaluate((srcEntries) => {
     const out = []; let n = 0;
-    for (const dist of [2, 3]) {
-      config = { ...config, distractorCount: dist };
+    const saved = difficulty;
+    for (const d of Object.keys(DIFFICULTY)) {
+      config = DIFFICULTY[d];
+      const dist = config.distractorCount;
       for (const p of wordPairs) {
         const e = srcEntries[p.w];
+        const allowed = config.anyAnswer ? e.choosable.slice(0, 2) : e.choosable.slice(0, 1);
         for (let r = 0; r < 6; r++) {
           shuffledPairs = [p]; currentIndex = 0; answered = false; renderQuestion(); n++;
           const opts = [...document.querySelectorAll('.opp-choice')].map((b) => b.textContent.trim().toLowerCase());
           const right = opts.filter((o) => e.accepted.includes(o));
-          if (opts.length !== dist + 1 || right.length !== 1 || new Set(opts).size !== opts.length) out.push(`${p.w}: ${opts.join(',')}`);
+          if (opts.length !== dist + 1 || right.length !== 1 || new Set(opts).size !== opts.length) out.push(`${d}/${p.w}: ${opts.join(',')}`);
+          else if (!allowed.includes(right[0])) out.push(`${d}/${p.w}: offered "${right[0]}", expected ${allowed.join(' / ')}`);
         }
       }
     }
+    config = DIFFICULTY[saved];
     return { out, n };
-  }, Object.fromEntries([...src].map(([w, e]) => [w, { accepted: [...e.accepted] }])));
+  }, Object.fromEntries([...src].map(([w, e]) => [w, { accepted: [...e.accepted], choosable: e.choosable }])));
   stats.choiceScreens += bad.n;
   bad.out.forEach((m) => fail(`choose screen problem: ${m}`));
 }
 
-const browser = await chromium.launch({ channel: 'msedge', headless: true });
-const report = {};
-for (const bracket of Object.keys(AGES)) {
-  const stats = { asked: 0, missedBack: [], consecShared: [], longest: 0, shortest: 0, typedChecks: 0, choiceScreens: 0 };
-  const { ctx, page, errors } = await open(browser, AGES[bracket]);
-  const reported = await page.evaluate(() => window.KidsGames.player.ageBracket);
-  if (reported !== bracket) fail(`seeded age gives bracket ${reported}, expected ${bracket}`);
-  await playFlow(page, bracket, 'choice', 200, stats);
-  const choiceAsked = stats.asked;
-  await playFlow(page, bracket, 'type', 200, stats);
-  if (bracket === '6-8') { await exhaustiveTyped(page, stats); await exhaustiveChoice(page, stats); }
-  if (errors.length) fail(`${bracket}: page errors: ${errors.slice(0, 3).join(' | ')}`);
-  report[bracket] = { harnessRaces: stats.races || 0, choiceQuestions: choiceAsked, typedQuestions: stats.asked - choiceAsked, avgMissedWordsBackPerGame: (stats.missedBack.reduce((a, b) => a + b, 0) / Math.max(1, stats.missedBack.length)).toFixed(2), avgConsecutiveShared: (stats.consecShared.reduce((a, b) => a + b, 0) / Math.max(1, stats.consecShared.length)).toFixed(2), correctIsLongestPct: (100 * stats.longest / Math.max(1, choiceAsked)).toFixed(0), correctIsShortestPct: (100 * stats.shortest / Math.max(1, choiceAsked)).toFixed(0), exhaustiveTypedChecks: stats.typedChecks, exhaustiveChoiceScreens: stats.choiceScreens };
+const levelState = (page) => page.evaluate(() => ({
+  difficulty,
+  pressed: [...document.querySelectorAll('.opp-levels .kg-seg__opt')].filter((b) => b.getAttribute('aria-pressed') === 'true').map((b) => b.dataset.level),
+}));
+
+// Difficulty starts from the player's age, a choice is saved per player and survives a reload.
+async function checkDefaultsAndMemory(browser) {
+  for (const [age, want] of Object.entries(DEFAULTS)) {
+    const { ctx, page } = await open(browser, Number(age));
+    const got = await levelState(page);
+    if (got.difficulty !== want || got.pressed.join() !== want) fail(`age ${age}: expected to start on ${want}, got ${got.difficulty} (pressed: ${got.pressed.join() || 'none'})`);
+    await ctx.close();
+  }
+  const { ctx, page } = await open(browser, null, { players: { Mia: 7, Leo: 5 }, active: 'Mia' });
+  await page.click('#lvl-hard');
+  let st = await levelState(page);
+  if (st.difficulty !== 'hard' || st.pressed.join() !== 'hard') fail(`clicking Hard left difficulty at ${st.difficulty} (${st.pressed.join()})`);
+  const len = await page.evaluate(() => shuffledPairs.length);
+  if (len !== CFG.hard.len) fail(`switching to Hard started a game of ${len} questions`);
+  await page.reload(); await page.waitForSelector('#gameCard .opp-word');
+  st = await levelState(page);
+  if (st.difficulty !== 'hard') fail(`Hard was not remembered after a reload (got ${st.difficulty})`);
+  await page.evaluate(() => localStorage.setItem('kidsgames_activePlayer', JSON.stringify('Leo')));
+  await page.reload(); await page.waitForSelector('#gameCard .opp-word');
+  st = await levelState(page);
+  if (st.difficulty !== 'easy') fail(`a second player (age 5) should start on easy, got ${st.difficulty}: the first player's choice leaked`);
+  await page.evaluate(() => localStorage.setItem('kidsgames_activePlayer', JSON.stringify('Mia')));
+  await page.reload(); await page.waitForSelector('#gameCard .opp-word');
+  st = await levelState(page);
+  if (st.difficulty !== 'hard') fail(`the first player's Hard choice was lost after switching away and back (got ${st.difficulty})`);
   await ctx.close();
 }
+
+// The header controls must fit: no sideways scroll, nothing outside the screen, every button big enough to tap.
+async function checkLayout(browser) {
+  const shotDir = process.env.SHOT_DIR;
+  if (shotDir) fs.mkdirSync(shotDir, { recursive: true });
+  for (const [w, h] of [[360, 740], [768, 1024], [1024, 768], [1280, 800]]) {
+    for (const theme of ['day', 'dusk']) {
+      const { ctx, page } = await open(browser, 5, { viewport: { width: w, height: h } });
+      await page.evaluate((t) => document.documentElement.setAttribute('data-theme', t), theme);
+      const r = await page.evaluate(() => {
+        const bad = [];
+        if (document.documentElement.scrollWidth > window.innerWidth + 1) bad.push(`page scrolls sideways (${document.documentElement.scrollWidth} > ${window.innerWidth})`);
+        for (const b of document.querySelectorAll('.opp-top button')) {
+          const q = b.getBoundingClientRect();
+          if (q.left < -1 || q.right > window.innerWidth + 1) bad.push(`button "${b.getAttribute('aria-label')}" is off screen (${Math.round(q.left)}..${Math.round(q.right)})`);
+          if (q.height < 44 || q.width < 44) bad.push(`button "${b.getAttribute('aria-label')}" is small (${Math.round(q.width)}x${Math.round(q.height)})`);
+        }
+        return bad;
+      });
+      r.forEach((m) => fail(`layout ${w}x${h} ${theme}: ${m}`));
+      if (shotDir) await page.screenshot({ path: `${shotDir}/opposites-${w}x${h}-${theme}.png` });
+      await ctx.close();
+    }
+  }
+}
+
+const browser = await chromium.launch({ channel: 'msedge', headless: true });
+const report = {};
+for (const diff of DIFFS) {
+  const stats = { asked: 0, missedBack: [], consecShared: [], longest: 0, shortest: 0, typedChecks: 0, choiceScreens: 0 };
+  const { ctx, page, errors } = await open(browser, 7);
+  if (diff !== 'medium') await page.click(`#lvl-${diff}`); // 7 starts on medium; click the others
+  const st = await levelState(page);
+  if (st.difficulty !== diff || st.pressed.join() !== diff) fail(`could not select ${diff} (got ${st.difficulty})`);
+  await playFlow(page, diff, 'choice', 200, stats);
+  const choiceAsked = stats.asked;
+  await playFlow(page, diff, 'type', 200, stats);
+  if (diff === 'medium') { await exhaustiveTyped(page, stats); await exhaustiveChoice(page, stats); }
+  if (errors.length) fail(`${diff}: page errors: ${errors.slice(0, 3).join(' | ')}`);
+  report[diff] = { harnessRaces: stats.races || 0, choiceQuestions: choiceAsked, typedQuestions: stats.asked - choiceAsked, avgMissedWordsBackPerGame: (stats.missedBack.reduce((a, b) => a + b, 0) / Math.max(1, stats.missedBack.length)).toFixed(2), avgConsecutiveShared: (stats.consecShared.reduce((a, b) => a + b, 0) / Math.max(1, stats.consecShared.length)).toFixed(2), correctIsLongestPct: (100 * stats.longest / Math.max(1, choiceAsked)).toFixed(0), correctIsShortestPct: (100 * stats.shortest / Math.max(1, choiceAsked)).toFixed(0), exhaustiveTypedChecks: stats.typedChecks, exhaustiveChoiceScreens: stats.choiceScreens };
+  await ctx.close();
+}
+await checkDefaultsAndMemory(browser);
+await checkLayout(browser);
 await browser.close();
 console.log(JSON.stringify(report, null, 1));
 console.log(failures.length ? `\nFAILURES (${failures.length}):\n` + failures.join('\n') : '\nALL CHECKS PASSED');

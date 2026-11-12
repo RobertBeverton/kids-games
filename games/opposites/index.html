@@ -14,8 +14,10 @@
     display: flex; flex-direction: column; gap: var(--s4);
   }
   .opp-top { display: flex; align-items: center; gap: var(--s3); flex-wrap: wrap; }
-  .opp-ctl { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); flex: 1 1 100%; }
-  @media (min-width: 760px) { .opp-ctl { flex: 0 0 auto; } }
+  .opp-ctl { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); flex: 1 1 100%; flex-wrap: wrap; }
+  .opp-chips { margin-left: auto; }
+  /* the controls may share the title's row, but wrap among themselves rather than push the page wider than the screen */
+  @media (min-width: 760px) { .opp-ctl { flex: 1 1 auto; justify-content: flex-end; min-width: 0; } }
   .opp-title {
     margin: 0; flex: 1 1 auto; min-width: 0;
     display: flex; align-items: center; gap: var(--s3);
@@ -24,7 +26,11 @@
   .opp-title .mk { width: 56px; height: 56px; flex: none; color: var(--ink); }
   .opp-chips { display: flex; gap: var(--s2); }
   .opp-chips .kg-chip { min-height: 44px; padding: var(--s1) var(--s3); }
-  .opp-modes { flex-wrap: nowrap; }
+  .opp-modes, .opp-levels { flex-wrap: nowrap; }
+  .opp-levels .kg-seg__opt { flex: 0 0 auto; min-height: 52px; padding: 0 var(--s3); font-size: var(--t-body); }
+  .opp-lv { display: inline-flex; gap: 2px; }
+  .opp-lv svg { width: 18px; height: 18px; fill: currentColor; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
+  @media (max-width: 759px) { .opp-levels .kg-seg__opt .opp-lv + span { display: none; } .opp-levels .kg-seg__opt { min-width: 56px; } }
   .opp-modes .kg-seg__opt { flex: 0 0 auto; min-height: 52px; padding: 0 var(--s3); font-size: var(--t-body); }
   @media (max-width: 759px) { .opp-modes .kg-seg__opt span { display: none; } .opp-modes .kg-seg__opt { min-width: 56px; } }
 
@@ -88,6 +94,11 @@
       <button class="kg-seg__opt" id="choiceMode" aria-pressed="true" onclick="setMode('choice')" aria-label="Choose an answer"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span>Choose</span></button>
       <button class="kg-seg__opt" id="typeMode" aria-pressed="false" onclick="setMode('type')" aria-label="Type an answer"><svg class="ic" aria-hidden="true"><use href="#i-keyboard"/></svg><span>Type</span></button>
     </div>
+    <div class="kg-seg opp-levels" role="group" aria-label="How tricky">
+      <button class="kg-seg__opt" id="lvl-easy" data-level="easy" aria-pressed="false" onclick="setDifficulty('easy')" aria-label="Easy"><span class="opp-lv" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#a-star"/></svg></span><span>Easy</span></button>
+      <button class="kg-seg__opt" id="lvl-medium" data-level="medium" aria-pressed="false" onclick="setDifficulty('medium')" aria-label="Medium"><span class="opp-lv" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#a-star"/></svg><svg viewBox="0 0 48 48"><use href="#a-star"/></svg></span><span>Medium</span></button>
+      <button class="kg-seg__opt" id="lvl-hard" data-level="hard" aria-pressed="false" onclick="setDifficulty('hard')" aria-label="Hard"><span class="opp-lv" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#a-star"/></svg><svg viewBox="0 0 48 48"><use href="#a-star"/></svg><svg viewBox="0 0 48 48"><use href="#a-star"/></svg></span><span>Hard</span></button>
+    </div>
     <div class="opp-chips" role="group" aria-label="Score">
       <span class="kg-chip" id="correctBox"><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span class="kg-sr">Right</span><strong id="correctCount">0</strong></span>
       <span class="kg-chip" id="wrongBox"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg><span class="kg-sr">Wrong</span><strong id="wrongCount">0</strong></span>
@@ -102,15 +113,18 @@
 </main>
 <script>
 // Read player context from shared shell
-// levels: how many questions come from each word level (1 = about age 5, 2 = ages 6 to 7). The counts add up to the game length.
-const BRACKET_CONFIG = {
-  '4-5': { distractorCount: 2, showHint: true,  levels: { 1: 10 } },
-  '6-8': { distractorCount: 3, showHint: true,  levels: { 1: 5, 2: 15 } },
-  '9-12': { distractorCount: 3, showHint: false, levels: { 1: 5, 2: 15 } },
-  '13+':  { distractorCount: 3, showHint: false, levels: { 1: 5, 2: 15 } },
+// Difficulty is a choice the child (or a grown-up) makes, saved per player. It starts from the player's age.
+//   levels: how many questions come from each word level (1 = about age 5, 2 = ages 6 to 7); the counts add up to the game length.
+//   anyAnswer: choose mode may offer the second common answer too; otherwise it always offers the first, simplest one.
+const DIFFICULTY = {
+  easy:   { distractorCount: 2, showHint: true,  levels: { 1: 10 },        anyAnswer: false },
+  medium: { distractorCount: 3, showHint: true,  levels: { 1: 5, 2: 15 },  anyAnswer: false },
+  hard:   { distractorCount: 3, showHint: false, levels: { 2: 20 },        anyAnswer: true },
 };
+const DEFAULT_DIFFICULTY = { '4-5': 'easy', '6-8': 'medium', '9-12': 'hard', '13+': 'hard' };
 let ageBracket = (window.KidsGames && window.KidsGames.player) ? window.KidsGames.player.ageBracket : '6-8';
-let config = BRACKET_CONFIG[ageBracket] || BRACKET_CONFIG['6-8'];
+let difficulty = 'medium';
+let config = DIFFICULTY[difficulty];
 
 // Saved data for the current player: lifetime stats, plus the words they missed and the words they saw lately.
 let savedData = {};
@@ -125,6 +139,22 @@ function loadSaved() {
   lifetimeGames = savedData.gamesPlayed || 0;
   lifetimeBestStreak = savedData.bestStreak || 0;
   lifetimeBestScore = savedData.bestScore || 0;
+  // a saved choice wins; otherwise the age decides
+  difficulty = DIFFICULTY[savedData.difficulty] ? savedData.difficulty : (DEFAULT_DIFFICULTY[ageBracket] || 'medium');
+  config = DIFFICULTY[difficulty];
+  showDifficulty();
+}
+function showDifficulty() {
+  Object.keys(DIFFICULTY).forEach(d => {
+    const b = document.getElementById('lvl-' + d);
+    if (b) b.setAttribute('aria-pressed', String(d === difficulty));
+  });
+}
+function setDifficulty(d) {
+  if (!DIFFICULTY[d] || d === difficulty) return;
+  savedData.difficulty = d;   // an explicit choice, kept for this player
+  persist();
+  startGame();                // new level, new game
 }
 function persist() {
   if (!window.KidsGames) return;
@@ -135,6 +165,7 @@ function persist() {
     lastPlayed: new Date().toISOString().slice(0, 10),
     missed: savedData.missed || [],
     recent: savedData.recent || [],
+    difficulty: savedData.difficulty,
   });
 }
 
@@ -159,7 +190,7 @@ const wordPairs = [
 {"w":"sad","a":["happy","cheerful","glad","joyful"],"t":["happier","hapy","chearful"],"d":["woolly","bag","draw","tasty","horse"],"l":1},
 {"w":"open","a":["shut","closed"],"t":["close","shuts","shutting","closes","closing","clos"],"d":["kite","toy","cow","silly","lucky"],"l":1},
 {"w":"shut","a":["open"],"t":["opens","opening","opened"],"d":["round","brown","kick","bake","sunny"],"l":1},
-{"w":"full","a":["empty","hungry"],"t":[],"d":["tap","door","pig","castle","cat"],"l":1},
+{"w":"full","a":["empty"],"t":["hungry"],"d":["tap","door","pig","castle","cat"],"l":1},
 {"w":"empty","a":["full"],"t":["fill","fills","filling","filled"],"d":["busy","bridge","window","throw","spotty"],"l":1},
 {"w":"old","a":["new","young"],"t":["newer","newest","younger","youngest","yowng"],"d":["plate","shy","table","spotty","river"],"l":1},
 {"w":"new","a":["old","used"],"t":["older","oldest"],"d":["wave","bell","cow","brown","rope"],"l":1},
@@ -197,7 +228,7 @@ const wordPairs = [
 {"w":"stop","a":["go","start"],"t":["goes","going","went","gone","starts","starting","started"],"d":["pig","cook","tree","egg","clap"],"l":1},
 {"w":"start","a":["stop","finish","end"],"t":["stops","stopping","stopped","finishes","finishing","finished"],"d":["horse","toy","sing","chair","bag"],"l":1},
 {"w":"laugh","a":["cry"],"t":["cries","crying","cried"],"d":["shiny","cow","rope","window","kind"],"l":1},
-{"w":"cry","a":["laugh","smile"],"t":["laughs","laughing","laughed","smiles","smiling","smiled","smiel","smil"],"d":["red","book","cake","wave","busy"],"l":1},
+{"w":"cry","a":["laugh"],"t":["laughs","laughing","laughed"],"d":["red","book","cake","wave","busy"],"l":1},
 {"w":"loud","a":["quiet","silent"],"t":["quieter","queit"],"d":["apple","jump","stripy","bread","shoe"],"l":1},
 {"w":"quiet","a":["loud","noisy","busy"],"t":["louder","lowd","noysy","busier"],"d":["bridge","bird","purple","sunny","spoon"],"l":1},
 {"w":"dark","a":["light","bright"],"t":["lighter","brighter"],"d":["drum","funny","silly","climb","windy"],"l":1},
@@ -585,7 +616,10 @@ function renderQuestion() {
 
   if (mode === 'choice') {
     // Pick 1 correct answer and N distractors (only from this word's own distractor list)
-    const correctOne = pair.a[Math.floor(Math.random() * pair.a.length)];
+    // The first answer in the list is the simplest and most common one. Easy and Medium always offer it;
+    // Hard may offer the second as well. Every listed answer is still accepted when typed.
+    const offered = config.anyAnswer ? pair.a.slice(0, 2) : pair.a.slice(0, 1);
+    const correctOne = offered[Math.floor(Math.random() * offered.length)];
     const wrongOnes = shuffle(pair.d).slice(0, config.distractorCount);
     const options = shuffle([correctOne, ...wrongOnes]);
 
@@ -773,7 +807,6 @@ if (window.KidsGames) {
     const newBracket = ctx ? ctx.ageBracket : '6-8';
     if (newBracket !== ageBracket) {
       ageBracket = newBracket;
-      config = BRACKET_CONFIG[ageBracket] || BRACKET_CONFIG['6-8'];
       startGame();
     }
   });

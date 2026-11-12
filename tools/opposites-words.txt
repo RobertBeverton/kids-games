@@ -20,7 +20,7 @@ happy  | sad, unhappy, upset, miserable, gloomy | windy, clever, boat, hill, hat
 sad    | happy, cheerful, glad, joyful | woolly, bag, draw, tasty, horse | 1 | adj
 open   | shut, closed, ~close         | kite, toy, cow, silly, lucky | 1 | adj
 shut   | open                         | round, brown, kick, bake, sunny | 1 | adj
-full   | empty, hungry | tap, door, pig, castle, cat | 1 | adj
+full   | empty, ~hungry                | tap, door, pig, castle, cat | 1 | adj
 empty  | full, ~fill | busy, bridge, window, throw, spotty | 1 | adj
 old    | new, young                   | plate, shy, table, spotty, river | 1 | adj
 new    | old, used                    | wave, bell, cow, brown, rope | 1 | adj
@@ -62,7 +62,7 @@ pull    | push                       | milk, shy, wooden, hat, sock | 1 | verb
 stop    | go, start                  | pig, cook, tree, egg, clap | 1 | verb
 start   | stop, finish, end          | horse, toy, sing, chair, bag | 1 | verb
 laugh   | cry                        | shiny, cow, rope, window, kind | 1 | verb
-cry     | laugh, smile               | red, book, cake, wave, busy | 1 | verb
+cry     | laugh                      | red, book, cake, wave, busy | 1 | verb
 loud    | quiet, silent              | apple, jump, stripy, bread, shoe | 1 | adj
 quiet   | loud, noisy, busy | bridge, bird, purple, sunny, spoon | 1 | adj
 dark    | light, bright              | drum, funny, silly, climb, windy | 1 | adj

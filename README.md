@@ -10,7 +10,7 @@ Fun, free, ad-free educational games for kids — built for my twins (age 5) and
 Letters and words fall from the sky — type them before they land! Four age brackets (4-5, 6-8, 9-12, Adult) with adaptive difficulty, on-screen keyboard, and per-player profiles.
 
 ### Opposites
-Find the opposite word! Choose from multiple choice or type your answer. A hand-curated list of about 330 words in UK English: simple pairs for age 5, story words for ages 6 to 7. Every sensible answer counts (happy: sad, unhappy, upset...), common misspellings and word forms (smaller, pulled, went) are accepted when typed, and words a child missed come back in later games.
+Find the opposite word! Choose from multiple choice or type your answer. A hand-curated list of about 330 words in UK English: simple pairs for age 5, story words for ages 6 to 7. Three difficulties (Easy, Medium, Hard), starting from the player's age and remembered per player. Choose mode offers the simplest opposite; every sensible answer counts when typed (happy: sad, unhappy, upset...), common misspellings and word forms (smaller, pulled, went) are accepted when typed, and words a child missed come back in later games.
 
 The word list lives in `tools/opposites-words.txt`, with `tools/opposites-misspellings.txt` and `tools/opposites-forms.txt` for the extra typed answers. After editing them:
 
