@@ -535,6 +535,16 @@ button { font: inherit; color: inherit; }
 .maths-fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .maths-fieldset .kg-seg { gap: var(--s3); }
 
+/* Style switcher: two big tiles that show the question itself, so a child who cannot read can choose */
+.maths-styles { flex-wrap: nowrap; gap: var(--s3); }
+.maths-style { position: relative; flex: 1 1 0; min-width: 0; flex-direction: column; gap: var(--s2); min-height: 124px; padding: 30px var(--s2) var(--s3); text-align: center; }
+.maths-style__eq { font-size: clamp(1.5rem, 5.2vw, 2.6rem); font-weight: 700; line-height: 1.1; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.maths-style__eq .maths-blank { animation: none; line-height: 1; padding-bottom: 0.1em; height: 1.1em; }
+.maths-style__name { font-size: var(--t-small); font-weight: 400; line-height: 1.2; }
+.maths-style__tick { display: none; position: absolute; top: 6px; right: 8px; width: 22px; height: 22px; }
+.maths-style[aria-pressed="true"] .maths-style__tick { display: block; }
+:root[data-age="young"] .maths-style { min-height: 108px; }
+
 /* Settings tiles */
 #maths-op-row { gap: var(--s2); }
 .maths-op { flex: 1 1 52px; padding: 0 var(--s2); flex-direction: column; gap: 2px; min-height: 76px; }
@@ -567,7 +577,7 @@ button { font: inherit; color: inherit; }
 .maths-hud-center { display: inline-flex; align-items: center; }
 .maths-question-wrap { flex: 1; display: grid; place-items: center; min-height: 0; }
 .maths-question {
-  font-size: var(--t-numeral); font-weight: 700; line-height: 1.1;
+  font-size: min(var(--t-numeral), 12vw); font-weight: 700; line-height: 1.1;
   text-align: center; font-variant-numeric: tabular-nums; overflow-wrap: anywhere;
 }
 .maths-question--long { font-size: clamp(2.5rem, 9vmin, 5rem); }
@@ -790,8 +800,7 @@ button { font: inherit; color: inherit; }
     <section class="kg-group" aria-labelledby="kg-g-games">
       <h3 id="kg-g-games" class="kg-label">Games guide</h3>
       <ul class="kg-guide">
-        <li><span>Number Bonds</span><span>Ages 4–12+</span></li>
-        <li><span>Maths</span><span>Ages 5–10</span></li>
+        <li><span>Maths</span><span>Ages 5–12+</span></li>
         <li><span>Opposites</span><span>Ages 4–8</span></li>
         <li><span>Memory Match</span><span>Ages 4–10</span></li>
         <li><span>Type Trainer</span><span>Ages 4–12+, needs a keyboard</span></li>
@@ -805,7 +814,7 @@ button { font: inherit; color: inherit; }
         Feedback or bug? Raise it on GitHub
         <svg class="ic ic--sm"><use href="#i-link"/></svg>
       </a>
-      <p>Version 0ab8519 12 Nov 14:15</p>
+      <p>Version 8495991 12 Nov 16:09</p>
     </section>
   </div>
 </div>
@@ -839,6 +848,22 @@ button { font: inherit; color: inherit; }
       </h1>
 
       <fieldset class="maths-fieldset">
+        <legend class="kg-label">Style</legend>
+        <div class="kg-seg maths-styles" id="maths-style-row" role="group" aria-label="Style">
+          <button class="kg-seg__opt maths-style" data-style="answer" aria-pressed="true" aria-label="Work it out: seven plus five equals what">
+            <span class="maths-style__eq" aria-hidden="true">7 + 5 = <span class="maths-blank">?</span></span>
+            <span class="maths-style__name">Work it out</span>
+            <svg class="ic maths-style__tick" aria-hidden="true"><use href="#i-check"/></svg>
+          </button>
+          <button class="kg-seg__opt maths-style" data-style="missing" aria-pressed="false" aria-label="Find the missing number: seven plus what equals twelve">
+            <span class="maths-style__eq" aria-hidden="true">7 + <span class="maths-blank">?</span> = 12</span>
+            <span class="maths-style__name">Find the missing number</span>
+            <svg class="ic maths-style__tick" aria-hidden="true"><use href="#i-check"/></svg>
+          </button>
+        </div>
+      </fieldset>
+
+      <fieldset class="maths-fieldset">
         <legend class="kg-label">Sums</legend>
         <div class="kg-seg" id="maths-op-row" role="group" aria-label="Sums">
           <button class="kg-seg__opt maths-op" data-op="+" aria-pressed="true"  aria-label="Add"><svg class="ic ic--lg"><use href="#i-plus"/></svg></button>
@@ -857,7 +882,7 @@ button { font: inherit; color: inherit; }
           <button class="kg-seg__opt maths-diff" data-diff="hard"   aria-pressed="false"><span class="kg-squares" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i></span><span>Hard</span></button>
           <button class="kg-seg__opt maths-diff" data-diff="custom" aria-pressed="false"><svg class="ic"><use href="#i-pencil"/></svg><span>Custom</span></button>
         </div>
-        <p class="maths-diff-hint" id="maths-diff-hint">Numbers 1–20, tables to 10</p>
+        <p class="maths-diff-hint" id="maths-diff-hint">Add and take away to 100. Tables 2 to 10</p>
       </fieldset>
 
       <!-- Custom options (hidden unless Custom selected) -->
@@ -1107,6 +1132,54 @@ function setLastGame(name, gameId) {
 // --- Device preferences (not per player) ---
 function getPref(key) { return _read(STORAGE_PREFIX + 'pref_' + key); }
 function setPref(key, val) { _write(STORAGE_PREFIX + 'pref_' + key, val); }
+
+// --- Maths merge: Number Bonds became a style ("Find the missing number") inside Maths ---
+// Runs once per player (guarded by a flag), never deletes the old data. Moves, per player:
+//   - settings and personal bests: kidsgames_maths_<name> / kidsgames_numberbonds_<name>  ->  kidsgames_maths_<name>
+//     (personal-best keys gain the style: pb_<op>_<diff>_<mode>  ->  pb_<style>_<op>_<diff>_<mode>)
+//   - progress squares: 'number-bonds' is added to 'maths'
+//   - 'last game played': 'number-bonds' becomes 'maths'
+function migrateMathsMerge() {
+  let players;
+  try { players = Object.keys(getAllPlayers()); } catch (e) { return; }
+  players.forEach(function (name) {
+    const flagKey = STORAGE_PREFIX + 'merged_maths_' + name;
+    if (_read(flagKey)) return;
+    try {
+      const maths = _read(STORAGE_PREFIX + 'maths_' + name);
+      const nb = _read(STORAGE_PREFIX + 'numberbonds_' + name);
+      if (maths && maths.v === 2) { _write(flagKey, true); return; }
+      if (maths || nb) {
+        const last = _read(STORAGE_PREFIX + 'last_' + name);
+        const fromNb = nb && nb.settings && (!maths || !maths.settings || last === 'number-bonds');
+        const src = fromNb ? nb : (maths && maths.settings ? maths : nb);
+        const merged = { v: 2 };
+        if (src && src.settings) {
+          merged.settings = Object.assign({}, src.settings, { style: src === nb ? 'missing' : 'answer' });
+        }
+        [[maths, 'answer'], [nb, 'missing']].forEach(function (pair) {
+          const data = pair[0], style = pair[1];
+          if (!data) return;
+          Object.keys(data).forEach(function (k) {
+            if (k.indexOf('pb_') !== 0 || k.indexOf('pb_answer_') === 0 || k.indexOf('pb_missing_') === 0) return;
+            merged['pb_' + style + '_' + k.slice(3)] = data[k];
+          });
+        });
+        _write(STORAGE_PREFIX + 'maths_' + name, merged);
+      }
+      const prog = _read(STORAGE_PREFIX + 'progress_' + name);
+      if (prog && prog['number-bonds']) {
+        prog.maths = (prog.maths || 0) + prog['number-bonds'];
+        delete prog['number-bonds'];
+        _write(STORAGE_PREFIX + 'progress_' + name, prog);
+      }
+      if (_read(STORAGE_PREFIX + 'last_' + name) === 'number-bonds') _write(STORAGE_PREFIX + 'last_' + name, 'maths');
+      _write(flagKey, true);
+    } catch (e) {
+      console.error('KidsGames: Maths merge skipped for', name, e);
+    }
+  });
+}
 // shared/shell.js — Shell bar, player sheets, grown-ups gate, shared sound.
 // NOTE: The build script wraps storage.js + shell.js together in a single IIFE.
 // Storage functions (getPlayer, savePlayer, etc.) are available here without import.
@@ -1206,7 +1279,7 @@ function setPref(key, val) { _write(STORAGE_PREFIX + 'pref_' + key, val); }
     get player() {
       const p = getActivePlayer();
       if (!p) return null;
-      return { name: p.name, ageBracket: getAgeBracket(p), theme: p.theme, avatar: getAvatarIndex(p) };
+      return { name: p.name, age: getAge(p), ageBracket: getAgeBracket(p), theme: p.theme, avatar: getAvatarIndex(p) };
     },
     get muted() { return muted; },
     get reducedMotion() {
@@ -1676,6 +1749,7 @@ function setPref(key, val) { _write(STORAGE_PREFIX + 'pref_' + key, val); }
     _initialized = true;
 
     if (document.body.dataset.page === 'type-trainer') migrateTypeTrainerData();
+    migrateMathsMerge();
 
     applyTheme(osTheme());
     applyMotion();
@@ -1693,177 +1767,322 @@ function setPref(key, val) { _write(STORAGE_PREFIX + 'pref_' + key, val); }
 
 })();
 // --- questions.js ---
-// questions.js — Maths game question and distractor generation
+// questions.js — Maths: question generation, answer choices and display format.
+//
+// Two styles share one engine and differ only in where the blank sits:
+//   'answer'  "Work it out"            7 + 5 = ?
+//   'missing' "Find the missing number" 7 + ? = 12   or   ? + 5 = 12
+//
+// Pure functions, no DOM: everything here is unit-tested (games/maths/tests).
+
+const STYLES = ['answer', 'missing'];
+
+// Difficulty presets. `cap` (+ and −) draws the total / starting number uniformly from capLo..cap, so the numbers are
+// spread across the whole range. Without `cap` the two numbers are drawn independently from min..max (Hard, Custom).
+// `tables` lists the times tables used by × and ÷ (default 2..maxTable); the other factor runs 2..otherMax.
+const PRESETS = {
+  easy:   { min: 0, max: 20, cap: 20, capLo: 1, maxTable: 10, tables: [2, 5, 10], otherMax: 10, negatives: false, decimals: false,
+            hint: 'Add and take away to 20. 2, 5 and 10 times tables' },
+  medium: { min: 1, max: 100, cap: 100, capLo: 11, maxTable: 10, negatives: false, decimals: false,
+            hint: 'Add and take away to 100. Tables 2 to 10' },
+  hard:   { min: 1, max: 100, maxTable: 12, negatives: false, decimals: false,
+            hint: 'Numbers to 100 each. Tables 2 to 12' },
+};
+
+/** Make any settings object safe to generate from (typed custom values can be 0, 1, empty, negative…). */
+function normaliseSettings(s) {
+  const int = (v, d) => (Number.isFinite(Number(v)) && v !== '' && v !== null ? Math.trunc(Number(v)) : d);
+  let min = int(s.min, 1), max = int(s.max, 100);
+  min = Math.max(-9999, Math.min(9999, min));
+  max = Math.max(-9999, Math.min(9999, max));
+  if (min > max) [min, max] = [max, min];
+  const maxTable = Math.max(2, Math.min(99, int(s.maxTable, 12)));
+  const tables = Array.isArray(s.tables) && s.tables.length ? s.tables : range(2, maxTable);
+  const otherMax = s.otherMax ? s.otherMax : maxTable;
+  const out = { ...s, min, max, maxTable, tables, otherMax, negatives: !!s.negatives, decimals: !!s.decimals };
+  if (s.cap) { out.cap = s.cap; out.capLo = s.capLo || 1; }
+  return out;
+}
 
 /**
- * Generate a single question. The result is always the blank (answer).
+ * Generate one question.
  * @param {string} op  '+' | '-' | '*' | '/' | 'mixed'
- * @param {object} settings  { min, max, maxTable, negatives, decimals }
- * @returns {{ left, op, right, result, answer }}
+ * @param {object} settings
+ * @param {string} style  'answer' | 'missing'
+ * @returns {{ left, op, right, result, blank: 'result'|'left'|'right', answer, style }}
  */
-function generateQuestion(op, settings) {
-  const { min, max, maxTable, negatives, decimals } = settings;
-  const resolvedOp = op === 'mixed'
-    ? ['+', '-', '*', '/'][Math.floor(Math.random() * 4)]
-    : op;
-
+function generateQuestion(op, settings, style = 'answer') {
+  const s = normaliseSettings(settings);
+  const resolvedOp = op === 'mixed' ? ['+', '-', '*', '/'][randInt(0, 3)] : op;
   let left, right, result;
 
   switch (resolvedOp) {
     case '+': {
-      left = randInt(min, max);
-      right = randInt(min, max);
-      if (decimals) {
-        left = round1dp(left + randInt(0, 9) / 10);
-        right = round1dp(right + randInt(0, 9) / 10);
+      if (s.cap && !s.decimals) {
+        result = randInt(s.capLo, s.cap);
+        left = randInt(s.min, result - s.min);
+        right = result - left;
+        if (left === 0 && right === 0) { left = 1; right = result - 1; }
+      } else {
+        left = randInt(s.min, s.max);
+        right = randInt(s.min, s.max);
+        if (s.decimals) { left = r1(left + randInt(0, 9) / 10); right = r1(right + randInt(0, 9) / 10); }
+        result = r1(left + right);
       }
-      result = round1dp(left + right);
       break;
     }
     case '-': {
-      if (negatives) {
-        left = randInt(min, max);
-        right = randInt(min, max);
+      if (s.cap && !s.decimals) {
+        left = randInt(s.capLo, s.cap);
+        right = randInt(s.min === 0 ? 0 : 1, s.min === 0 ? left : left - 1);
+        result = left - right;
       } else {
-        const a = randInt(min, max);
-        const b = randInt(min, max);
-        left = Math.max(a, b);
-        right = Math.min(a, b);
+        if (s.negatives) { left = randInt(s.min, s.max); right = randInt(s.min, s.max); }
+        else { const a = randInt(s.min, s.max), b = randInt(s.min, s.max); left = Math.max(a, b); right = Math.min(a, b); }
+        if (s.decimals) {
+          left = r1(left + randInt(0, 9) / 10); right = r1(right + randInt(0, 9) / 10);
+          if (!s.negatives && left < right) [left, right] = [right, left];
+        }
+        result = r1(left - right);
       }
-      if (decimals) {
-        left = round1dp(left + randInt(0, 9) / 10);
-        right = round1dp(right + randInt(0, 9) / 10);
-        if (!negatives && left < right) [left, right] = [right, left];
-      }
-      result = round1dp(left - right);
       break;
     }
     case '*': {
-      left = randInt(1, maxTable);
-      right = randInt(1, maxTable);
+      const a = pick(s.tables), b = randInt(2, s.otherMax);
+      [left, right] = Math.random() < 0.5 ? [a, b] : [b, a];
       result = left * right;
       break;
     }
     case '/': {
-      right = randInt(1, maxTable);       // divisor
-      result = randInt(1, maxTable);      // quotient
-      left = right * result;              // dividend
+      right = pick(s.tables);                 // the divisor is always from the chosen tables
+      result = randInt(2, s.otherMax);        // the quotient
+      left = right * result;                  // always exact
       break;
     }
     default:
       throw new Error(`Unknown op: ${resolvedOp}`);
   }
 
-  // The blank is always the result — this is the core difference from Number Bonds
-  return { left, op: resolvedOp, right, result, answer: result };
+  let blank = 'result';
+  if (style === 'missing') blank = Math.random() < 0.5 ? 'left' : 'right';
+  const answer = blank === 'result' ? result : blank === 'left' ? left : right;
+  return { left, op: resolvedOp, right, result, blank, answer, style };
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Answer choices
+// ---------------------------------------------------------------------------------------------------------------------
+
+/**
+ * Three wrong answers for a question. Rules (all checked by the 20,000-question audit in the tests):
+ *  - never the answer, never a duplicate, never negative unless negatives are on, always three;
+ *  - none that the equation itself rules out (a part bigger than the whole, a factor beyond the table…);
+ *  - the answer's place among the four sorted values is spread evenly (no "pick a middle one" shortcut);
+ *  - the answer is never the only odd or only even choice;
+ *  - for × and ÷, wrong answers are neighbouring table facts (a × (b±1)), so they look like real slips.
+ * @param {object} q  a question from generateQuestion
+ * @returns {number[]}
+ */
+function generateDistractors(q, settings, count = 3) {
+  const s = normaliseSettings(settings);
+  const { answer } = q;
+  const grid = s.decimals ? 10 : 1;
+  const dec = (x) => (s.decimals ? r1(x) : Math.round(x));
+
+  const valid = validity(q, s);
+  const near = nearMisses(q, s, dec);        // preferred: slips a child might really make
+  const wide = widePool(q, s, dec);          // fallback: anything sensible near the answer
+  const tiers = [
+    near.filter((x) => valid(x)),
+    uniq([...near, ...wide]).filter((x) => valid(x)),
+    uniq([...near, ...wide, ...stretch(answer, dec, grid)]).filter((x) => x >= 0 || s.negatives),
+  ];
+
+  for (let t = 0; t < tiers.length; t++) {
+    const pool = uniq(tiers[t].filter((x) => x !== answer));
+    if (pool.length < count) continue;
+    const chosen = balancedPick(pool, answer, count, s.decimals);
+    if (chosen) return chosen;
+  }
+  // Last resort (tiny custom ranges): walk outwards from the answer until there are enough.
+  const out = new Set();
+  for (let k = 1; out.size < count; k++) {
+    for (const x of [dec(answer + k), dec(answer - k)]) {
+      if (x !== answer && (x >= 0 || s.negatives)) out.add(x);
+      if (out.size >= count) break;
+    }
+    if (k > 200) break;
+  }
+  return [...out];
+}
+
+// What the displayed equation itself allows for the blank (a part can't be bigger than the whole, and so on).
+function validity(q, s) {
+  const { left, right, result, op, blank } = q;
+  const nonneg = (x) => s.negatives || x >= 0;
+  if (s.negatives) return () => true; // no part-whole rules once negatives are allowed
+  if (blank === 'result') {
+    if (op === '+') return (x) => x >= Math.max(0, Math.max(left, right) - 2); // a slip of one or two below an addend is a real mistake
+    if (op === '-') return (x) => x >= 0 && x <= left;
+    if (op === '*') { const P = productSet(s); return (x) => P.has(x) && x >= Math.max(left, right); }
+    if (op === '/') return (x) => x >= 2 && x <= s.otherMax;
+  }
+  if (op === '+') return (x) => x >= 0 && x <= result;
+  if (op === '-') return blank === 'left' ? (x) => x >= Math.max(right, result) : (x) => x >= 0 && x <= left;
+  if (op === '*') return (x) => x >= 2 && x <= Math.min(result, factorMax(s));
+  if (op === '/') {
+    if (blank === 'left') { const P = productSet(s); return (x) => P.has(x) && x >= Math.max(right, result); }
+    return (x) => x >= 2 && x <= Math.min(left, factorMax(s)) && nonneg(x);
+  }
+  return nonneg;
+}
+
+// Natural slips: off by one in the sum, or the neighbouring fact in a times table.
+function nearMisses(q, s, dec) {
+  const { answer, left, right, result, op, blank } = q;
+  const out = [];
+  const timesLike = op === '*' || op === '/';
+  if (!timesLike) {
+    const offs = [1, 2, 3, 4, 5];
+    if (Math.abs(answer) >= 20) offs.push(10);
+    if (s.decimals) for (let i = 1; i <= 9; i++) offs.push(i / 10);
+    for (const d of offs) { out.push(dec(answer + d), dec(answer - d)); }
+    return out;
+  }
+  // × and ÷: answers are either a table product, or a factor / quotient.
+  const isProduct = (op === '*' && blank === 'result') || (op === '/' && blank === 'left');
+  if (isProduct) {
+    const f1 = op === '*' ? left : right;           // the two factors that made the product
+    const f2 = op === '*' ? right : result;
+    for (const d of [-3, -2, -1, 1, 2, 3]) { out.push(f1 * (f2 + d), (f1 + d) * f2); }
+    return out;
+  }
+  // A factor or quotient is wanted. When the product is on screen, prefer other numbers that also divide it, so
+  // "the only one that divides evenly" is not a way to spot the answer.
+  const product = op === '*' ? result : (blank === 'right' ? left : null);
+  for (let x = 2; x <= factorMax(s); x++) if (product === null || product % x === 0) out.push(x);
+  return out;
+}
+
+function widePool(q, s, dec) {
+  const { answer, op, blank } = q;
+  const timesLike = op === '*' || op === '/';
+  if (!timesLike) {
+    const out = [];
+    for (let d = 1; d <= 12; d++) out.push(dec(answer + d), dec(answer - d));
+    return out;
+  }
+  const isProduct = (op === '*' && blank === 'result') || (op === '/' && blank === 'left');
+  if (isProduct) {
+    return [...productSet(s)].sort((a, b) => Math.abs(a - answer) - Math.abs(b - answer)).slice(0, 14);
+  }
+  const out = [];
+  for (let x = 2; x <= factorMax(s) + 2; x++) out.push(x);
+  return out;
+}
+
+function stretch(answer, dec, grid) {
+  const out = [];
+  for (let d = 1; d <= 30; d++) out.push(dec(answer + d / grid), dec(answer - d / grid), dec(answer + d), dec(answer - d));
+  return out;
+}
+
+// Pick `count` values so that the answer's rank among the sorted four is spread evenly, and the answer is never the
+// only one of its parity. Returns null if that cannot be done from this pool.
+function balancedPick(pool, answer, count, decimals) {
+  const below = pool.filter((x) => x < answer);
+  const above = pool.filter((x) => x > answer);
+  for (let attempt = 0; attempt < 40; attempt++) {
+    // desired number of distractors below the answer: uniform over 0..count
+    let r = randInt(0, count);
+    r = Math.min(r, below.length);
+    let a = count - r;
+    if (a > above.length) { a = above.length; r = Math.min(count - a, below.length); }
+    if (r + a < count) return null;
+    const chosen = [...takeNear(below, answer, r), ...takeNear(above, answer, a)];
+    if (new Set(chosen).size !== count) continue;
+    if (!decimals) {
+      const par = (x) => ((x % 2) + 2) % 2;
+      if (chosen.every((x) => par(x) !== par(answer))) continue;     // answer is the odd one out by parity
+    }
+    return chosen;
+  }
+  return null;
+}
+
+// Prefer closer values but keep it random: sort by distance plus jitter.
+function takeNear(list, answer, n) {
+  if (n <= 0) return [];
+  const scored = list.map((x) => ({ x, k: Math.abs(x - answer) + Math.random() * 4 }));
+  scored.sort((p, q) => p.k - q.k);
+  return scored.slice(0, n).map((p) => p.x);
+}
+
+function factorMax(s) { return Math.max(s.otherMax, ...s.tables); }
+function productSet(s) {
+  const P = new Set();
+  // every fact in the 2..12 grid counts as a believable slip (5 × 7 = 35 can be mistaken for 4 × 7 = 28)
+  const top = Math.max(12, factorMax(s));
+  for (let a = 2; a <= top; a++) for (let b = 2; b <= top; b++) P.add(a * b);
+  return P;
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Display
+// ---------------------------------------------------------------------------------------------------------------------
+
+const OP_SYMBOL = { '+': '+', '-': '−', '*': '×', '/': '÷' };
+
+/** One number as printed: a real minus sign, and no trailing ".0". */
+function formatNumber(n) {
+  const v = Number(n);
+  const t = String(Math.abs(v));
+  return v < 0 ? '−' + t : t;
 }
 
 /**
- * Generate wrong answer choices.
- * @param {number} answer  The correct answer (always the result)
- * @param {string} op
- * @param {object} settings  { min, max, maxTable, negatives, decimals }
- * @param {number} count  Default 3
- * @returns {number[]}
+ * The question as printed. `parts` is what the page renders (the blank is its own part so it can be painted);
+ * `text` is the plain version used by tests. The blank is the ONLY place the answer would go, and it is always '?'.
  */
-function generateDistractors(answer, op, settings, count = 3) {
-  const { negatives, decimals, maxTable = 12 } = settings;
-  const candidates = new Set();
-  let attempts = 0;
-
-  while (candidates.size < count && attempts < 200) {
-    attempts++;
-    let candidate;
-
-    if (op === '*' || op === '/') {
-      // Use factor-based steps: find divisors of answer within [2, maxTable],
-      // then step by that factor. This ensures distractors are adjacent
-      // multiples of a shared factor, avoiding parity tells (e.g. ±1 from 56
-      // gives 55/57 which are not reachable by any factor of 56).
-      // We then verify the candidate is itself a valid table product.
-      const factors = [];
-      for (let f = 2; f <= maxTable; f++) {
-        if (answer % f === 0) factors.push(f);
-      }
-      const step = factors.length > 0
-        ? factors[Math.floor(Math.random() * factors.length)]
-        : randInt(2, Math.max(2, Math.floor(maxTable / 2)));
-      candidate = answer + step * (Math.random() < 0.5 ? 1 : -1);
-      // Only accept if the candidate is itself a valid table product
-      let isTableProduct = false;
-      for (let a = 1; a <= maxTable && !isTableProduct; a++) {
-        const b = candidate / a;
-        if (Number.isInteger(b) && b >= 1 && b <= maxTable) isTableProduct = true;
-      }
-      if (!isTableProduct) continue;
-    } else {
-      // +/−: cluster near the result with a small offset
-      const offset = randInt(1, 5) * (Math.random() < 0.5 ? 1 : -1);
-      candidate = answer + offset;
-    }
-
-    if (decimals) candidate = round1dp(candidate);
-    else candidate = Math.round(candidate);
-
-    if (candidate === answer) continue;
-    if (!negatives && candidate < 0) continue;
-    if ((op === '*' || op === '/') && candidate <= 0) continue;
-    if (candidates.has(candidate)) continue;
-
-    candidates.add(candidate);
-  }
-
-  // Fallback: draw from pool of valid table products (for */÷) or sequential offsets (+/−)
-  if (op === '*' || op === '/') {
-    const pool = [];
-    for (let a = 1; a <= maxTable; a++) {
-      for (let b = 1; b <= maxTable; b++) {
-        const p = a * b;
-        if (p !== answer && !candidates.has(p)) pool.push(p);
-      }
-    }
-    // Deduplicate and sort by proximity to answer
-    const uniquePool = [...new Set(pool)].sort((a, b) => Math.abs(a - answer) - Math.abs(b - answer));
-    for (const p of uniquePool) {
-      if (candidates.size >= count) break;
-      candidates.add(p);
-    }
-  } else {
-    let fallback = 1;
-    while (candidates.size < count) {
-      const c = answer + fallback;
-      if (c !== answer && !candidates.has(c)) candidates.add(c);
-      fallback++;
-    }
-  }
-
-  return [...candidates];
+function formatQuestion(q) {
+  const num = (v, paren) => { const t = formatNumber(v); return paren && Number(v) < 0 ? '(' + t + ')' : t; };
+  const slot = (which, v, paren) => (q.blank === which ? { blank: true, text: '?' } : { text: num(v, paren) });
+  const parts = [
+    slot('left', q.left, false),
+    { op: true, text: OP_SYMBOL[q.op] },
+    slot('right', q.right, true),
+    { text: '=' },
+    slot('result', q.result, false),
+  ];
+  return { parts, text: parts.map((p) => p.text).join(' ') };
 }
 
-// --- Helpers ---
+// --- helpers ---
 
+function range(a, b) { const o = []; for (let i = a; i <= b; i++) o.push(i); return o; }
+function uniq(a) { return [...new Set(a)]; }
+function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
 function randInt(min, max) {
   if (min > max) [min, max] = [max, min];
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
-
-function round1dp(n) {
-  return Math.round(n * 10) / 10;
-}
+function r1(n) { return Math.round(n * 10) / 10; }
 
 // --- game.js ---
 // game.js — GameSession: manages one play session
 
 const SPRINT_DURATION = 60;
 const ROUND_QUESTIONS = 10;
+const ENDLESS_MIN_ANSWERS = 10; // an Endless game that is stopped after this many answers counts as played
 const POINTS_CORRECT = 10;
 const STREAK_BONUS = 2;
 const ANSWER_PAUSE_MS = 600;
 
 class GameSession {
-  constructor({ op, mode, range, onQuestion, onAnswer, onScore, onEnd, onHint }) {
+  constructor({ op, mode, style = 'answer', range, onQuestion, onAnswer, onScore, onEnd, onHint }) {
     this.op = op;
     this.mode = mode;
+    this.style = style;
     this.range = range;
     this.onQuestion = onQuestion;
     this.onAnswer = onAnswer;
@@ -1955,6 +2174,8 @@ class GameSession {
     this.onEnd({
       score: this.score,
       accuracy: this.total > 0 ? Math.round((this.correct / this.total) * 100) : 0,
+      answered: this.total,
+      mode: this.mode,
       bestStreak: this.bestStreak,
       timeTaken,
       quit,
@@ -1974,9 +2195,9 @@ class GameSession {
 
   _nextQuestion() {
     this.questionNum++;
-    const q = generateQuestion(this.op, this.range);
+    const q = generateQuestion(this.op, this.range, this.style);
     this._currentQuestion = q;
-    const distractors = generateDistractors(q.answer, q.op, this.range);
+    const distractors = generateDistractors(q, this.range);
     const choices = shuffle([q.answer, ...distractors]);
     this.onQuestion(q, choices);
     this.onScore(this._hudState());
@@ -2039,20 +2260,28 @@ function shuffle(arr) {
 // --- main.js ---
 // main.js — Entry point, wires settings + game together
 
-// --- Settings state ---
-let settings = {
-  op: '+',
-  difficulty: 'medium',
-  mode: 'sprint',
-  custom: { min: 1, max: 100, maxTable: 12, negatives: false, decimals: false }
-};
+const GAME_ID = 'maths';          // storage and progress id (Number Bonds was merged into this game)
+const OPS = ['+', '-', '*', '/', 'mixed'];
+const MODES = ['sprint', 'round', 'endless'];
 
-const DIFFICULTY_PRESETS = {
-  easy:   { min: 1, max: 10,  maxTable: 5,  negatives: false, decimals: false, hint: 'Numbers 1–10, tables to 5' },
-  medium: { min: 1, max: 20,  maxTable: 10, negatives: false, decimals: false, hint: 'Numbers 1–20, tables to 10' },
-  hard:   { min: 1, max: 100, maxTable: 12, negatives: false, decimals: false, hint: 'Numbers 1–100, tables to 12' },
-  custom: { hint: 'Your own settings' },
-};
+// --- Settings state ---
+let settings = defaultSettings(null);
+
+const DIFFICULTIES = ['easy', 'medium', 'hard', 'custom'];
+const CUSTOM_HINT = 'Your own settings';
+
+// Age drives the first-time defaults. Saved choices always win.
+const BRACKET_AGE = { '4-5': 5, '6-8': 7, '9-12': 10, '13+': 14 };
+function defaultSettings(player) {
+  let difficulty = 'medium', mode = 'sprint';
+  if (player) {
+    const age = player.age != null ? player.age : (BRACKET_AGE[player.ageBracket] || 7);
+    if (age <= 7) { difficulty = 'easy'; mode = 'round'; }       // Reception to Year 2: sums to 20, no clock
+    else if (age <= 9) { difficulty = 'medium'; mode = 'sprint'; }
+    else { difficulty = 'hard'; mode = 'sprint'; }
+  }
+  return { op: '+', style: 'answer', difficulty, mode, custom: { min: 1, max: 100, maxTable: 12, negatives: false, decimals: false } };
+}
 
 // --- DOM refs ---
 const screens = {
@@ -2060,159 +2289,132 @@ const screens = {
   game:     document.getElementById('maths-game'),
   results:  document.getElementById('maths-results'),
 };
+const $ = (id) => document.getElementById(id);
 
 // --- Boot ---
 loadSettings();
+applyStyleFromAddress();
 initSettingsScreen();
 showScreen('settings');
 
 // --- Initialise settings screen ---
 function initSettingsScreen() {
-  // Operation toggles
-  document.getElementById('maths-op-row').addEventListener('click', e => {
+  $('maths-style-row').addEventListener('click', e => {
+    const btn = e.target.closest('[data-style]');
+    if (!btn) return;
+    settings.style = btn.dataset.style;
+    updateToggles('maths-style-row', 'style', settings.style);
+    if (settings.difficulty === 'custom') updateComplexityPreview();
+  });
+
+  $('maths-op-row').addEventListener('click', e => {
     const btn = e.target.closest('[data-op]');
     if (!btn) return;
     settings.op = btn.dataset.op;
-    updateToggles('maths-op-row', 'data-op', settings.op);
+    updateToggles('maths-op-row', 'op', settings.op);
     if (settings.difficulty === 'custom') updateComplexityPreview();
   });
 
-  // Difficulty toggles
-  document.getElementById('maths-diff-row').addEventListener('click', e => {
+  $('maths-diff-row').addEventListener('click', e => {
     const btn = e.target.closest('[data-diff]');
     if (!btn) return;
     settings.difficulty = btn.dataset.diff;
-    updateToggles('maths-diff-row', 'data-diff', settings.difficulty);
+    updateToggles('maths-diff-row', 'diff', settings.difficulty);
     updateDifficultyHint();
-    document.getElementById('maths-custom-opts').hidden = settings.difficulty !== 'custom';
+    $('maths-custom-opts').hidden = settings.difficulty !== 'custom';
     if (settings.difficulty === 'custom') updateComplexityPreview();
   });
 
-  // Mode buttons
-  document.getElementById('maths-mode-row').addEventListener('click', e => {
+  $('maths-mode-row').addEventListener('click', e => {
     const btn = e.target.closest('[data-mode]');
     if (!btn) return;
     settings.mode = btn.dataset.mode;
-    updateModeButtons();
+    updateToggles('maths-mode-row', 'mode', settings.mode);
   });
 
-  // Custom inputs
-  document.getElementById('maths-min').addEventListener('input', e => {
-    settings.custom.min = Number(e.target.value);
-    updateComplexityPreview();
+  $('maths-min').addEventListener('input', e => { settings.custom.min = Number(e.target.value); updateComplexityPreview(); });
+  $('maths-max').addEventListener('input', e => { settings.custom.max = Number(e.target.value); updateComplexityPreview(); });
+  $('maths-table').addEventListener('input', e => { settings.custom.maxTable = Number(e.target.value); updateComplexityPreview(); });
+  // A typed table below 2 would leave nothing to ask: tidy the box when the grown-up leaves it.
+  $('maths-table').addEventListener('change', e => {
+    const t = Math.max(2, Math.min(99, Math.trunc(Number(e.target.value)) || 2));
+    e.target.value = t; settings.custom.maxTable = t; updateComplexityPreview();
   });
-  document.getElementById('maths-max').addEventListener('input', e => {
-    settings.custom.max = Number(e.target.value);
-    updateComplexityPreview();
-  });
-  document.getElementById('maths-table').addEventListener('input', e => {
-    settings.custom.maxTable = Number(e.target.value);
-    updateComplexityPreview();
-  });
-  document.getElementById('maths-negatives').addEventListener('change', e => {
-    settings.custom.negatives = e.target.checked;
-    updateComplexityPreview();
-  });
-  document.getElementById('maths-decimals').addEventListener('change', e => {
-    settings.custom.decimals = e.target.checked;
-    updateComplexityPreview();
-  });
+  $('maths-negatives').addEventListener('change', e => { settings.custom.negatives = e.target.checked; updateComplexityPreview(); });
+  $('maths-decimals').addEventListener('change', e => { settings.custom.decimals = e.target.checked; updateComplexityPreview(); });
 
-  // Start button
-  document.getElementById('maths-start-btn').addEventListener('click', startGame);
-
-  // Restore saved settings into UI
+  $('maths-start-btn').addEventListener('click', startGame);
   applySettingsToUI();
 }
 
-function updateToggles(rowId, attr, activeVal) {
-  document.getElementById(rowId).querySelectorAll(`[${attr}]`).forEach(btn => {
-    const active = btn.dataset[attr.replace('data-', '')] === activeVal;
-    btn.setAttribute('aria-pressed', active ? 'true' : 'false');
-  });
-}
-
-function updateModeButtons() {
-  document.getElementById('maths-mode-row').querySelectorAll('[data-mode]').forEach(btn => {
-    const active = btn.dataset.mode === settings.mode;
-    btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+function updateToggles(rowId, key, activeVal) {
+  $(rowId).querySelectorAll(`[data-${key}]`).forEach(btn => {
+    btn.setAttribute('aria-pressed', btn.dataset[key] === activeVal ? 'true' : 'false');
   });
 }
 
 function updateDifficultyHint() {
-  const preset = DIFFICULTY_PRESETS[settings.difficulty];
-  document.getElementById('maths-diff-hint').textContent = preset.hint;
+  const preset = PRESETS[settings.difficulty];
+  $('maths-diff-hint').textContent = preset ? preset.hint : CUSTOM_HINT;
 }
 
 function applySettingsToUI() {
-  updateToggles('maths-op-row', 'data-op', settings.op);
-  updateToggles('maths-diff-row', 'data-diff', settings.difficulty);
-  updateModeButtons();
+  updateToggles('maths-style-row', 'style', settings.style);
+  updateToggles('maths-op-row', 'op', settings.op);
+  updateToggles('maths-diff-row', 'diff', settings.difficulty);
+  updateToggles('maths-mode-row', 'mode', settings.mode);
   updateDifficultyHint();
-  document.getElementById('maths-custom-opts').hidden = settings.difficulty !== 'custom';
-  document.getElementById('maths-min').value = settings.custom.min;
-  document.getElementById('maths-max').value = settings.custom.max;
-  document.getElementById('maths-table').value = settings.custom.maxTable;
-  document.getElementById('maths-negatives').checked = settings.custom.negatives;
-  document.getElementById('maths-decimals').checked = settings.custom.decimals;
+  $('maths-custom-opts').hidden = settings.difficulty !== 'custom';
+  $('maths-min').value = settings.custom.min;
+  $('maths-max').value = settings.custom.max;
+  $('maths-table').value = settings.custom.maxTable;
+  $('maths-negatives').checked = settings.custom.negatives;
+  $('maths-decimals').checked = settings.custom.decimals;
   if (settings.difficulty === 'custom') updateComplexityPreview();
 }
 
 function getActiveRange() {
   if (settings.difficulty === 'custom') return { ...settings.custom, _difficulty: 'custom' };
-  const p = DIFFICULTY_PRESETS[settings.difficulty];
-  return { min: p.min, max: p.max, maxTable: p.maxTable, negatives: p.negatives, decimals: p.decimals, _difficulty: settings.difficulty };
+  return { ...PRESETS[settings.difficulty], _difficulty: settings.difficulty };
 }
 
-// --- Complexity indicator (custom mode only) ---
-
-const COMPLEXITY_LEVELS = {
-  preschool: { label: 'Preschool', ages: 'Ages 3–5',   colour: '#4caf50' },
-  ks1:       { label: 'KS1',       ages: 'Ages 5–7',   colour: '#3b9acd' },
-  ks2:       { label: 'KS2',       ages: 'Ages 7–11',  colour: '#f5a623' },
-  ks3:       { label: 'KS3',       ages: 'Ages 11–14', colour: '#e07a00' },
-  challenge: { label: 'Challenge', ages: 'Advanced',   colour: '#e53935' },
-};
+// --- Complexity indicator (custom only), set against the English curriculum ---
+const COMPLEXITY_LEVELS = [
+  { label: 'Reception',  ages: 'Ages 4–5' },
+  { label: 'Years 1–2', ages: 'Ages 5–7' },
+  { label: 'Years 3–4', ages: 'Ages 7–9' },
+  { label: 'Years 5–6', ages: 'Ages 9–11' },
+  { label: 'Beyond',     ages: 'Ages 11+' },
+];
 
 function computeComplexity(op, custom) {
-  const { max, maxTable, negatives, decimals } = custom;
-  if (negatives || decimals) return 'challenge';
-  const addSubLevel =
-    max > 100 ? 'challenge' :
-    max > 20  ? 'ks3'       :
-    max > 10  ? 'ks2'       :
-    max > 5   ? 'ks1'       : 'preschool';
-  const mulDivLevel =
-    maxTable > 12 ? 'challenge' :
-    maxTable > 10 ? 'ks3'       :
-    maxTable > 5  ? 'ks2'       :
-    maxTable > 2  ? 'ks1'       : 'preschool';
-  if (op === '+' || op === '-') return addSubLevel;
-  if (op === '*' || op === '/') return mulDivLevel;
-  const order = ['preschool', 'ks1', 'ks2', 'ks3', 'challenge'];
-  return order[Math.max(order.indexOf(addSubLevel), order.indexOf(mulDivLevel))];
+  const max = Math.max(Math.abs(Number(custom.min)) || 0, Math.abs(Number(custom.max)) || 0);
+  const table = Math.max(2, Number(custom.maxTable) || 2);
+  const addSub = max <= 10 ? 0 : max <= 20 ? 1 : max <= 100 ? 2 : max <= 1000 ? 3 : 4;
+  const mulDiv = table <= 5 ? 1 : table <= 12 ? 2 : table <= 20 ? 3 : 4;
+  let level;
+  if (op === '+' || op === '-') level = addSub;
+  else if (op === '*' || op === '/') level = mulDiv;
+  else level = Math.max(addSub, mulDiv);
+  if (custom.negatives || custom.decimals) level = Math.max(level, 3);   // negatives and decimals are Years 5–6
+  return level;
 }
 
-function buildMathsExampleQuestion(op, custom) {
-  const { max, maxTable } = custom;
-  const effectiveOp = (op === '*' || op === '/') ? '*' : '+';
-  if (effectiveOp === '+') {
-    const a = Math.round(max * 0.6);
-    const b = Math.round(max * 0.35);
-    return `${a} + ${b} = ?`;
-  }
-  const a = Math.max(2, maxTable - 1);
-  return `${a} × ${maxTable} = ?`;
+function exampleQuestion(op, custom, style) {
+  const max = Math.max(Math.abs(Number(custom.max)) || 10, 2);
+  const table = Math.max(2, Number(custom.maxTable) || 2);
+  const times = op === '*' || op === '/';
+  const left = times ? Math.max(2, table - 1) : Math.round(max * 0.6);
+  const right = times ? table : Math.round(max * 0.35);
+  const q = { left, op: times ? '*' : '+', right, result: times ? left * right : left + right, blank: style === 'answer' ? 'result' : 'right' };
+  return formatQuestion(q).text;
 }
 
 function updateComplexityPreview() {
-  const level = computeComplexity(settings.op, settings.custom);
-  const info = COMPLEXITY_LEVELS[level];
-  const badge = document.getElementById('maths-complexity-badge');
-  badge.textContent = info.label;
-  document.getElementById('maths-complexity-ages').textContent = info.ages;
-  document.getElementById('maths-complexity-example').textContent =
-    'e.g. ' + buildMathsExampleQuestion(settings.op, settings.custom);
+  const info = COMPLEXITY_LEVELS[computeComplexity(settings.op, settings.custom)];
+  $('maths-complexity-badge').textContent = info.label;
+  $('maths-complexity-ages').textContent = info.ages;
+  $('maths-complexity-example').textContent = 'e.g. ' + exampleQuestion(settings.op, settings.custom, settings.style);
 }
 
 // --- Screen management ---
@@ -2221,70 +2423,64 @@ function showScreen(name) {
   window.scrollTo(0, 0);
 }
 
-// --- Persistence ---
+// --- Persistence (per player, under the one 'maths' id) ---
 function saveSettings() {
   try {
-    if (window.KidsGames) {
-      const d = window.KidsGames.loadGameData('maths') || {};
-      window.KidsGames.saveGameData('maths', { ...d, settings });
-    } else {
-      localStorage.setItem('maths_settings', JSON.stringify(settings));
-    }
+    const d = window.KidsGames.loadGameData(GAME_ID) || {};
+    window.KidsGames.saveGameData(GAME_ID, { ...d, v: 2, settings });
   } catch (e) { /* ignore */ }
 }
 
 function loadSettings() {
+  const fresh = defaultSettings(window.KidsGames && window.KidsGames.player);
   try {
-    let saved;
-    if (window.KidsGames) {
-      const d = window.KidsGames.loadGameData('maths');
-      saved = d?.settings;
-    } else {
-      const raw = localStorage.getItem('maths_settings');
-      saved = raw ? JSON.parse(raw) : null;
-    }
+    const d = window.KidsGames.loadGameData(GAME_ID);
+    const saved = d && d.settings;
     if (saved) {
-      settings = { ...settings, ...saved };
+      settings = { ...fresh, ...saved, custom: { ...fresh.custom, ...(saved.custom || {}) } };
+    } else {
+      settings = fresh;   // a player who has never played starts from their own age, not the last player's choices
     }
-  } catch (e) { /* ignore */ }
-  applyAgeBracketDefault();
+  } catch (e) { settings = fresh; }
+  if (!OPS.includes(settings.op)) settings.op = '+';
+  if (!STYLES.includes(settings.style)) settings.style = 'answer';
+  if (!DIFFICULTIES.includes(settings.difficulty)) settings.difficulty = fresh.difficulty;
+  if (!MODES.includes(settings.mode)) settings.mode = fresh.mode;
 }
 
-function applyAgeBracketDefault() {
-  // Only if no settings have been saved yet
+// Old Number Bonds links point here as maths.html?style=missing
+function applyStyleFromAddress() {
   try {
-    const existing = window.KidsGames?.loadGameData('maths');
-    if (existing?.settings?.difficulty) return; // already set
-    const bracket = window.KidsGames?.player?.ageBracket;
-    if (bracket === '4-5') { settings.difficulty = 'easy'; settings.mode = 'round'; }
-    else if (bracket === '9-12') settings.difficulty = 'hard';
-    else settings.difficulty = 'medium';
+    const wanted = new URLSearchParams(window.location.search).get('style');
+    if (STYLES.includes(wanted)) {
+      settings.style = wanted;
+      window.history.replaceState(null, '', window.location.pathname);
+    }
   } catch (e) { /* ignore */ }
 }
 
 // --- Game start ---
 let activeSession = null;
+let activeConfig = null;
 
 function startGame() {
   saveSettings();
   if (window.KidsGames) window.KidsGames.sfx('start');
-  const range = getActiveRange();
+  activeConfig = { style: settings.style, op: settings.op, difficulty: settings.difficulty, mode: settings.mode };
   activeSession = new GameSession({
     op: settings.op,
     mode: settings.mode,
-    range,
+    style: settings.style,
+    range: getActiveRange(),
     onQuestion: renderQuestion,
     onAnswer: renderAnswerFeedback,
     onScore: renderHud,
     onEnd: showResults,
     onHint: () => {
-      document.getElementById('maths-choices')
-        ?.querySelectorAll('.maths-choice')
-        .forEach(btn => {
-          if (Number(btn.textContent) === activeSession._currentQuestion.answer) {
-            btn.classList.add('is-hint');
-          }
-        });
+      const answer = activeSession._currentQuestion.answer;
+      $('maths-choices').querySelectorAll('.maths-choice').forEach(btn => {
+        if (btn._value === answer) btn.classList.add('is-hint');
+      });
     },
   });
   showScreen('game');
@@ -2293,37 +2489,29 @@ function startGame() {
 }
 
 function initGameScreen() {
-  const quitBtn = document.getElementById('maths-quit-btn');
+  const quitBtn = $('maths-quit-btn');
   quitBtn.hidden = false;
-  quitBtn.onclick = () => {
-    activeSession?.end({ quit: true });
-  };
+  quitBtn.onclick = () => { activeSession?.end({ quit: true }); };
 }
 
 // --- Question rendering ---
 function renderQuestion(question, choiceNums) {
-  const { left, op, right, result } = question;
-  const opStr = { '+': '+', '-': '−', '*': '×', '/': '÷' }[op] ?? op;
-  const safeLeft = Number(left);
-  const safeRight = Number(right);
-  const safeResult = Number(result);
-  // Maths always blanks the RESULT: "9 + 8 = ?"
-  const html = `${safeLeft} ${opStr} ${safeRight} = <span class="maths-blank">?</span>`;
-  const hasLargeNum = [safeLeft, safeRight, safeResult].some(n => Math.abs(n) >= 100);
-  const qEl = document.getElementById('maths-question');
-  qEl.innerHTML = html;
-  // Shrink font if any number has 3+ digits (custom large ranges)
+  const { parts } = formatQuestion(question);
+  const qEl = $('maths-question');
+  qEl.innerHTML = parts.map(p => p.blank ? '<span class="maths-blank">?</span>' : p.text).join(' ');
+  // Shrink the font if any number has 3+ digits (custom large ranges)
+  const hasLargeNum = [question.left, question.right, question.result].some(n => Math.abs(Number(n)) >= 100);
   qEl.classList.toggle('maths-question--long', hasLargeNum);
 
-  // Render choice buttons
-  const choicesEl = document.getElementById('maths-choices');
+  const choicesEl = $('maths-choices');
   document.activeElement?.blur();
   choicesEl.innerHTML = '';
   choiceNums.forEach(num => {
     const btn = document.createElement('button');
     btn.className = 'kg-tile maths-choice';
-    btn.textContent = num;
-    btn.setAttribute('aria-label', `Answer: ${num}`);
+    btn.textContent = formatNumber(num);
+    btn._value = num;   // kept off the page: nothing in the markup tells the buttons apart
+    btn.setAttribute('aria-label', `Answer: ${btn.textContent}`);
     btn.addEventListener('click', () => activeSession?.answer(num));
     choicesEl.appendChild(btn);
   });
@@ -2331,9 +2519,9 @@ function renderQuestion(question, choiceNums) {
 
 function renderAnswerFeedback({ correct, correctAnswer, chosen, requiresConfirmation }) {
   if (window.KidsGames && chosen !== undefined) window.KidsGames.sfx(correct ? 'right' : 'wrong');
-  document.getElementById('maths-choices')?.querySelectorAll('.maths-choice').forEach(btn => {
+  $('maths-choices')?.querySelectorAll('.maths-choice').forEach(btn => {
     btn.classList.remove('is-hint');
-    const num = Number(btn.textContent);
+    const num = btn._value;
     if (num === correctAnswer) {
       btn.classList.add('is-reveal');
       if (!requiresConfirmation) btn.disabled = true;
@@ -2347,8 +2535,8 @@ function renderAnswerFeedback({ correct, correctAnswer, chosen, requiresConfirma
 }
 
 function renderHud(hudState) {
-  document.getElementById('maths-score').textContent = hudState.score;
-  const center = document.getElementById('maths-hud-center');
+  $('maths-score').textContent = hudState.score;
+  const center = $('maths-hud-center');
   if (hudState.mode === 'sprint') {
     center.innerHTML = '<span class="kg-chip"><svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg><span class="kg-sr">Seconds left</span><strong>' + hudState.timeLeft + '</strong></span>';
   } else if (hudState.mode === 'round') {
@@ -2362,23 +2550,24 @@ function renderHud(hudState) {
 
 // --- Results rendering ---
 function showResults(stats) {
-  // Accuracy % keeps thresholds consistent across modes and score ranges
+  // A game counts (progress square, personal best, "new best") when it was played through. Round and Sprint end by
+  // themselves; Endless can only be stopped, so it counts once the child has answered enough questions.
+  const finished = !stats.quit || (stats.mode === 'endless' && stats.answered >= ENDLESS_MIN_ANSWERS);
+
   const stars = stats.accuracy >= 80 ? 3 : stats.accuracy >= 50 ? 2 : 1;
-  const starsEl = document.getElementById('maths-results-icon');
-  starsEl.innerHTML = [1, 2, 3].map(i =>
+  $('maths-results-icon').innerHTML = [1, 2, 3].map(i =>
     '<svg class="maths-star' + (i > stars ? ' off' : '') + '" viewBox="0 0 48 48" aria-hidden="true"><use href="#a-star"/></svg>').join('');
-  document.getElementById('maths-results-title').textContent =
+  $('maths-results-title').textContent =
     stats.accuracy >= 80 ? 'Amazing!' : stats.accuracy >= 50 ? 'Well done!' : 'Keep practising!';
 
-  const isBest = savePersonalBest(stats);
-  if (window.KidsGames) {
-    if (!stats.quit) window.KidsGames.recordSession('maths');
-    if (!stats.quit && stats.accuracy >= 50) window.KidsGames.sfx('win');
+  const isBest = finished ? savePersonalBest(stats) : false;
+  if (window.KidsGames && finished) {
+    window.KidsGames.recordSession(GAME_ID);
+    if (stats.accuracy >= 50) window.KidsGames.sfx('win');
   }
 
   const best = isBest ? '<svg class="ic ic--sm" viewBox="0 0 48 48" role="img" aria-label="New best"><use href="#a-star"/></svg>' : '';
-  const statsEl = document.getElementById('maths-stats');
-  statsEl.innerHTML = `
+  $('maths-stats').innerHTML = `
     <div class="maths-stat-row">
       <dt class="maths-stat-label">Score</dt>
       <dd class="maths-stat-value">${stats.score}${best}</dd>
@@ -2397,33 +2586,23 @@ function showResults(stats) {
     </div>` : ''}
   `;
 
-  document.getElementById('maths-play-again-btn').onclick = startGame;
-  document.getElementById('maths-change-settings-btn').onclick = () => showScreen('settings');
-  document.getElementById('maths-play-again-btn').className =
-    stats.quit ? 'kg-btn kg-btn--ghost' : 'kg-btn';
-  document.getElementById('maths-change-settings-btn').className =
-    stats.quit ? 'kg-btn' : 'kg-btn kg-btn--ghost';
+  $('maths-play-again-btn').onclick = startGame;
+  $('maths-change-settings-btn').onclick = () => showScreen('settings');
+  $('maths-play-again-btn').className = stats.quit ? 'kg-btn kg-btn--ghost' : 'kg-btn';
+  $('maths-change-settings-btn').className = stats.quit ? 'kg-btn' : 'kg-btn kg-btn--ghost';
   showScreen('results');
-  document.getElementById(stats.quit ? 'maths-change-settings-btn' : 'maths-play-again-btn').focus({ preventScroll: true });
+  $(stats.quit ? 'maths-change-settings-btn' : 'maths-play-again-btn').focus({ preventScroll: true });
 }
 
+// Personal bests are kept per style, operation, difficulty and length.
 function savePersonalBest(stats) {
-  const key = `pb_${settings.op}_${settings.difficulty}_${settings.mode}`;
+  const c = activeConfig || settings;
+  const key = `pb_${c.style}_${c.op}_${c.difficulty}_${c.mode}`;
   try {
-    let current;
-    if (window.KidsGames) {
-      const store = window.KidsGames.loadGameData('maths') || {};
-      current = store[key] || 0;
-      if (stats.score > current) {
-        window.KidsGames.saveGameData('maths', { ...store, [key]: stats.score });
-        return true;
-      }
-    } else {
-      current = Number(localStorage.getItem(`maths_${key}`)) || 0;
-      if (stats.score > current) {
-        localStorage.setItem(`maths_${key}`, stats.score);
-        return true;
-      }
+    const store = window.KidsGames.loadGameData(GAME_ID) || {};
+    if (stats.score > (store[key] || 0)) {
+      window.KidsGames.saveGameData(GAME_ID, { ...store, v: 2, [key]: stats.score });
+      return true;
     }
   } catch (e) { /* ignore */ }
   return false;

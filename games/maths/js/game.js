@@ -3,14 +3,16 @@ import { generateQuestion, generateDistractors } from './questions.js';
 
 const SPRINT_DURATION = 60;
 const ROUND_QUESTIONS = 10;
+export const ENDLESS_MIN_ANSWERS = 10; // an Endless game that is stopped after this many answers counts as played
 const POINTS_CORRECT = 10;
 const STREAK_BONUS = 2;
 const ANSWER_PAUSE_MS = 600;
 
 export class GameSession {
-  constructor({ op, mode, range, onQuestion, onAnswer, onScore, onEnd, onHint }) {
+  constructor({ op, mode, style = 'answer', range, onQuestion, onAnswer, onScore, onEnd, onHint }) {
     this.op = op;
     this.mode = mode;
+    this.style = style;
     this.range = range;
     this.onQuestion = onQuestion;
     this.onAnswer = onAnswer;
@@ -102,6 +104,8 @@ export class GameSession {
     this.onEnd({
       score: this.score,
       accuracy: this.total > 0 ? Math.round((this.correct / this.total) * 100) : 0,
+      answered: this.total,
+      mode: this.mode,
       bestStreak: this.bestStreak,
       timeTaken,
       quit,
@@ -121,9 +125,9 @@ export class GameSession {
 
   _nextQuestion() {
     this.questionNum++;
-    const q = generateQuestion(this.op, this.range);
+    const q = generateQuestion(this.op, this.range, this.style);
     this._currentQuestion = q;
-    const distractors = generateDistractors(q.answer, q.op, this.range);
+    const distractors = generateDistractors(q, this.range);
     const choices = shuffle([q.answer, ...distractors]);
     this.onQuestion(q, choices);
     this.onScore(this._hudState());

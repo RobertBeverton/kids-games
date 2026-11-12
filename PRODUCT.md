@@ -12,7 +12,7 @@ Young children aged roughly 4-8 (the author's twins aged 5 and nieces aged 8), p
 
 ## Product Purpose
 
-A hub of small, free educational games: typing (Type Trainer), word opposites, maths, number bonds and memory match. Built so the author's family has good, safe games to play. Success is kids choosing to play and learning along the way, with no friction for the parent.
+A hub of small, free educational games: typing (Type Trainer), word opposites, maths (work out the answer, or find the missing number) and memory match. Built so the author's family has good, safe games to play. Success is kids choosing to play and learning along the way, with no friction for the parent.
 
 ## Positioning
 
@@ -28,7 +28,7 @@ Hosted on GitHub Pages (`docs/`), built from `games/<name>/index.html` and `hub.
 - Touch and keyboard input must both work.
 - Pre-readers must be able to use the hub and games with minimal reading.
 - Web Audio API for synthesised sound effects; Canvas 2D in Type Trainer.
-- Live games: Type Trainer, Opposites, Maths, Number Bonds, Memory Match.
+- Live games: Type Trainer, Opposites, Maths (two styles: work it out, find the missing number), Memory Match.
 - Not confirmed as hard constraints: offline play and local-only storage (both are current behaviour, but the user did not mark them binding).
 
 ## Brand Commitments
@@ -37,7 +37,7 @@ Product name "Kids Games". Author credit: Robert Beverton. Hub greeting is "Pick
 
 ## Evidence on Hand
 
-Five working games and a shared design system (`shared/tokens.css`). No testimonials, analytics or usage data exist; do not fabricate any.
+Four working games and a shared design system (`shared/tokens.css`). No testimonials, analytics or usage data exist; do not fabricate any.
 
 ## Product Principles
 

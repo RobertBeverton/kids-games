@@ -97,7 +97,7 @@
     get player() {
       const p = getActivePlayer();
       if (!p) return null;
-      return { name: p.name, ageBracket: getAgeBracket(p), theme: p.theme, avatar: getAvatarIndex(p) };
+      return { name: p.name, age: getAge(p), ageBracket: getAgeBracket(p), theme: p.theme, avatar: getAvatarIndex(p) };
     },
     get muted() { return muted; },
     get reducedMotion() {
@@ -567,6 +567,7 @@
     _initialized = true;
 
     if (document.body.dataset.page === 'type-trainer') migrateTypeTrainerData();
+    migrateMathsMerge();
 
     applyTheme(osTheme());
     applyMotion();

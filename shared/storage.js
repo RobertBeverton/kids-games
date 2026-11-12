@@ -169,3 +169,51 @@ function setLastGame(name, gameId) {
 // --- Device preferences (not per player) ---
 function getPref(key) { return _read(STORAGE_PREFIX + 'pref_' + key); }
 function setPref(key, val) { _write(STORAGE_PREFIX + 'pref_' + key, val); }
+
+// --- Maths merge: Number Bonds became a style ("Find the missing number") inside Maths ---
+// Runs once per player (guarded by a flag), never deletes the old data. Moves, per player:
+//   - settings and personal bests: kidsgames_maths_<name> / kidsgames_numberbonds_<name>  ->  kidsgames_maths_<name>
+//     (personal-best keys gain the style: pb_<op>_<diff>_<mode>  ->  pb_<style>_<op>_<diff>_<mode>)
+//   - progress squares: 'number-bonds' is added to 'maths'
+//   - 'last game played': 'number-bonds' becomes 'maths'
+function migrateMathsMerge() {
+  let players;
+  try { players = Object.keys(getAllPlayers()); } catch (e) { return; }
+  players.forEach(function (name) {
+    const flagKey = STORAGE_PREFIX + 'merged_maths_' + name;
+    if (_read(flagKey)) return;
+    try {
+      const maths = _read(STORAGE_PREFIX + 'maths_' + name);
+      const nb = _read(STORAGE_PREFIX + 'numberbonds_' + name);
+      if (maths && maths.v === 2) { _write(flagKey, true); return; }
+      if (maths || nb) {
+        const last = _read(STORAGE_PREFIX + 'last_' + name);
+        const fromNb = nb && nb.settings && (!maths || !maths.settings || last === 'number-bonds');
+        const src = fromNb ? nb : (maths && maths.settings ? maths : nb);
+        const merged = { v: 2 };
+        if (src && src.settings) {
+          merged.settings = Object.assign({}, src.settings, { style: src === nb ? 'missing' : 'answer' });
+        }
+        [[maths, 'answer'], [nb, 'missing']].forEach(function (pair) {
+          const data = pair[0], style = pair[1];
+          if (!data) return;
+          Object.keys(data).forEach(function (k) {
+            if (k.indexOf('pb_') !== 0 || k.indexOf('pb_answer_') === 0 || k.indexOf('pb_missing_') === 0) return;
+            merged['pb_' + style + '_' + k.slice(3)] = data[k];
+          });
+        });
+        _write(STORAGE_PREFIX + 'maths_' + name, merged);
+      }
+      const prog = _read(STORAGE_PREFIX + 'progress_' + name);
+      if (prog && prog['number-bonds']) {
+        prog.maths = (prog.maths || 0) + prog['number-bonds'];
+        delete prog['number-bonds'];
+        _write(STORAGE_PREFIX + 'progress_' + name, prog);
+      }
+      if (_read(STORAGE_PREFIX + 'last_' + name) === 'number-bonds') _write(STORAGE_PREFIX + 'last_' + name, 'maths');
+      _write(flagKey, true);
+    } catch (e) {
+      console.error('KidsGames: Maths merge skipped for', name, e);
+    }
+  });
+}

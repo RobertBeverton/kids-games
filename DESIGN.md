@@ -106,7 +106,7 @@ components:
 
 **Creative North Star: "The Playground"**
 
-The product is a school playground, not an app. The ground is tarmac. Each game is a coloured court with white line markings painted on it: hopscotch squares for Number Bonds, a quartered circle for Maths, opposing arrows for Opposites, a grid of painted rings for Memory Match, a keycap for Type Trainer. Every painted shape has a keyline, like a marked-out court. Nothing is raised, glowing or glossy: depth comes from layering flat paint and from outline weight.
+The product is a school playground, not an app. The ground is tarmac. Each game is a coloured court with white line markings painted on it: a quartered circle for Maths (its four quarters carry + − × ÷, and it stands for both of its styles), opposing arrows for Opposites, a grid of painted rings for Memory Match, a keycap for Type Trainer. Every painted shape has a keyline, like a marked-out court. Nothing is raised, glowing or glossy: depth comes from layering flat paint and from outline weight.
 
 The system is calm in structure, loud in colour and quiet in motion. Colour and shape are bold and saturated so a five-year-old can find their game by looking. Layout is simple and consistent so they can find it by feel. Nothing moves until the child has done something, and then one thing moves once.
 
@@ -114,7 +114,7 @@ It flexes by age rather than splitting into two products. Younger players (4–5
 
 **Key Characteristics:**
 - Flat matte tarmac ground in two moods: Day (cool pale pavement) and Dusk (near-black slate). Never cream.
-- Five playground paints, one owned by each game, plus chalk white.
+- Four playground paints, one owned by each game, plus yellow, which no game owns: it is the system's own colour (default primary action, highlights). Chalk white on top of all of them.
 - Every painted shape carries a 3px keyline. State is never carried by colour alone.
 - Drawn SVG icons, one stroke weight. No emoji anywhere: Memory Match card pictures are drawn too (see Shapes).
 - Self-hosted Andika, built for early readers. No third-party requests.
@@ -122,10 +122,10 @@ It flexes by age rather than splitting into two products. Younger players (4–5
 
 ## Colors
 
-A restrained neutral ground, five committed paints, and two functional washes. Paints are held as two sets: a deep set for Day (white or ink text per paint) and a bright set for Dusk (ink text on every paint).
+A restrained neutral ground, five committed paints (four for games, yellow for the system), and two functional washes. Paints are held as two sets: a deep set for Day (white or ink text per paint) and a bright set for Dusk (ink text on every paint).
 
 ### Primary
-- **Playground Yellow** (#FFC61A): Number Bonds, the default primary action, selected-by-current-player highlight. Ink text only (11.2:1).
+- **Playground Yellow** (#FFC61A): the system's own paint, owned by no game: the default primary action and the selected-by-current-player highlight. Ink text only (11.2:1). (Number Bonds used to own it; that game is now a style inside Maths.)
 
 ### Secondary
 - **Court Red** (#C8242F day / #FF6B70 dusk): Maths, and the wrong-answer cue. White text on the Day red (5.6:1), ink on the Dusk red.
@@ -166,7 +166,7 @@ A restrained neutral ground, five committed paints, and two functional washes. P
 
 ## Layout
 
-The page is a ground plan. The hub is one dominant marking (carry on where you were) plus four others, in a 2×2 beside it on landscape and below it on portrait. Games move through three fixed stations in the same order: settings, play, result. Each has one dominant region and one primary action in thumb reach.
+The page is a ground plan. The hub is one dominant marking (carry on where you were) plus three others. On tablet landscape the lead is on the left (about 1.4× the width) and the three are a row each beside it, picture then name and squares. On portrait the lead runs across the top and the three sit side by side below it. On phones the lead is on top and the three are a row each below it. On short landscape (a phone on its side) it is one row: the lead, then the three. Games move through three fixed stations in the same order: settings, play, result. A game with two styles (Maths) opens its settings with a pair of large style tiles that show the question itself (`7 + 5 = ?` and `7 + ? = 12`, the blank painted in the game's paint), so a child who cannot read can choose; the chosen tile takes the ink fill and a tick, never colour alone. Everything else on that screen is shared by both styles. Each has one dominant region and one primary action in thumb reach.
 
 Spacing runs on a 4px base (4, 8, 12, 16, 24, 32, 48, 64). Hit sizes are 56px for older players and 72px for young ones; answer tiles are at least 88px. The shell bar is 72px tall and fixed. Settings screens put the one big action in a sticky dock at the bottom. Memory Match sizes its board in CSS from the space left, turns it on its side on wide screens, and always fits.
 
