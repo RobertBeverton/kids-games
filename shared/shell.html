@@ -1,94 +1,189 @@
-<!-- Kids Games Shell Bar -->
-<div id="kg-shell" class="kg-shell" role="banner">
-  <!-- Games dropdown -->
-  <div class="kg-shell__games-wrap">
-    <button id="kg-games-btn" class="kg-shell__btn kg-shell__games-btn" aria-expanded="false" aria-controls="kg-games-dropdown">
-      <span class="kg-shell__icon" aria-hidden="true">🎮</span>
-      <span class="kg-shell__label">Games</span>
-    </button>
-    <div id="kg-games-dropdown" class="kg-games-dropdown" hidden>
-      <!-- Populated by shell.js -->
-    </div>
-  </div>
+<!-- Kids Games shell: icon sprite, bar, overlays. Injected after <body> by build.sh. -->
+<svg class="kg-sprite" width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+  <defs>
+    <!-- UI icons: 48 box, one stroke weight, round caps. Drawn, never emoji. -->
+    <symbol id="i-home" viewBox="0 0 48 48"><path d="M7 25 24 10l17 15M12 22v17h8V29h8v10h8V22"/></symbol>
+    <symbol id="i-sound-on" viewBox="0 0 48 48"><path d="M7 19h8l10-8v26l-10-8H7zM32 18q5 6 0 12M37 12q9 12 0 24"/></symbol>
+    <symbol id="i-sound-off" viewBox="0 0 48 48"><path d="M7 19h8l10-8v26l-10-8H7zM33 18l11 12M44 18 33 30"/></symbol>
+    <symbol id="i-grownups" viewBox="0 0 48 48"><circle cx="17" cy="13" r="5.5"/><path d="M6 39v-8q0-7 11-7t11 7v8z"/><circle cx="37" cy="23" r="4"/><path d="M31 39v-4q0-5 6-5t6 5v4"/></symbol>
+    <symbol id="i-back" viewBox="0 0 48 48"><path d="M21 10 7 24l14 14M7 24h35"/></symbol>
+    <symbol id="i-close" viewBox="0 0 48 48"><path d="M12 12l24 24M36 12 12 36"/></symbol>
+    <symbol id="i-play" viewBox="0 0 48 48"><path d="M15 9l24 15-24 15z" style="fill:currentColor"/></symbol>
+    <symbol id="i-replay" viewBox="0 0 48 48"><path d="M39 24a15 15 0 1 1-4.6-10.8M37 5v10H27"/></symbol>
+    <symbol id="i-check" viewBox="0 0 48 48"><path d="M9 26l11 11L40 13"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 48 48"><circle cx="24" cy="24" r="8"/><path d="M24 5v6M24 37v6M5 24h6M37 24h6M10.6 10.6l4.3 4.3M33.1 33.1l4.3 4.3M10.6 37.4l4.3-4.3M33.1 14.9l4.3-4.3"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 48 48"><path d="M37 31A15 15 0 1 1 19 10a12 12 0 0 0 18 21z"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 48 48"><path d="M16 10v28M32 10v28"/></symbol>
+    <symbol id="i-keyboard" viewBox="0 0 48 48"><rect x="5" y="11" width="38" height="26" rx="5"/><path d="M13 19h.1M21 19h.1M29 19h.1M37 19h.1M15 29h18"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 48 48"><path d="M24 40 9 25a9 9 0 0 1 15-11 9 9 0 0 1 15 11z" style="fill:currentColor"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 48 48"><path d="M24 8v32M8 24h32"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 48 48"><path d="M8 24h32"/></symbol>
+    <symbol id="i-times" viewBox="0 0 48 48"><path d="M12 12l24 24M36 12 12 36"/></symbol>
+    <symbol id="i-divide" viewBox="0 0 48 48"><path d="M8 24h32"/><circle cx="24" cy="11" r="2.5" style="fill:currentColor"/><circle cx="24" cy="37" r="2.5" style="fill:currentColor"/></symbol>
+    <symbol id="i-shuffle" viewBox="0 0 48 48"><path d="M5 14h8q8 0 12 10t12 10h5M37 28l6 6-6 6M5 34h8q4 0 7-5M28 19q3-5 9-5h6M37 8l6 6-6 6"/></symbol>
+    <symbol id="i-timer" viewBox="0 0 48 48"><circle cx="24" cy="27" r="15"/><path d="M24 27v-9M19 6h10M37 11l3-3"/></symbol>
+    <symbol id="i-round" viewBox="0 0 48 48"><circle cx="24" cy="24" r="17"/><circle cx="24" cy="24" r="8"/><circle cx="24" cy="24" r="1" style="fill:currentColor"/></symbol>
+    <symbol id="i-infinity" viewBox="0 0 48 48"><path d="M24 24c-6-10-18-10-18 0s12 10 18 0c6-10 18-10 18 0s-12 10-18 0z"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 48 48"><path d="M9 13h30M18 13V8h12v5M12 13l2 27h20l2-27M20 20v13M28 20v13"/></symbol>
+    <symbol id="i-pencil" viewBox="0 0 48 48"><path d="M10 38l2-10L32 8l8 8-20 20zM28 12l8 8"/></symbol>
+    <symbol id="i-user-add" viewBox="0 0 48 48"><circle cx="20" cy="16" r="7"/><path d="M6 40q0-12 14-12t14 12M38 12v12M32 18h12"/></symbol>
+    <symbol id="i-link" viewBox="0 0 48 48"><path d="M20 10H10v28h28V28M28 10h10v10M38 10 22 26"/></symbol>
 
-  <!-- Page title — links home -->
-  <a id="kg-page-title" class="kg-shell__title kg-shell__home" href="/kids-games/">Kids Games</a>
+    <!-- Game markings: 96 box, painted-line weight. One per game. -->
+    <symbol id="m-hopscotch" viewBox="0 0 96 96"><path d="M36 90V66h24v24zM24 66V42h24v24zM48 66V42h24v24zM36 42V18h24v24z"/><circle cx="48" cy="30" r="5" style="fill:currentColor"/></symbol>
+    <symbol id="m-maths" viewBox="0 0 96 96"><circle cx="48" cy="48" r="38"/><path d="M48 10v76M10 48h76M27 29h14M34 22v14M55 29h14M27 63l14 14M41 63 27 77M55 70h14"/><circle cx="62" cy="63" r="2.6" style="fill:currentColor"/><circle cx="62" cy="77" r="2.6" style="fill:currentColor"/></symbol>
+    <symbol id="m-opposites" viewBox="0 0 96 96"><path d="M82 32H16M32 16 16 32l16 16M14 64h66M64 48l16 16-16 16"/></symbol>
+    <symbol id="m-memory" viewBox="0 0 96 96"><rect x="10" y="10" width="32" height="32" rx="8"/><rect x="54" y="10" width="32" height="32" rx="8"/><rect x="10" y="54" width="32" height="32" rx="8"/><rect x="54" y="54" width="32" height="32" rx="8"/><circle cx="26" cy="26" r="8" style="fill:currentColor"/><circle cx="70" cy="70" r="8" style="fill:currentColor"/></symbol>
+    <symbol id="m-type" viewBox="0 0 96 96"><rect x="12" y="12" width="72" height="72" rx="14"/><path d="M33 68 48 28l15 40M38 56h20"/></symbol>
 
-  <!-- Spacer -->
-  <span class="kg-shell__spacer"></span>
+    <!-- Player shapes: filled, colour set by --av on the use element. -->
+    <symbol id="a-circle" viewBox="0 0 48 48"><circle cx="24" cy="24" r="18"/></symbol>
+    <symbol id="a-square" viewBox="0 0 48 48"><rect x="6" y="6" width="36" height="36" rx="5"/></symbol>
+    <symbol id="a-triangle" viewBox="0 0 48 48"><path d="M24 6 43 40H5z" style="stroke-linejoin:round"/></symbol>
+    <symbol id="a-diamond" viewBox="0 0 48 48"><path d="M24 4 43 24 24 44 5 24z"/></symbol>
+    <symbol id="a-star" viewBox="0 0 48 48"><path d="m24 4 6 13.5 14.5 1.5-11 9.8 3.3 14.4L24 35.8 11.2 43.2l3.3-14.4-11-9.8L18 17.5z"/></symbol>
+    <symbol id="a-plus" viewBox="0 0 48 48"><path d="M18 5h12v13h13v12H30v13H18V30H5V18h13z"/></symbol>
+    <symbol id="a-heart" viewBox="0 0 48 48"><path d="M24 43 7 26a10.5 10.5 0 0 1 17-12 10.5 10.5 0 0 1 17 12z"/></symbol>
+    <symbol id="a-hex" viewBox="0 0 48 48"><path d="M14 6h20l10 18-10 18H14L4 24z"/></symbol>
+  </defs>
+</svg>
 
-  <!-- Player -->
-  <button id="kg-player-btn" class="kg-shell__btn kg-shell__player-btn" aria-label="Switch player">
-    <span id="kg-player-avatar" class="kg-shell__avatar">?</span>
-    <span id="kg-player-name" class="kg-shell__label">Guest</span>
+<header id="kg-shell" class="kg-bar">
+  <a id="kg-home" class="kg-iconbtn" href="index.html" aria-label="Home: all games">
+    <svg class="ic"><use href="#i-home"/></svg>
+  </a>
+
+  <span class="kg-bar__spacer"></span>
+
+  <button id="kg-volume-btn" class="kg-iconbtn" type="button" aria-label="Sound" aria-pressed="false">
+    <svg class="ic"><use id="kg-volume-use" href="#i-sound-on"/></svg>
   </button>
 
-  <!-- Theme picker -->
-  <button id="kg-theme-btn" class="kg-shell__btn" aria-label="Change theme" aria-expanded="false" aria-controls="kg-theme-dropdown" title="Theme">
-    <span id="kg-theme-icon" class="kg-shell__icon" aria-hidden="true">🎨</span>
+  <button id="kg-grownups-btn" class="kg-iconbtn kg-iconbtn--quiet" type="button"
+          aria-label="Grown-ups. Press and hold to open." aria-haspopup="dialog">
+    <svg class="ic"><use href="#i-grownups"/></svg>
+    <span class="kg-hold" aria-hidden="true"></span>
   </button>
 
-  <!-- Volume -->
-  <button id="kg-volume-btn" class="kg-shell__btn" aria-label="Toggle sound" aria-pressed="false" title="Sound">
-    <span id="kg-volume-icon" class="kg-shell__icon" aria-hidden="true">🔊</span>
+  <button id="kg-player-btn" class="kg-player-chip" type="button" aria-label="Who's playing? Change player">
+    <svg class="kg-avatar" id="kg-player-avatar" aria-hidden="true"><use id="kg-player-avatar-use" href="#a-circle"/></svg>
+    <span id="kg-player-name" class="kg-player-chip__name">Player</span>
   </button>
 
-  <!-- Build version — injected by build.sh -->
-  <span class="kg-shell__version" title="Build version">{{BUILD_VERSION}}</span>
-</div>
+</header>
 
-<!-- Player select overlay -->
+<!-- Who's playing -->
 <div id="kg-player-overlay" class="kg-overlay" hidden>
-  <div class="kg-overlay__content kg-player-select" role="dialog" aria-labelledby="kg-player-heading">
-    <h2 id="kg-player-heading" class="kg-overlay__heading">Who's playing?</h2>
-    <div id="kg-player-grid" class="kg-player-grid">
-      <!-- Player cards + "Add player" card populated by shell.js -->
-    </div>
+  <div class="kg-sheet" role="dialog" aria-modal="true" aria-labelledby="kg-player-heading">
+    <h2 id="kg-player-heading" class="kg-sheet__title">Who's playing?</h2>
+    <div id="kg-player-grid" class="kg-player-grid"></div>
   </div>
 </div>
 
-<!-- Add player overlay -->
+<!-- New player / edit player -->
 <div id="kg-addplayer-overlay" class="kg-overlay" hidden>
-  <div class="kg-overlay__content kg-addplayer-form" role="dialog" aria-labelledby="kg-addplayer-heading">
-    <h2 id="kg-addplayer-heading" class="kg-overlay__heading">New Player</h2>
-    <form id="kg-addplayer-form">
-      <label class="kg-form-label" for="kg-name-input">Name</label>
-      <input id="kg-name-input" class="kg-form-input" type="text" maxlength="20" autocomplete="off" placeholder="Your name" required>
+  <div class="kg-sheet" role="dialog" aria-modal="true" aria-labelledby="kg-addplayer-heading">
+    <h2 id="kg-addplayer-heading" class="kg-sheet__title">New player</h2>
+    <form id="kg-addplayer-form" autocomplete="off">
+      <fieldset class="kg-field">
+        <legend class="kg-label">Pick your shape</legend>
+        <div id="kg-avatar-grid" class="kg-avatar-grid" role="radiogroup" aria-label="Pick your shape"></div>
+      </fieldset>
 
-      <fieldset class="kg-form-fieldset">
-        <legend class="kg-form-label">How old are you? (optional)</legend>
-        <div class="kg-age-toggle" role="tablist">
-          <button type="button" class="kg-age-tab active" data-mode="dob" role="tab" aria-selected="true">Date of birth</button>
-          <button type="button" class="kg-age-tab" data-mode="age" role="tab" aria-selected="false">Age number</button>
-        </div>
+      <div class="kg-field">
+        <label class="kg-label" for="kg-name-input">Name</label>
+        <input id="kg-name-input" class="kg-input" type="text" maxlength="20" autocomplete="off" required>
+        <p id="kg-name-error" class="kg-gu-note" role="alert" hidden>That name is taken. Try another.</p>
+      </div>
 
-        <div id="kg-dob-field" class="kg-form-field" role="tabpanel">
-          <label class="kg-form-label" for="kg-dob-input">Date of birth</label>
-          <input id="kg-dob-input" class="kg-form-input" type="date">
-        </div>
-
-        <div id="kg-age-field" class="kg-form-field" role="tabpanel" hidden>
-          <label class="kg-form-label" for="kg-age-input">Age</label>
-          <input id="kg-age-input" class="kg-form-input" type="number" min="3" max="99">
+      <fieldset class="kg-field">
+        <legend class="kg-label">How old are you?</legend>
+        <div id="kg-age-grid" class="kg-age-grid" role="group" aria-label="Age"></div>
+        <input id="kg-age-input" type="hidden">
+        <button type="button" id="kg-dob-toggle" class="kg-linkbtn">Use date of birth instead</button>
+        <div id="kg-dob-field" hidden>
+          <label class="kg-label" for="kg-dob-input">Date of birth</label>
+          <input id="kg-dob-input" class="kg-input" type="date">
         </div>
       </fieldset>
 
-      <div class="kg-form-actions">
-        <button type="submit" class="kg-btn kg-btn--primary" id="kg-addplayer-submit" disabled>Let's go!</button>
-        <button type="button" class="kg-btn kg-btn--secondary" id="kg-addplayer-cancel">Back</button>
+      <div class="kg-actions">
+        <button type="button" class="kg-btn kg-btn--ghost" id="kg-addplayer-cancel">
+          <svg class="ic"><use href="#i-back"/></svg><span>Back</span>
+        </button>
+        <button type="submit" class="kg-btn" id="kg-addplayer-submit" disabled>
+          <svg class="ic"><use href="#i-play"/></svg><span>Play</span>
+        </button>
       </div>
     </form>
   </div>
 </div>
 
-<!-- Theme picker dropdown -->
-<div id="kg-theme-dropdown" class="kg-theme-dropdown" hidden>
-  <button class="kg-theme-option" data-theme="colourful-light">
-    <span class="kg-theme-swatch kg-theme-swatch--colourful-light"></span>
-    Light
-  </button>
-  <button class="kg-theme-option" data-theme="colourful-dark">
-    <span class="kg-theme-swatch kg-theme-swatch--colourful-dark"></span>
-    Dark
-  </button>
+<!-- Grown-ups -->
+<div id="kg-grownups-overlay" class="kg-overlay" hidden>
+  <div class="kg-sheet kg-sheet--wide" role="dialog" aria-modal="true" aria-labelledby="kg-grownups-heading">
+    <div class="kg-sheet__head">
+      <h2 id="kg-grownups-heading" class="kg-sheet__title">Grown-ups</h2>
+      <button type="button" class="kg-iconbtn" id="kg-grownups-close" aria-label="Close">
+        <svg class="ic"><use href="#i-close"/></svg>
+      </button>
+    </div>
+
+    <section class="kg-group" aria-labelledby="kg-g-players">
+      <h3 id="kg-g-players" class="kg-label">Players</h3>
+      <div id="kg-gu-players" class="kg-gu-players"></div>
+      <button type="button" class="kg-btn kg-btn--ghost" id="kg-gu-add">
+        <svg class="ic"><use href="#i-user-add"/></svg><span>Add player</span>
+      </button>
+    </section>
+
+    <section class="kg-group" aria-labelledby="kg-g-look">
+      <h3 id="kg-g-look" class="kg-label">Look</h3>
+      <div class="kg-seg" role="group" aria-label="Theme" id="kg-theme-seg">
+        <button type="button" class="kg-seg__opt" data-theme="colourful-light" aria-pressed="false">
+          <svg class="ic"><use href="#i-sun"/></svg><span>Day</span>
+        </button>
+        <button type="button" class="kg-seg__opt" data-theme="colourful-dark" aria-pressed="false">
+          <svg class="ic"><use href="#i-moon"/></svg><span>Dusk</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="kg-group" aria-labelledby="kg-g-motion">
+      <h3 id="kg-g-motion" class="kg-label">Movement and sound</h3>
+      <div class="kg-seg" role="group" aria-label="Movement" id="kg-motion-seg">
+        <button type="button" class="kg-seg__opt" data-motion="full" aria-pressed="false"><span>Lively</span></button>
+        <button type="button" class="kg-seg__opt" data-motion="reduced" aria-pressed="false"><span>Calm</span></button>
+      </div>
+      <button type="button" class="kg-btn kg-btn--ghost" id="kg-gu-sound" aria-pressed="false">
+        <svg class="ic"><use id="kg-gu-sound-use" href="#i-sound-on"/></svg><span id="kg-gu-sound-label">Sound on</span>
+      </button>
+    </section>
+
+    <section class="kg-group kg-about" aria-labelledby="kg-g-about">
+      <h3 id="kg-g-about" class="kg-label">About</h3>
+      <p>Free, no ads, no tracking. Made by Robert Beverton, with a lot of help from Claude.</p>
+      <a class="kg-linkbtn" href="https://github.com/RobertBeverton/kids-games/issues/new" target="_blank" rel="noopener">
+        Feedback or bug? Raise it on GitHub
+        <svg class="ic ic--sm"><use href="#i-link"/></svg>
+      </a>
+      <p>Version {{BUILD_VERSION}}</p>
+    </section>
+  </div>
 </div>
+
+<!-- Delete confirm (inside grown-ups flow) -->
+<div id="kg-confirm-overlay" class="kg-overlay kg-overlay--top" hidden>
+  <div class="kg-sheet" role="alertdialog" aria-modal="true" aria-labelledby="kg-confirm-text">
+    <p id="kg-confirm-text" class="kg-sheet__text"></p>
+    <div class="kg-actions">
+      <button type="button" class="kg-btn kg-btn--ghost" id="kg-confirm-no"><span>Keep</span></button>
+      <button type="button" class="kg-btn kg-btn--danger" id="kg-confirm-yes">
+        <svg class="ic"><use href="#i-trash"/></svg><span>Delete</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Polite live region for game feedback (read by screen readers) -->
+<div id="kg-live" class="kg-sr" role="status" aria-live="polite"></div>

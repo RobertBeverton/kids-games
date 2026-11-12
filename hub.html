@@ -4,297 +4,211 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kids Games</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='9' fill='%231B2028'/%3E%3Cg fill='%23FFC61A'%3E%3Crect x='18' y='28' width='12' height='12' rx='2'/%3E%3Crect x='12' y='16' width='12' height='12' rx='2' fill='%23FF6B70'/%3E%3Crect x='24' y='16' width='12' height='12' rx='2' fill='%236E9BFF'/%3E%3Crect x='18' y='4' width='12' height='12' rx='2' fill='%233FD28A'/%3E%3C/g%3E%3C/svg%3E">
 <meta property="og:title" content="Kids Games">
 <meta property="og:description" content="Fun, free, ad-free educational games for kids">
 <meta property="og:type" content="website">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared/tokens.css">
+<link rel="stylesheet" href="shared/shell.css">
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    font-family: var(--font-family);
-    background: var(--bg);
-    min-height: 100vh;
-    min-height: 100dvh;
-    overflow-x: hidden;
-    position: relative;
-    padding-top: 56px;
+  /* Hub: a ground plan. One dominant marking (carry on), four others. */
+  .hub {
+    max-width: 1280px; margin: 0 auto;
+    height: max(calc(100dvh - var(--bar-h)), 560px);
+    padding: var(--s4) var(--s5) var(--s4);
+    display: flex; flex-direction: column; gap: var(--s5);
+  }
+  .hub__hello {
+    margin: 0; text-align: center;
+    font-size: var(--t-title); line-height: 1.1; font-weight: 700;
   }
 
-  /* Floating background shapes */
-  body::before, body::after {
-    content: '';
-    position: fixed;
-    border-radius: 50%;
-    z-index: 0;
-    opacity: 0.15;
-    animation: floaty 8s ease-in-out infinite;
-  }
-  body::before {
-    width: 300px; height: 300px;
-    background: var(--accent-primary);
-    top: -80px; right: -80px;
-  }
-  body::after {
-    width: 250px; height: 250px;
-    background: var(--accent-secondary);
-    bottom: -60px; left: -60px;
-    animation-delay: -4s;
+  .plan {
+    flex: 1; min-height: 0;
+    display: grid; gap: var(--gap-tile);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
   }
 
-  @keyframes floaty {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    50% { transform: translate(15px, 20px) scale(1.05); }
+  .mark {
+    position: relative; min-width: 0; min-height: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+    gap: var(--s2); padding: var(--s4);
+    background: var(--paint); color: var(--on-paint);
+    border: var(--line-w) solid var(--line); border-radius: var(--r-2);
+    text-decoration: none; text-align: center; overflow: hidden;
+    transition: transform var(--dur-1) var(--ease);
+  }
+  .mark:active { transform: scale(0.97); }
+  .mark .mk-wrap { flex: 1; min-height: 0; width: 100%; display: grid; place-items: center; }
+  .mark .mk { width: 100%; height: 100%; max-width: 160px; max-height: 160px; color: var(--on-paint); }
+  .mark__name { margin: 0; font-size: var(--t-lead); line-height: 1.1; font-weight: 700; }
+  .mark__desc { margin: 0; font-size: var(--t-small); line-height: 1.3; display: none; }
+  .mark .kg-squares { --paint: var(--on-paint); width: 100%; max-width: 240px; flex: none; }
+  .mark .kg-squares i { flex: 1 1 0; width: auto; height: auto; min-width: 6px; max-width: 20px; aspect-ratio: 1; }
+  .mark .kg-squares i { border-color: var(--on-paint); }
+  .mark .kg-squares i.on { background: var(--on-paint); }
+  .mark .kg-laps { color: var(--on-paint); flex: none; margin-left: var(--s1); }
+  .mark__go {
+    display: none; align-items: center; gap: var(--s2);
+    min-height: var(--hit); padding: 0 var(--s5);
+    background: var(--ground); color: var(--ink);
+    border: var(--line-w) solid var(--line); border-radius: var(--r-1);
+    font-size: var(--t-lead); font-weight: 700;
+  }
+  .mark__kbd {
+    position: absolute; top: var(--s3); right: var(--s3);
+    display: grid; place-items: center; width: 44px; height: 44px;
+    background: var(--chalk); color: var(--ink);
+    border: var(--line-w) solid var(--line); border-radius: var(--r-pill);
   }
 
-  .container {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 24px 20px 56px;
-    position: relative;
-    z-index: 1;
+  /* The dominant marking: carry on where you were */
+  .mark--lead { grid-column: 1 / span 2; grid-row: 1 / span 2; padding: var(--s5); gap: var(--s3); }
+  .mark--lead .mark__name { font-size: var(--t-title); }
+  .mark--lead .mark__go { display: inline-flex; }
+  .mark--lead .mk { max-width: 280px; max-height: 280px; }
+  :root[data-age="older"] .mark--lead .mark__desc { display: block; font-size: var(--t-body); }
+
+  .mark.is-painting .mk { animation: kg-paint-on var(--dur-paint) var(--ease) both; }
+  .mark--lead .mk { animation: kg-paint-on var(--dur-paint) var(--ease) both; }
+
+  .hub__credit {
+    margin: 0; text-align: center; font-size: var(--t-small); color: var(--ink-2);
   }
 
-  .games-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: var(--space-md);
-  }
-
-  .game-card {
-    background: var(--bg-surface);
-    border-radius: var(--radius-2xl);
-    padding: 20px 16px;
-    box-shadow: var(--shadow);
-    text-align: center;
-    text-decoration: none;
-    color: var(--text-primary);
-    position: relative;
-    overflow: hidden;
-    transition: transform 0.25s, box-shadow 0.25s;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .game-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 5px;
-  }
-
-  .game-card:hover {
-    transform: translateY(-6px);
-    box-shadow: var(--shadow-lg);
-  }
-
-  .game-card:active {
-    transform: translateY(-2px) scale(0.98);
-  }
-
-  .game-card:focus-visible {
-    outline: 4px solid var(--btn-primary-bg);
-    outline-offset: 4px;
-    transform: translateY(-6px);
-    box-shadow: var(--shadow-lg);
-  }
-
-  .game-card.type-trainer::before {
-    background: linear-gradient(90deg, var(--accent-primary), var(--accent-tertiary), var(--accent-secondary));
-  }
-
-  .game-card.opposites::before {
-    background: linear-gradient(90deg, var(--accent-purple), var(--accent-primary), var(--accent-tertiary));
-  }
-
-  .game-card.number-bonds::before {
-    background: linear-gradient(90deg, var(--accent-tertiary), var(--accent-primary), var(--accent-secondary));
-  }
-
-  .game-card.maths::before {
-    background: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary), var(--accent-purple));
-  }
-
-  .game-card.memory-match::before {
-    background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple), var(--accent-tertiary));
-  }
-
-  .game-icon {
-    font-size: 2.5rem;
-    margin-bottom: 8px;
-    display: block;
-  }
-
-  .game-title {
-    font-weight: 900;
-    font-size: 1.2rem;
-    margin-bottom: 4px;
-  }
-
-  .game-desc {
-    font-size: 0.88rem;
-    color: var(--text-secondary);
-    font-weight: 600;
-    margin-bottom: 10px;
-    line-height: 1.4;
-  }
-
-  .game-badge {
-    display: inline-block;
-    background: var(--bg);
-    border-radius: var(--radius-lg);
-    padding: 4px 14px;
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: var(--text-secondary);
-    margin-bottom: 6px;
-  }
-
-  .device-badge {
-    display: inline-block;
-    border-radius: var(--radius-lg);
-    padding: 4px 14px;
-    font-size: 0.8rem;
-    font-weight: 700;
-    margin-bottom: 16px;
-  }
-
-  .device-badge.any-device {
-    background: var(--success-bg);
-    color: var(--success-text);
-  }
-
-  .device-badge.keyboard-required {
-    background: var(--warning-bg);
-    color: var(--warning-text);
-  }
-
-  /* On touch-only devices, dim keyboard-required games and move them last */
-  @media (hover: none) and (pointer: coarse) {
-    .game-card.needs-keyboard {
-      opacity: 0.55;
-      order: 1;
+  /* Portrait and phones: lead on top, the four below */
+  @media (max-aspect-ratio: 5/6), (max-width: 640px) {
+    .hub { padding: var(--s3) var(--s4) var(--s4); gap: var(--s3); height: max(calc(100dvh - var(--bar-h)), 640px); }
+    .plan {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-rows: minmax(0, 1.15fr) repeat(2, minmax(0, 1fr));
     }
+    .mark--lead { grid-column: 1 / span 2; grid-row: 1; flex-direction: row; text-align: left; gap: var(--s4); }
+    .mark--lead .mk-wrap { flex: 0 0 38%; }
+    .mark--lead .mark__text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--s3); align-items: flex-start; }
+    .mark__name { font-size: var(--t-body); }
+    .mark--lead .mark__name { font-size: var(--t-title); }
   }
-
-  .play-btn {
-    display: inline-block;
-    margin-top: auto;
-    background: linear-gradient(135deg, var(--btn-primary-bg), var(--btn-primary-hover));
-    color: var(--btn-primary-text);
-    border-radius: var(--radius-xl);
-    padding: 12px 32px;
-    font-family: var(--font-family);
-    font-weight: 800;
-    font-size: 1.05rem;
-    transition: box-shadow 0.2s;
+  @media (max-width: 640px) {
+    .hub__hello { font-size: var(--t-lead); }
+    .mark { padding: var(--s3); }
+    .mark--lead .mark__desc { display: none !important; }
   }
-
-  .game-card:hover .play-btn {
-    box-shadow: 0 6px 16px color-mix(in srgb, var(--btn-primary-bg) 35%, transparent);
-  }
-
-  .kg-hub-welcome {
-    font-size: var(--text-2xl);
-    font-weight: 900;
-    color: var(--text-primary);
-    text-align: center;
-    margin-bottom: var(--space-lg);
-  }
-
-  .hub-footer {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    z-index: 10;
-    text-align: center;
-    padding: 8px 16px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-    background: var(--bg);
-    border-top: 1px solid var(--bg-surface);
-  }
-
-  .hub-footer a {
-    color: var(--text-secondary);
-    text-decoration: underline;
-    text-underline-offset: 2px;
-  }
-
-  .hub-footer a:hover { color: var(--text-primary); }
-  .hub-footer a:focus-visible {
-    outline: 3px solid var(--btn-primary-bg);
-    outline-offset: 2px;
-    border-radius: var(--radius-sm);
-  }
-
-  @media (max-width: 480px) {
-    .game-card { padding: 16px 12px; }
-  }
+  .mark__text { display: contents; }
+  .mark--lead .mark__text { display: flex; flex-direction: column; align-items: center; gap: var(--s3); }
+  @media (max-aspect-ratio: 5/6), (max-width: 640px) { .mark--lead .mark__text { align-items: flex-start; } }
 </style>
 </head>
 <body data-page="hub">
 
-<div class="container">
-  <h1 id="kg-hub-welcome" class="kg-hub-welcome">Pick a game!</h1>
+<main class="hub">
+  <h1 id="kg-hub-welcome" class="hub__hello">Pick a game!</h1>
 
-  <div class="games-grid">
-    <a href="type-trainer.html" class="game-card type-trainer needs-keyboard">
-      <span class="game-icon" aria-hidden="true">⌨️</span>
-      <h2 class="game-title">Type Trainer</h2>
-      <div class="game-desc">Letters and words fall from the sky — type them before they land!</div>
-      <div class="game-badge">Ages 4–12+</div>
-      <div class="device-badge keyboard-required">⌨️ Needs a keyboard</div>
-      <span class="play-btn">Play</span>
+  <nav class="plan" aria-label="Games">
+    <a href="number-bonds.html" class="mark" data-game="number-bonds" data-paint="yellow">
+      <span class="mk-wrap"><svg class="mk" viewBox="0 0 96 96" aria-hidden="true"><use href="#m-hopscotch"/></svg></span>
+      <span class="mark__text">
+        <h2 class="mark__name">Number Bonds</h2>
+        <p class="mark__desc">Answer + − × ÷ questions by choosing the missing number!</p>
+        <span class="kg-squares" role="img"></span>
+        <span class="mark__go"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>Play</span>
+      </span>
     </a>
 
-    <a href="opposites.html" class="game-card opposites">
-      <span class="game-icon" aria-hidden="true">🔄</span>
-      <h2 class="game-title">Opposites</h2>
-      <div class="game-desc">Find the opposite word — choose or type your answer!</div>
-      <div class="game-badge">Ages 4–8</div>
-      <div class="device-badge any-device">📱 Works on any device</div>
-      <span class="play-btn">Play</span>
+    <a href="maths.html" class="mark" data-game="maths" data-paint="red">
+      <span class="mk-wrap"><svg class="mk" viewBox="0 0 96 96" aria-hidden="true"><use href="#m-maths"/></svg></span>
+      <span class="mark__text">
+        <h2 class="mark__name">Maths</h2>
+        <p class="mark__desc">Work out the answer — tap the right number as fast as you can!</p>
+        <span class="kg-squares" role="img"></span>
+        <span class="mark__go"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>Play</span>
+      </span>
     </a>
 
-    <a href="number-bonds.html" class="game-card number-bonds">
-      <span class="game-icon" aria-hidden="true">🔢</span>
-      <h2 class="game-title">Number Bonds</h2>
-      <div class="game-desc">Answer + − × ÷ questions by choosing the missing number!</div>
-      <div class="game-badge">Ages 4–12+</div>
-      <div class="device-badge any-device">📱 Works on any device</div>
-      <span class="play-btn">Play</span>
+    <a href="opposites.html" class="mark" data-game="opposites" data-paint="blue">
+      <span class="mk-wrap"><svg class="mk" viewBox="0 0 96 96" aria-hidden="true"><use href="#m-opposites"/></svg></span>
+      <span class="mark__text">
+        <h2 class="mark__name">Opposites</h2>
+        <p class="mark__desc">Find the opposite word — choose or type your answer!</p>
+        <span class="kg-squares" role="img"></span>
+        <span class="mark__go"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>Play</span>
+      </span>
     </a>
 
-    <a href="maths.html" class="game-card maths">
-      <span class="game-icon" aria-hidden="true">🧮</span>
-      <h2 class="game-title">Maths</h2>
-      <div class="game-desc">Work out the answer — tap the right number as fast as you can!</div>
-      <div class="game-badge">Ages 5–10</div>
-      <div class="device-badge any-device">📱 Works on any device</div>
-      <span class="play-btn">Play</span>
+    <a href="memory-match.html" class="mark" data-game="memory-match" data-paint="green">
+      <span class="mk-wrap"><svg class="mk" viewBox="0 0 96 96" aria-hidden="true"><use href="#m-memory"/></svg></span>
+      <span class="mark__text">
+        <h2 class="mark__name">Memory Match</h2>
+        <p class="mark__desc">Flip cards and find the matching pairs!</p>
+        <span class="kg-squares" role="img"></span>
+        <span class="mark__go"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>Play</span>
+      </span>
     </a>
 
-    <a href="memory-match.html" class="game-card memory-match">
-      <span class="game-icon" aria-hidden="true">🃏</span>
-      <h2 class="game-title">Memory Match</h2>
-      <div class="game-desc">Flip cards and find the matching pairs!</div>
-      <div class="game-badge">Ages 4–10</div>
-      <div class="device-badge any-device">📱 Works on any device</div>
-      <span class="play-btn">Play</span>
+    <a href="type-trainer.html" class="mark" data-game="type-trainer" data-paint="orange">
+      <span class="mark__kbd" role="img" aria-label="Needs a keyboard"><svg class="ic" aria-hidden="true"><use href="#i-keyboard"/></svg></span>
+      <span class="mk-wrap"><svg class="mk" viewBox="0 0 96 96" aria-hidden="true"><use href="#m-type"/></svg></span>
+      <span class="mark__text">
+        <h2 class="mark__name">Type Trainer</h2>
+        <p class="mark__desc">Letters and words fall from the sky — type them before they land!</p>
+        <span class="kg-squares" role="img"></span>
+        <span class="mark__go"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>Play</span>
+      </span>
     </a>
-  </div>
-</div>
+  </nav>
 
-<footer class="hub-footer">
-  Made by Robert Beverton &middot; <a href="https://github.com/RobertBeverton/kids-games/issues/new" target="_blank" rel="noopener">Feedback or bug? Raise it on GitHub</a>
-</footer>
+  <p class="hub__credit">Made by Robert Beverton, with a lot of help from Claude.</p>
+</main>
+
+<script>
+(function () {
+  var plan = document.querySelector('.plan');
+  var marks = Array.prototype.slice.call(plan.querySelectorAll('.mark'));
+
+  function squares(el, n) {
+    var done = n <= 0 ? 0 : ((n - 1) % 10) + 1;
+    var laps = n <= 0 ? 0 : Math.floor((n - 1) / 10);
+    var html = '';
+    for (var i = 0; i < 10; i++) html += '<i' + (i < done ? ' class="on"' : '') + '></i>';
+    if (laps > 0) html += '<span class="kg-laps">×' + (laps + 1) + '</span>';
+    el.innerHTML = html;
+    el.setAttribute('aria-label', n <= 0 ? 'Not played yet' : done + ' of 10 squares painted' + (laps ? ', lap ' + (laps + 1) : ''));
+  }
+
+  function render() {
+    var kg = window.KidsGames;
+    var player = kg && kg.player;
+    var progress = (kg && kg.progress) || {};
+    var last = kg && kg.lastGame;
+    var ids = marks.map(function (m) { return m.dataset.game; });
+    var lead = ids.indexOf(last) >= 0 ? last : (player && player.ageBracket === '4-5' ? 'memory-match' : 'number-bonds');
+    marks.forEach(function (m) {
+      var id = m.dataset.game;
+      var isLead = id === lead;
+      m.classList.toggle('mark--lead', isLead);
+      m.style.order = isLead ? '0' : '1';
+      squares(m.querySelector('.kg-squares'), progress[id] || 0);
+    });
+  }
+
+  // A tap paints the marking, then goes. Reduced motion goes straight away.
+  plan.addEventListener('click', function (e) {
+    var a = e.target.closest('.mark');
+    if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.button > 0) return;
+    e.preventDefault();
+    if (window.KidsGames) window.KidsGames.sfx('start');
+    var reduced = getComputedStyle(document.documentElement).getPropertyValue('--dur-paint').indexOf('0.01') === 0;
+    a.classList.remove('is-painting'); void a.offsetWidth; a.classList.add('is-painting');
+    setTimeout(function () { window.location.href = a.getAttribute('href'); }, reduced ? 0 : 260);
+  });
+
+  document.addEventListener('DOMContentLoaded', function () {
+    render();
+    if (window.KidsGames) window.KidsGames.onPlayerChange(render);
+  });
+})();
+</script>
 
 </body>
 </html>

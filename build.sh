@@ -66,11 +66,25 @@ for f in "shared/tokens.css" "shared/shell.html" "shared/shell.css" "shared/shel
   fi
 done
 
+for f in "shared/fonts/andika-Regular.woff2" "shared/fonts/andika-Bold.woff2"; do
+  if [ ! -f "$f" ]; then
+    echo "Error: $f not found." >&2
+    exit 1
+  fi
+done
+
 echo "All source files found."
 echo ""
 
 # --- Create docs directory ---
 mkdir -p "$DOCS_DIR"
+
+# --- Tokens with self-hosted fonts inlined (no third-party font requests; each game stays one file) ---
+b64() { base64 < "$1" | tr -d '\n\r'; }
+TOKENS_BUILT=$(mktemp)
+sed -e "s|url(fonts/andika-Regular.woff2)|url(data:font/woff2;base64,$(b64 shared/fonts/andika-Regular.woff2))|" \
+    -e "s|url(fonts/andika-Bold.woff2)|url(data:font/woff2;base64,$(b64 shared/fonts/andika-Bold.woff2))|" \
+    shared/tokens.css > "$TOKENS_BUILT"
 
 # ==========================================================================
 # BUILD 1: Type Trainer (inline CSS + JS into single HTML)
@@ -82,7 +96,7 @@ CSS_TEMP=$(mktemp)
 SHELL_JS_TEMP=$(mktemp)
 JS_COMBINED=$(mktemp)
 _cleanup() {
-  rm -f "$JS_TEMP" "$CSS_TEMP" "$SHELL_JS_TEMP" "$JS_COMBINED" \
+  rm -f "${TOKENS_BUILT:-}" "$JS_TEMP" "$CSS_TEMP" "$SHELL_JS_TEMP" "$JS_COMBINED" \
         "${NB_JS_TEMP:-}" "${NB_CSS_TEMP:-}" "${NB_JS_COMBINED:-}"
 }
 trap _cleanup EXIT
@@ -132,7 +146,7 @@ else
 fi
 
 # --- Concatenate shared tokens + shell CSS + game CSS ---
-cat shared/tokens.css shared/shell.css "$GAME_DIR/css/style.css" > "$CSS_TEMP"
+cat "$TOKENS_BUILT" shared/shell.css "$GAME_DIR/css/style.css" > "$CSS_TEMP"
 
 # --- Build combined shell JS (storage + shell wrapped in IIFE) ---
 echo "(function() { 'use strict';" > "$SHELL_JS_TEMP"
@@ -244,7 +258,7 @@ fi
 # ==========================================================================
 echo ""
 echo "--- Building Opposites Game ---"
-awk -v tokens_file="shared/tokens.css" -v shell_css="shared/shell.css" \
+awk -v tokens_file="$TOKENS_BUILT" -v shell_css="shared/shell.css" \
     -v shell_html="shared/shell.html" -v shell_js="$SHELL_JS_TEMP" '
   /<link[^>]*shared\/tokens\.css[^>]*>/ { next }
   /<link[^>]*shared\/shell\.css[^>]*>/ { next }
@@ -290,7 +304,7 @@ build_simple_game() {
   local name="$3"
   echo ""
   echo "--- Building $name ---"
-  awk -v tokens_file="shared/tokens.css" -v shell_css="shared/shell.css" \
+  awk -v tokens_file="$TOKENS_BUILT" -v shell_css="shared/shell.css" \
       -v shell_html="shared/shell.html" -v shell_js="$SHELL_JS_TEMP" '
     /<link[^>]*shared\/tokens\.css[^>]*>/ { next }
     /<link[^>]*shared\/shell\.css[^>]*>/ { next }
@@ -362,7 +376,7 @@ for f in "${NB_JS_FILES[@]}"; do
   echo "" >> "$NB_JS_TEMP"
 done
 
-cat shared/tokens.css shared/shell.css "$NB_GAME_DIR/css/style.css" > "$NB_CSS_TEMP"
+cat "$TOKENS_BUILT" shared/shell.css "$NB_GAME_DIR/css/style.css" > "$NB_CSS_TEMP"
 cat "$SHELL_JS_TEMP" "$NB_JS_TEMP" > "$NB_JS_COMBINED"
 
 echo "Assembling number-bonds HTML..."
@@ -438,7 +452,7 @@ for f in "${MATHS_JS_FILES[@]}"; do
   echo "" >> "$MATHS_JS_TEMP"
 done
 
-cat shared/tokens.css shared/shell.css "$MATHS_GAME_DIR/css/style.css" > "$MATHS_CSS_TEMP"
+cat "$TOKENS_BUILT" shared/shell.css "$MATHS_GAME_DIR/css/style.css" > "$MATHS_CSS_TEMP"
 cat "$SHELL_JS_TEMP" "$MATHS_JS_TEMP" > "$MATHS_JS_COMBINED"
 
 echo "Assembling maths HTML..."
@@ -490,7 +504,7 @@ build_simple_game "games/memory-match/index.html"   "$DOCS_DIR/memory-match.html
 # ==========================================================================
 echo ""
 echo "--- Building Landing Page ---"
-awk -v tokens_file="shared/tokens.css" -v shell_css="shared/shell.css" \
+awk -v tokens_file="$TOKENS_BUILT" -v shell_css="shared/shell.css" \
     -v shell_html="shared/shell.html" -v shell_js="$SHELL_JS_TEMP" '
   /<link[^>]*shared\/tokens\.css[^>]*>/ { next }
   /<link[^>]*shared\/shell\.css[^>]*>/ { next }
