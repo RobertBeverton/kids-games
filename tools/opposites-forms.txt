@@ -1,0 +1,161 @@
+# Word forms accepted as correct when typed, one line per accepted answer: the answer with its common endings.
+# Format:  answer: form form ...   (applies wherever that answer is accepted)
+# e.g. a child asked the opposite of "push" may type pull, pulled, pulling or pulls.
+# Hand-written: only real forms a child would plausibly type. Never offered as tap choices.
+# Checked by tools/validate-opposites.mjs: a form may not be a word that appears elsewhere in the list (question word,
+# answer or distractor), which keeps a form from ever being a wrong answer for the same question.
+
+# -- comparatives and superlatives (opposite of "big": smaller)
+small: smaller smallest
+little: smaller
+big: bigger biggest
+large: larger
+huge: bigger
+cold: colder coldest
+hot: hotter hottest
+warm: warmer
+cool: cooler
+slow: slower slowest
+fast: faster fastest
+quick: quicker
+short: shorter shortest
+long: longer longest
+tall: taller tallest
+low: lower
+high: higher
+old: older oldest
+new: newer newest
+young: younger youngest
+heavy: heavier
+light: lighter
+dark: darker darkest
+bright: brighter
+soft: softer
+hard: harder
+easy: easier
+loud: louder
+quiet: quieter
+sad: sadder
+happy: happier
+clean: cleaner
+dirty: dirtier
+near: nearer
+far: farther further
+thin: thinner
+thick: thicker
+wide: wider
+narrow: narrower
+deep: deeper
+weak: weaker
+strong: stronger
+rich: richer
+poor: poorer
+wet: wetter
+dry: drier
+sweet: sweeter
+rough: rougher
+smooth: smoother
+sharp: sharper
+kind: kinder
+safe: safer
+brave: braver
+calm: calmer
+clever: cleverer
+silly: sillier
+lazy: lazier
+busy: busier
+tidy: tidier
+messy: messier
+nasty: nastier
+angry: angrier
+cheap: cheaper
+sunny: sunnier
+gloomy: gloomier
+good: better
+bad: worse
+fewer: fewest
+
+# -- verbs: -s, -ing, -ed and the irregular past
+lose: loses losing
+win: wins winning
+go: goes going went gone
+come: comes coming came
+give: gives giving gave given
+take: takes taking took taken
+keep: keeps keeping kept
+sit: sits sitting sat
+stand: stands standing stood
+run: runs running ran
+walk: walks walking walked
+push: pushes pushing pushed
+pull: pulls pulling pulled
+stop: stops stopping stopped
+start: starts starting started
+finish: finishes finishing finished
+cry: cries crying cried
+laugh: laughs laughing laughed
+smile: smiles smiling smiled
+frown: frowns frowning frowned
+open: opens opening opened
+close: closes closing
+shut: shuts shutting
+find: finds finding found
+hide: hides hiding hid
+catch: catches catching caught
+throw: throws throwing threw thrown
+buy: buys buying bought
+sell: sells selling sold
+borrow: borrows borrowing borrowed
+lend: lends lending lent
+remember: remembers remembering remembered
+forget: forgets forgetting forgot forgotten
+wake: wakes waking woke
+sleep: sleeps slept
+leave: leaves leaving
+arrive: arrives arriving arrived
+enter: enters entering entered
+appear: appears appearing appeared
+disappear: disappears disappearing disappeared
+accept: accepts accepting accepted
+refuse: refuses refusing refused
+agree: agrees agreeing agreed
+shout: shouts shouting shouted
+yell: yells yelling yelled
+whisper: whispers whispering whispered
+fall: falls falling fell fallen
+rise: rises rising rose risen
+sink: sinks sinking sank sunk
+float: floats floating floated
+grow: grows growing grew grown
+shrink: shrinks shrinking shrank shrunk
+build: builds building built
+break: breaks breaking broke broken
+mend: mends mending mended
+fix: fixes fixing fixed
+untie: unties untying untied
+lock: locks locking locked
+unlock: unlocks unlocking unlocked
+love: loves loving loved
+hate: hates hating hated
+like: likes liking liked
+dislike: dislikes disliking disliked
+hurry: hurries hurrying hurried
+wait: waits waiting waited
+fill: fills filling filled
+melt: melts melting melted
+add: adds adding added
+subtract: subtracts subtracting subtracted
+ask: asks asking asked
+answer: answers answering answered
+destroy: destroys destroying destroyed
+
+# -- plurals
+boy: boys
+girl: girls
+man: men
+woman: women
+lady: ladies
+king: kings
+queen: queens
+night: nights
+day: days

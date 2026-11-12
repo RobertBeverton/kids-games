@@ -1,0 +1,364 @@
+# Opposites: the hand-curated word list. Format and flags are documented in tools/opposites-lib.mjs.
+# word | accepted answers (first = primary) | 5 distractors | level | part of speech | flags
+# Checked by: node tools/validate-opposites.mjs   and   python tools/check_opposites_wordnet.py
+#
+# ---- BATCH 1 (level 1, revised after review round 1) ----
+big    | small, little, tiny          | dance, clap, read, swim, clock | 1 | adj
+small  | big, large, huge, giant, enormous | bell, skip, shoe, square, jump | 1 | adj
+hot    | cold, cool, chilly, freezing, icy | hairy, lazy, stripy, rope, book | 1 | adj
+cold   | hot, warm, toasty, roasting  | tree, bird, funny, lamp, bus | 1 | adj
+warm   | cool, cold, chilly           | kind, yellow, climb, pretty, shy | 1 | adj
+up     | down                         | milk, fish, sheep, build, hungry | 1 | adv
+down   | up                           | bread, egg, sweet, drum, key | 1 | adv
+wet    | dry                          | red, ball, pink, cook, apple | 1 | adj
+dry    | wet, damp, soggy             | duck, wave, bumpy, hum, shiny | 1 | adj
+day    | night                        | purple, jam, spin, hop, river | 1 | noun
+night  | day, morning | house, paint, sing, fold, sticky | 1 | noun
+fast   | slow, ~slowly | frog, catch, cup, flower, chair | 1 | adj
+slow   | fast, quick, speedy          | sock, green, cake, spoon, coat | 1 | adj
+happy  | sad, unhappy, upset, miserable, gloomy | windy, clever, boat, hill, hat | 1 | adj
+sad    | happy, cheerful, glad, joyful | woolly, bag, draw, tasty, horse | 1 | adj
+open   | shut, closed, ~close         | kite, toy, cow, silly, lucky | 1 | adj
+shut   | open                         | round, brown, kick, bake, sunny | 1 | adj
+full   | empty, hungry | tap, door, pig, castle, cat | 1 | adj
+empty  | full, ~fill | busy, bridge, window, throw, spotty | 1 | adj
+old    | new, young                   | plate, shy, table, spotty, river | 1 | adj
+new    | old, used                    | wave, bell, cow, brown, rope | 1 | adj
+hard   | soft, easy, squashy, squishy, simple | shoe, fold, plate, read, coat | 1 | adj
+soft   | hard, firm, rough            | window, lucky, round, door, hop | 1 | adj
+long   | short                        | wooden, hungry, sticky, bag, hat | 1 | adj
+short  | long, tall                   | clap, sock, hum, duck, lamp | 1 | adj
+awake  | asleep, sleeping             | skip, bird, swim, catch, ball | 1 | adj
+#
+# ---- BATCH 2 (level 1, draft) ----
+easy   | hard, difficult, tricky, complicated | spoon, dance, cat, hill, tap | 1 | adj
+tall   | short, small, low | bumpy, tasty, toy, cake, key | 1 | adj
+in     | out                         | kick, yellow, build, clever, wooden | 1 | adv
+out    | in, inside                  | hairy, stripy, cup, busy, square | 1 | adv
+on     | off                         | windy, book, pink, castle, apple | 1 | adv
+off    | on                          | jam, horse, red, table, jump | 1 | adv
+near   | far, away                   | spin, draw, chair, silly, sweet | 1 | adv
+far    | near, away, ~close          | frog, bake, sheep, clock, fish | 1 | adv
+left   | right                       | throw, milk, bread, drum, woolly | 1 | adj
+right  | left, wrong, false | climb, flower, kind, lazy, shiny | 1 | adj
+front  | back, behind                | pig, sing, bus, paint, purple | 1 | noun
+back   | front                       | green, cook, tree, kite, funny | 1 | noun
+top    | bottom                      | house, sunny, pretty, tasty, egg | 1 | noun
+bottom | top                         | key, hungry, clock, cup, fish | 1 | noun
+first  | last                        | bridge, hairy, boat, sticky, spin | 1 | adj
+last   | first                       | draw, hill, clever, pretty, lucky | 1 | adj
+yes    | no, ~nope, ~nah             | tap, hop, sweet, door, ball | 1 | adv
+no     | yes, ~yeah, ~yep            | lamp, kite, woolly, boat, lazy | 1 | adv
+good   | bad, naughty, horrid, evil | jam, brown, pink, bus, spotty | 1 | adj
+bad    | good, nice                  | throw, river, duck, dance, swim | 1 | adj
+boy    | girl                        | kick, coat, green, bumpy, build | 1 | noun
+girl   | boy                         | fold, read, house, flower, castle | 1 | noun
+come   | go, leave                   | windy, table, hum, cat, plate | 1 | verb
+go     | come, stop, stay            | yellow, paint, skip, square, frog | 1 | verb
+push   | pull                        | bake, round, catch, sheep, bell | 1 | verb
+#
+# ---- BATCH 3 (level 1, draft) ----
+pull    | push                       | milk, shy, wooden, hat, sock | 1 | verb
+stop    | go, start                  | pig, cook, tree, egg, clap | 1 | verb
+start   | stop, finish, end          | horse, toy, sing, chair, bag | 1 | verb
+laugh   | cry                        | shiny, cow, rope, window, kind | 1 | verb
+cry     | laugh, smile               | red, book, cake, wave, busy | 1 | verb
+loud    | quiet, silent              | apple, jump, stripy, bread, shoe | 1 | adj
+quiet   | loud, noisy, busy | bridge, bird, purple, sunny, spoon | 1 | adj
+dark    | light, bright              | drum, funny, silly, climb, windy | 1 | adj
+light   | dark, heavy                | kind, cat, dance, sheep, sweet | 1 | adj
+heavy   | light                      | bread, shoe, horse, hill, hungry | 1 | adj
+clean   | dirty, messy, muddy        | frog, ball, clap, window, apple | 1 | adj
+dirty   | clean                      | square, egg, spoon, toy, clock | 1 | adj
+young   | old                        | funny, purple, swim, sunny, hum | 1 | adj
+early   | late                       | key, build, throw, bus, spin | 1 | adv
+late    | early                      | bumpy, cook, jam, door, cow | 1 | adv
+sit     | stand                      | shy, coat, house, silly, red | 1 | verb
+stand   | sit                        | read, pig, river, fish, bird | 1 | verb
+win     | lose, ~lost                | duck, jump, tasty, stripy, hop | 1 | verb
+lose    | win, ~won, find | tap, fold, kite, skip, bake | 1 | verb
+thick   | thin                       | hat, castle, pink, lucky, yellow | 1 | adj
+thin    | thick                      | book, shiny, lamp, clever, catch | 1 | adj
+over    | under, below               | paint, drum, woolly, busy, lazy | 1 | adv
+under   | over, above                | green, round, flower, hairy, wave | 1 | adv
+inside  | outside, out | rope, milk, spotty, cake, draw | 1 | adv
+outside | inside                     | table, kick, bell, sticky, plate | 1 | adv
+#
+# ---- BATCH 4 (level 2: size, amount, shape; draft) ----
+huge      | tiny, small, little            | crown, blink, golden, pie, banana | 2 | adj
+tiny      | huge, enormous, giant, big     | mirror, train, magic, cheeky, umbrella | 2 | adj
+enormous  | tiny, little, small            | pear, wheel, pat, orange, basket | 2 | adj
+narrow    | wide, broad                    | paddle, feather, guitar, kettle, broom | 2 | adj
+wide      | narrow                         | piano, pour, juicy, ribbon, garden | 2 | adj | single
+deep      | shallow                        | carrot, grumpy, knock, lantern, button | 2 | adj | single
+shallow   | deep                           | nod, pocket, puppet, sword, scarf | 2 | adj | single
+high      | low                            | lorry, stir, boots, rabbit, shell | 2 | adj | single
+low       | high, tall                     | map, bicycle, fox, fluffy, crunchy | 2 | adj
+many      | few                            | trumpet, mouse, sparkly, robot, candle | 2 | adj | single
+few       | many, lots, plenty             | hug, wizard, elephant, ladder, owl | 2 | adj
+more      | less, fewer                    | bee, snail, pillow, monkey, spiky | 2 | adj
+less      | more                           | whistle, balloon, lion, biscuit, blanket | 2 | adj | single
+most      | least                          | tractor, pebble, mushroom, rocket, dragon | 2 | adj | single
+least     | most                           | acorn, forest, tickle, teapot, silver | 2 | adj | single
+whole     | half, part, piece              | wiggle, cave, crunchy, pencil, hug | 2 | adj
+half      | whole                          | ribbon, whistle, forest, tickle, scarf | 2 | noun | single
+all       | none, nothing                  | lion, dragon, trumpet, map, bee | 2 | noun
+none      | all, everything                | snail, button, juicy, puppet, lantern | 2 | noun
+flat      | bumpy, hilly, steep | jug, candle, rabbit, stir, wizard | 2 | adj
+straight  | bent, curved, crooked, wiggly  | tractor, crown, elephant, cave, guitar | 2 | adj
+curved    | straight                       | tractor, pencil, lorry, window, wizard | 2 | adj | single
+sharp     | blunt, dull                    | train, pear, teapot, cheeky, bicycle | 2 | adj
+blunt     | sharp, pointy, pointed         | pat, mouse, pour, balloon, knock | 2 | adj
+smooth    | rough, bumpy, lumpy            | sparkly, pocket, garden, jug, robot | 2 | adj
+#
+# ---- BATCH 5 (level 2: time, weather; draft) ----
+always    | never                         | banana, blink, basket, fox, mushroom | 2 | adv | single
+never     | always                         | wiggle, carrot, nod, broom, biscuit | 2 | adv | single
+before    | after                          | monkey, silver, mirror, sword, ladder | 2 | adv | single
+after     | before                         | owl, feather, golden, kettle, boots | 2 | adv | single
+now       | later, afterwards              | umbrella, orange, pillow, paddle, wheel | 2 | adv
+later     | now, earlier                   | grumpy, rocket, piano, spiky, blanket | 2 | adv
+morning   | evening, night                 | magic, fluffy, piano, pencil, lion | 2 | noun
+evening   | morning                        | pie, monkey, bee, boots, banana | 2 | noun | single
+summer    | winter                         | juicy, knock, forest, bicycle, spiky | 2 | noun | single
+winter    | summer                         | orange, wheel, tickle, snail, broom | 2 | noun | single
+sunny     | cloudy, rainy, dull            | acorn, shell, pour, button, dragon | 2 | adj
+cloudy    | sunny, clear                   | basket, pebble, mouse, lantern, nod | 2 | adj
+rainy     | sunny, dry                     | elephant, crown, puppet, ribbon, fox | 2 | adj
+stormy    | calm, still, peaceful          | mushroom, pebble, train, silver, acorn | 2 | adj
+calm      | rough, stormy, angry, cross, excited, wild, windy, lively | biscuit, rocket, robot, pear, golden | 2 | adj
+windy     | calm, still                    | rabbit, crunchy, carrot, ladder, pat | 2 | adj
+sunrise   | sunset, dusk                   | pocket, magic, teapot, garden, sparkly | 2 | noun
+sunset    | sunrise, dawn                  | feather, trumpet, whistle, paddle, fluffy | 2 | noun
+ancient   | modern, new                    | pie, wiggle, umbrella, kettle, bag | 2 | adj
+modern    | ancient, old                   | stir, elephant, brown, button, pour | 2 | adj
+yesterday | tomorrow                       | cheeky, grumpy, blanket, blink, stir | 2 | adv | single
+tomorrow  | yesterday                      | jug, hug, map, pillow, mirror | 2 | adv | single
+beginning | end, finish                    | banana, cheeky, cave, juicy, mirror | 2 | noun
+end       | beginning, start               | wizard, golden, mouse, basket, hug | 2 | noun
+finish    | start, begin                   | knock, rabbit, boat, puppet, scarf | 2 | verb
+#
+# ---- BATCH 6 (level 2: feelings and character; draft) ----
+brave     | scared, afraid, cowardly, timid, frightened | lorry, guitar, shell, candle, wooden | 2 | adj
+scared    | brave, bold, fearless                       | acorn, teapot, garden, piano, pear | 2 | adj
+angry     | calm, happy, pleased                        | whistle, pebble, forest, bee, broom | 2 | adj
+excited   | bored, calm                                 | mushroom, tractor, shell, lantern, snail | 2 | adj
+bored     | excited, interested                         | bridge, robot, chair, orange, kettle | 2 | adj
+proud     | ashamed, embarrassed                        | ribbon, umbrella, fluffy, silver, jug | 2 | adj
+kind      | unkind, mean, cruel, nasty, selfish | balloon, crunchy, owl, sparkly, sock | 2 | adj
+mean      | kind, generous, nice                        | cup, magic, pie, balloon, trumpet | 2 | adj
+cruel     | kind, gentle                                | candle, feather, climb, rocket, pillow | 2 | adj
+gentle    | rough, harsh, cruel, fierce | train, sing, biscuit, guitar, owl | 2 | adj
+rude      | polite, kind                                | nod, blanket, map, paddle, cave | 2 | adj
+polite    | rude, cheeky                                | pencil, wiggle, blink, boots, scarf | 2 | adj
+friendly  | unfriendly, grumpy                          | carrot, ladder, wheel, kite, tree | 2 | adj
+shy       | bold, confident, outgoing                   | lorry, bicycle, spiky, wooden, hop | 2 | adj
+clever    | silly, foolish, daft                        | pillow, bell, bridge, tree, fold | 2 | adj
+silly     | clever, sensible, serious, wise | biscuit, jam, ladder, sing, basket | 2 | adj
+wise      | foolish, silly                              | sticky, umbrella, yellow, brown, carrot | 2 | adj
+generous  | selfish, mean, greedy | fluffy, piano, build, book, golden | 2 | adj
+selfish   | generous, kind                              | kettle, swim, boots, spoon, sparkly | 2 | adj
+greedy    | generous                                    | elephant, knock, catch, mushroom, trumpet | 2 | adj | single
+lazy      | busy, active                                | door, hat, whistle, draw, cave | 2 | adj
+busy      | lazy, quiet                                 | mirror, sock, dance, pink, throw | 2 | adj
+tired     | awake, lively, energetic                    | fox, pat, green, clock, frog | 2 | adj
+lively    | tired, calm                                 | feather, train, rocket, pebble, guitar | 2 | adj
+hungry    | full, stuffed                               | paint, rabbit, spotty, garden, kick | 2 | adj
+#
+# ---- BATCH 7 (level 2: action verbs; draft) ----
+buy       | sell                           | sword, lion, monkey, dragon, tickle | 2 | verb | single
+sell      | buy                            | sword, lamp, grumpy, ribbon, pretty | 2 | verb | single
+borrow    | lend, return                   | purple, funny, house, shiny, spin | 2 | verb
+lend      | borrow                         | hungry, lantern, woolly, river, clap | 2 | verb | single
+ask       | answer, reply                  | pocket, jug, crown, bus, plate | 2 | verb
+answer    | ask, question                  | fish, square, pie, crown, read | 2 | verb
+remember  | forget                         | candle, tasty, teapot, stripy, grumpy | 2 | verb | single
+forget    | remember                       | silly, pear, kind, sheep, cat | 2 | verb | single
+find      | lose, hide                     | silver, lorry, bird, bicycle, milk | 2 | verb
+hide      | find, seek, show               | red, tractor, magic, coat, windy | 2 | verb
+throw     | catch                          | flower, apple, wheel, bumpy, shoe | 2 | verb | single
+catch     | throw, drop                    | sweet, cheeky, egg, wizard, pencil | 2 | verb
+arrive    | leave, depart                  | pig, orange, cook, pocket, chair | 2 | verb
+leave     | arrive, stay, come, enter | horse, nod, wave, pour, bread | 2 | verb
+enter     | exit, leave                    | acorn, toy, ball, jump, map | 2 | verb
+appear    | disappear, vanish              | pat, banana, sunny, blanket, monkey | 2 | verb
+disappear | appear                         | crunchy, bag, snail, hairy, mouse | 2 | verb | single
+accept    | refuse, reject                 | broom, sword, juicy, lazy, pretty | 2 | verb
+refuse    | accept, agree                  | rope, hug, wiggle, tickle, puppet | 2 | verb
+agree     | disagree                    | cake, bake, balloon, stir, castle | 2 | verb| single
+allow     | forbid, stop, ban              | boat, cow, tap, clever, table | 2 | verb
+fill      | empty                          | owl, fox, drum, climb, spiky | 2 | verb | single
+whisper   | shout, yell, scream            | busy, dragon, hill, robot, shy | 2 | verb
+shout     | whisper                        | forest, scarf, button, key, duck | 2 | verb | single
+freeze    | melt, thaw                     | round, hum, lion, blink, skip | 2 | verb
+#
+# ---- BATCH 8 (level 2: people, story roles, true and false; draft) ----
+king      | queen                          | paddle, cup, shell, lucky, tickle | 2 | noun | single
+queen     | king                           | rope, wiggle, mouse, basket, hum | 2 | noun | single
+prince    | princess                       | red, ladder, carrot, button, lazy | 2 | noun | single
+princess  | prince                         | garden, spiky, whistle, lamp, pie | 2 | noun | single
+brother   | sister                         | shiny, bird, knock, milk, spotty | 2 | noun | single
+sister    | brother                        | hat, lucky, lantern, lorry, paint | 2 | noun | single
+mum       | dad, daddy                     | teapot, blink, acorn, paddle, juicy | 2 | noun
+dad       | mum, mummy                     | read, rope, spin, ball, climb | 2 | noun
+man       | woman, lady                    | cheeky, toy, biscuit, coat, drum | 2 | noun
+woman     | man, gentleman                 | egg, bicycle, purple, pear, cake | 2 | noun
+grandma   | grandad, grandpa               | tractor, jump, tree, rocket, crunchy | 2 | noun
+grandad   | grandma, granny, nan           | chair, hop, grumpy, wooden, bridge | 2 | noun
+uncle     | aunt, auntie                   | nod, kettle, pink, swim, banana | 2 | noun
+aunt      | uncle                          | skip, stir, scarf, ribbon, shell | 2 | noun | single
+hero      | villain, baddie                | pillow, owl, kick, flower, candle | 2 | noun
+villain   | hero, goodie                   | silver, snail, pencil, cow, bread | 2 | noun
+friend    | enemy, foe                     | kite, boots, castle, pig, dance | 2 | noun
+enemy     | friend, ally                   | train, window, yellow, build, cook | 2 | noun
+evil      | good, kind                     | green, fish, door, sock, umbrella | 2 | adj
+true      | false, untrue                  | duck, bumpy, fluffy, trumpet, sing | 2 | adj
+false     | true, correct, right           | busy, fox, elephant, silly, frog | 2 | adj
+real      | fake, pretend, imaginary       | draw, clock, cat, house, piano | 2 | adj
+wrong     | right, correct                 | pat, hill, balloon, mushroom, jug | 2 | adj
+correct   | wrong, incorrect, false | feather, broom, apple, square, stripy | 2 | adj
+truth     | lie                            | woolly, throw, kind, round, wizard | 2 | noun | single
+#
+# ---- BATCH 9 (level 2: qualities and changes; draft) ----
+strong    | weak, feeble                   | bee, pebble, key, orange, pocket | 2 | adj
+weak      | strong, powerful, mighty       | book, crown, monkey, brown, sweet | 2 | adj
+rich      | poor                           | bell, map, mirror, jam, sticky | 2 | adj | single
+poor      | rich, wealthy                  | forest, rabbit, lion, clever, blanket | 2 | adj
+expensive | cheap                          | hungry, windy, dragon, shy, shoe | 2 | adj | single
+cheap     | expensive, costly              | wave, guitar, sword, bus, boat | 2 | adj
+tidy      | messy, untidy                  | bee, clap, river, tasty, sheep | 2 | adj
+messy     | tidy, neat, clean | tap, bake, funny, hairy, sunny | 2 | adj
+tight     | loose, slack                   | magic, spoon, table, pretty, golden | 2 | adj
+loose     | tight, firm                    | plate, pour, fold, catch, puppet | 2 | adj
+rough     | smooth, gentle, soft, calm | cup, cave, horse, bag, robot | 2 | adj
+sweet     | sour, bitter                   | sparkly, boots, map, wheel, hug | 2 | adj
+sour      | sweet                          | sunny, tap, forest, red, banana | 2 | adj | single
+dull      | bright, shiny, sharp, sunny | pig, jug, teapot, river, windy | 2 | adj
+shiny     | dull                           | owl, build, paint, sock, pour | 2 | adj | single
+sink      | float, rise                    | sparkly, lazy, hop, silly, clap | 2 | verb
+float     | sink                           | lazy, shy, tickle, clap, hairy | 2 | verb | single
+rise      | fall, sink, drop               | pencil, puppet, green, kind, dragon | 2 | verb
+fall      | rise, climb                    | sock, bicycle, robot, frog, milk | 2 | verb
+grow      | shrink                         | lazy, coat, hop, spiky, toy | 2 | verb | single
+shrink    | grow, expand                   | lamp, golden, lucky, catch, umbrella | 2 | verb
+build     | destroy, break                 | horse, balloon, lion, window, clever | 2 | verb
+break     | mend, fix, repair, build | paddle, hill, bridge, scarf, throw | 2 | verb
+mend      | break, damage                  | tractor, table, yellow, bake, drum | 2 | verb
+tie       | untie, undo                    | cow, wooden, crown, sword, grumpy | 2 | verb
+#
+# ---- BATCH 10 (level 2: places and directions; draft) ----
+above      | below, beneath, under         | bread, bumpy, candle, whistle, funny | 2 | adv
+below      | above, over                    | busy, cake, hug, pie, purple | 2 | adv
+north      | south                          | jump, duck, trumpet, castle, kick | 2 | noun | single
+south      | north                          | fish, wizard, pretty, guitar, sticky | 2 | noun | single
+east       | west                           | pear, chair, cook, egg, cheeky | 2 | noun | single
+west       | east                           | garden, kettle, cave, woolly, plate | 2 | noun | single
+sky        | ground, earth, land            | carrot, pear, cat, lorry, spotty | 2 | noun
+ground     | sky                            | spoon, hum, wizard, apple, bell | 2 | noun | single
+sea        | land, shore                    | tasty, bee, juicy, acorn, jam | 2 | noun
+land       | sea, water                     | house, apple, shoe, rabbit, hungry | 2 | noun
+hill       | valley                         | sing, square, bag, pat, door | 2 | noun | single
+valley     | hill, mountain                 | draw, dance, hat, mushroom, biscuit | 2 | noun
+forwards   | backwards, backward            | cup, boat, pillow, pebble, magic | 2 | adv
+backwards  | forwards, forward              | blink, shiny, mirror, basket, ball | 2 | adv
+ahead      | behind, back                   | fold, pink, ribbon, silver, kite | 2 | adv
+behind     | ahead, front                   | book, wave, sweet, swim, climb | 2 | adv
+together   | apart, alone                   | nod, piano, tree, fox, ladder | 2 | adv
+apart      | together                       | wiggle, stripy, bell, skip, round | 2 | adv | single
+alone      | together, accompanied          | elephant, bus, spoon, flower, rocket | 2 | adv
+sun        | moon                           | train, sheep, monkey, crunchy, mouse | 2 | noun | single
+moon       | sun                            | brown, feather, pocket, knock, cheeky | 2 | noun | single
+exit       | entrance, entry, enter | wheel, bird, read, spin, stir | 2 | noun
+entrance   | exit                           | button, shell, clock, kind, cow | 2 | noun | single
+upstairs   | downstairs                     | jam, key, woolly, skip, wave | 2 | adv | single
+downstairs | upstairs                       | bird, tractor, hum, crown, drum | 2 | adv | single
+#
+# ---- BATCH 11 (level 2: safety, luck, maths words, story ideas; draft) ----
+smile       | frown, cry | broom, fluffy, lantern, bicycle, snail | 2 | verb | single
+frown       | smile                         | orange, sticky, shell, pocket, forest | 2 | verb | single
+careful     | careless, reckless            | blanket, button, monkey, chair, house | 2 | adj
+careless    | careful                       | sheep, sweet, candle, jump, tree | 2 | adj | single
+safe        | dangerous, unsafe             | knock, coat, door, garden, ribbon | 2 | adj
+dangerous   | safe                          | toy, blink, cook, climb, paint | 2 | adj | single
+lucky       | unlucky                       | brown, carrot, silver, clock, grumpy | 2 | adj | single
+unlucky     | lucky, fortunate              | castle, swim, pretty, sing, lion | 2 | adj
+possible    | impossible                    | silly, red, draw, boat, wooden | 2 | adj | single
+impossible  | possible                      | blanket, windy, hug, milk, tasty | 2 | adj | single
+simple      | complicated, difficult, ~hard  | stripy, kettle, horse, pour, sunny | 2 | adj
+complicated | simple, easy                  | fold, river, bee, bus, round | 2 | adj
+same        | different                     | mouse, crunchy, table, throw, cave | 2 | adj | single
+different   | same, alike                   | orange, owl, cup, bread, robot | 2 | adj
+even        | odd, uneven                   | duck, green, feather, guitar, lantern | 2 | adj
+odd         | even                          | spiky, bumpy, pink, bridge, shy | 2 | adj | single
+add         | subtract, minus               | kick, frog, funny, dragon, acorn | 2 | verb
+subtract    | add, plus                     | square, purple, paddle, tickle, umbrella | 2 | verb
+plus        | minus                         | plate, hairy, fluffy, mushroom, kite | 2 | noun | single
+minus       | plus                          | catch, boots, shiny, fox, bag | 2 | noun | single
+visible     | invisible, hidden             | pie, train, rope, rocket, book | 2 | adj
+invisible   | visible                       | biscuit, pillow, ball, mirror, read | 2 | adj | single
+asleep      | awake, alert                  | trumpet, banana, spotty, yellow, magic | 2 | adj
+wake        | sleep, doze                   | jug, teapot, key, tap, piano | 2 | verb
+sleep       | wake, ~awake                  | elephant, ladder, pebble, flower, wiggle | 2 | verb
+#
+# ---- BATCH 12 (level 2: story adverbs, moods, wild and tame; draft) ----
+bright      | dark, dull, dim, gloomy | scarf, dance, fish, whistle, egg | 2 | adj
+dim         | bright, brilliant             | hungry, broom, pig, spin, nod | 2 | adj
+gloomy      | cheerful, bright, happy       | pencil, juicy, hill, shoe, snail | 2 | adj
+cheerful    | gloomy, miserable, sad        | build, cake, cat, rabbit, golden | 2 | adj
+tame        | wild, fierce                  | lucky, balloon, lamp, puppet, hat | 2 | adj
+wild        | tame, calm                    | lorry, basket, map, wheel, pat | 2 | adj
+bold        | shy, timid, scared            | bake, stir, window, build, lorry | 2 | adj
+timid       | bold, brave, confident        | hairy, robot, acorn, clap, kettle | 2 | adj
+fierce      | gentle, tame, mild            | clock, sparkly, shoe, swim, square | 2 | adj
+peaceful    | noisy, stormy                 | clever, sword, busy, chair, book | 2 | adj
+noisy       | quiet, silent, peaceful       | forest, kite, pencil, kick, bird | 2 | adj
+silent      | noisy, loud                   | balloon, stir, boat, hug, brown | 2 | adj
+steep       | gentle, flat                  | lamp, frog, rabbit, cook, whistle | 2 | adj
+hurry       | dawdle, wait                  | jump, sock, jam, wooden, clever | 2 | verb
+wait        | hurry, rush                   | jug, golden, guitar, milk, elephant | 2 | verb
+slowly      | quickly, fast                 | pig, shell, lamp, orange, plate | 2 | adv
+quickly     | slowly                        | wave, spotty, piano, tap, sticky | 2 | adv | single
+quietly     | loudly, noisily               | cave, skip, sword, bus, map | 2 | adv
+loudly      | quietly, softly               | horse, mushroom, key, boots, basket | 2 | adv
+gently      | roughly, harshly              | teapot, blink, pear, carrot, sing | 2 | adv
+roughly     | gently                        | biscuit, cake, rope, monkey, tree | 2 | adv | single
+happily     | sadly, unhappily              | apple, shiny, flower, bee, pink | 2 | adv
+sadly       | happily, cheerfully           | knock, blanket, round, sunny, egg | 2 | adv
+carefully   | carelessly                    | window, pillow, fox, fold, rocket | 2 | adv | single
+carelessly  | carefully                     | bridge, hungry, green, candle, dance | 2 | adv | single
+#
+# ---- BATCH 13 (level 2: more feelings; draft) ----
+love        | hate, dislike                 | spiky, bread, umbrella, pie, silver | 2 | verb
+hate        | love, like                     | hop, cat, scarf, paint, catch | 2 | verb
+like        | dislike, hate                  | ladder, cup, bake, crown, stripy | 2 | verb
+dislike     | like, love                     | pat, puppet, button, climb, windy | 2 | verb
+worried     | calm, relaxed, happy           | table, bag, draw, broom, juicy | 2 | adj
+relaxed     | worried, nervous, tense        | paddle, tasty, river, yellow, fish | 2 | adj
+nervous     | calm, confident, relaxed       | house, sheep, door, hum, hill | 2 | adj
+confident   | nervous, shy, unsure           | bicycle, cow, bumpy, read, train | 2 | adj
+grumpy      | cheerful, happy, pleasant      | woolly, pebble, pour, toy, ribbon | 2 | adj
+pleased     | annoyed, disappointed, upset   | snail, purple, red, coat, wiggle | 2 | adj
+disappointed | pleased, delighted, happy     | throw, banana, feather, mirror, crunchy | 2 | adj
+delighted   | miserable, disappointed, sad   | ball, spoon, tractor, bell, hat | 2 | adj
+ashamed     | proud                          | spin, drum, duck, trumpet, wheel | 2 | adj | single
+upset       | pleased, calm, happy           | lantern, hill, garden, pebble, fish | 2 | adj
+unhappy     | happy, cheerful, glad          | fluffy, drum, apple, milk, shell | 2 | adj
+miserable   | cheerful, delighted, happy     | book, brown, toy, sing, clap | 2 | adj
+glad        | sad, sorry, unhappy            | key, spin, acorn, crunchy, broom | 2 | adj
+cross       | pleased, calm, happy           | ladder, bus, pear, hop, ball | 2 | adj
+#
+# ---- BATCH 14 (common pairs missed earlier: colours, give and take, run and walk, best and worst, nice and nasty) ----
+black       | white                         | nod, dragon, castle, pocket, tickle | 1 | adj | single
+white       | black                          | pencil, drum, lion, sparkly, kind | 1 | adj | single
+give        | take, keep                     | busy, shy, magic, grumpy, mouse | 1 | verb
+take        | give                           | cheeky, silly, sweet, funny, pretty | 1 | verb | single
+run         | walk, crawl                    | lucky, spoon, door, garden, juicy | 1 | verb
+walk        | run, hurry                     | cow, blink, cook, pocket, paint | 1 | verb
+best        | worst                          | jam, ribbon, spiky, catch, silver | 2 | adj | single
+worst       | best                           | frog, bake, pencil, whistle, castle | 2 | adj | single
+nice        | nasty, horrid, unkind          | purple, sparkly, red, pink, tap | 2 | adj
+nasty       | nice, kind, pleasant           | scarf, magic, umbrella, wave, elephant | 2 | adj
+lock        | unlock                         | busy, fluffy, swim, sunny, clever | 2 | verb | single
+unlock      | lock                           | candle, pie, knock, wooden, fox | 2 | verb | single
+beautiful   | ugly, plain                    | owl, cow, bread, lazy, rocket | 2 | adj
+ugly        | beautiful, pretty, lovely      | wiggle, blanket, shoe, wheel, balloon | 2 | adj

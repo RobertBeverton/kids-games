@@ -1,0 +1,218 @@
+# Common misspellings that the game accepts as the right answer, one line per accepted answer.
+# Format:  answer: misspelling misspelling ...   (applies wherever that answer is accepted)
+# Checked by tools/validate-opposites.mjs (must not be a real word in this game) and tools/check_opposites_wordnet.py
+# (must not be a real English word). Generated as a first draft by common child spelling patterns, then curated by hand.
+small: smal
+little: littel littl
+large: larg
+cold: kold
+cool: kool
+chilly: chily
+freezing: freazing
+toasty: towsty
+roasting: rowsting
+soggy: sogy
+quick: quik
+speedy: speady
+unhappy: unhapy
+miserable: miserabel miserabl
+happy: hapy
+cheerful: chearful
+close: clos
+young: yowng
+easy: eesy
+simple: simpel simpl
+firm: furm
+tall: tal
+asleep: asleap
+sleeping: sleaping
+difficult: dificult diffikult
+tricky: triky
+complicated: komplicated
+inside: insid
+away: awai
+near: neer
+right: rit
+wrong: rong
+false: fals
+back: bak
+bottom: botom
+first: furst
+yeah: yeeh
+horrid: horid
+girl: gurl
+leave: leav leeve
+come: kome
+stay: stai
+smile: smiel smil
+quiet: queit
+loud: lowd
+noisy: noysy
+heavy: heevy
+dirty: durty
+messy: mesy
+muddy: mudy
+clean: cleen
+early: eerly
+thick: thik
+above: abov
+outside: outsid
+broad: browd
+narrow: narow
+shallow: shalow
+deep: deap
+least: leest
+piece: peice piec
+whole: whoel whol
+hilly: hily
+steep: steap
+curved: kurved
+wiggly: wigly
+straight: strayght
+dull: dul
+pointy: poynty
+pointed: poynted
+always: alwais
+before: befor
+earlier: earleir eerlier
+cloudy: clowdy
+rainy: rayny
+sunny: suny
+clear: cleer
+calm: kalm
+still: stil
+peaceful: peeceful peaseful
+cross: cros
+excited: exsited
+sunrise: sunris
+ancient: anceint ansient
+tomorrow: tomorow
+yesterday: yesterdai
+beginning: begining
+scared: skared
+afraid: afrayd
+cowardly: kowardly
+frightened: fritened
+brave: brav
+fearless: fearles feerless
+pleased: pleesed
+embarrassed: embarassed embarrased
+mean: meen
+gentle: gentel gentl
+fierce: feirce fierc
+polite: polit
+cheeky: cheaky
+unfriendly: unfreindly
+confident: konfident
+outgoing: outgoyng
+silly: sily
+sensible: sensibel sensibl
+greedy: gready
+active: activ
+awake: awak
+tired: tured
+stuffed: stufed
+sell: sel
+borrow: borow
+seek: seak
+catch: cach katch
+arrive: arive arriv
+disappear: disapear disappeer
+appear: apear appeer
+refuse: refus
+accept: acept acsept
+agree: agre agrea
+disagree: disagre disagrea
+yell: yel
+scream: screem
+whisper: wisper
+queen: quean
+princess: prinsess
+prince: princ prinse
+daddy: dady
+mummy: mumy
+granny: grany
+auntie: auntei aunti
+uncle: uncel uncl
+villain: vilain villayn
+baddie: badie baddei
+goodie: goodei goodi
+friend: freind
+ally: aly
+untrue: untru
+correct: corect korrect
+incorrect: incorect inkorrect
+feeble: feable feebel
+mighty: mity
+wealthy: weelthy
+expensive: expensiv
+costly: kostly
+neat: neet
+slack: slak
+float: flowt
+fall: fal
+break: breek
+repair: repayr repaur
+damage: damag
+untie: untei unti
+beneath: beneeth
+east: eest
+ground: grownd
+earth: eerth
+shore: shor
+valley: valey
+hill: hil
+mountain: mountayn mowntain
+backwards: bakwards
+backward: bakward
+ahead: aheed
+alone: alon
+accompanied: acompanied accompaneid
+entrance: entranc entranse
+downstairs: downstayrs downstaurs
+upstairs: upstayrs upstaurs
+careless: careles kareless
+reckless: reckles rekless
+careful: kareful
+unsafe: unsaf
+unlucky: unluky
+lucky: luky
+fortunate: fortunat
+impossible: imposible impossibel
+possible: posible possibel
+different: diferent
+alike: alik
+invisible: invisibel invisibl
+hidden: hiden
+visible: visibel visibl
+sleep: sleap
+brilliant: briliant
+dawdle: dawdel dawdl
+wait: wayt
+hurry: hury
+quickly: quikly
+loudly: lowdly
+noisily: noysily
+quietly: queitly
+unhappily: unhapily
+happily: hapily
+cheerfully: cheerfuly chearfully
+carelessly: carelesly karelessly
+carefully: carefuly karefully
+dislike: dislik
+worried: woried worreid
+unsure: unsur
+pleasant: pleesant
+annoyed: anoyed
+disappointed: disapointed disappoynted
+delighted: delited
+proud: prowd
+sorry: sory
+white: wite
+black: blak
+keep: keap
+unlock: unlok
+lock: lok
+plain: playn
+beautiful: beeutiful
+pretty: prety
