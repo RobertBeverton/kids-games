@@ -6,15 +6,15 @@
 //   Set PAGE=<url> to test another build (for example a deliberately broken copy, to prove the test can fail).
 //
 // What it asserts:
-//  - the picture set: every theme has 12 pictures, each with a unique short label and drawn paths (no placeholders), the random
-//    mix is all of them, no emoji anywhere in the page, and cards carry the picture's label as their accessible name;
-//  - every size x theme x peek x age (5 and 8): right number of cards, each picture exactly twice, equal pairs always match,
+//  - the picture set: one pool (no themes), each picture with a unique short label and drawn paths (no placeholders), no emoji
+//    anywhere in the page, and cards carry the picture's label as their accessible name;
+//  - every size x peek x age (5 and 8), three games each: right number of cards, each picture exactly twice, equal pairs always match,
 //    unequal pairs never do, mismatches flip back, nothing is ever left unmatchable, the game always finishes, and the
 //    win screen agrees with the taps made (three player strategies: random, remembers-all, perfect);
 //  - leaving the board or replaying while a flip, mismatch or peek is pending never corrupts the next game (stale timers);
 //  - the hint appears only after 3 wrong pairs in a row, only on the twin of a card the child has already turned over,
 //    never during a peek, and never on a card whose twin has not been seen;
-//  - settings (size, theme, peek) are saved per player and survive a reload; best times keep the top 3 per size, in order,
+//  - settings (size, peek) are saved per player and survive a reload; best times keep the top 3 per size, in order,
 //    per player, and the win screen shows the run's place;
 //  - keyboard: one tab stop, arrow keys move between cards, Enter turns a card, matched cards keep focus.
 import path from 'node:path';
@@ -24,7 +24,6 @@ const { chromium } = await import(process.env.PLAYWRIGHT_CORE || 'playwright-cor
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const URL = process.env.PAGE || pathToFileURL(path.join(ROOT, 'docs', 'memory-match.html')).href;
 const SIZES = { '2x4': 8, '3x4': 12, '4x4': 16, '4x5': 20 };
-const THEMES = ['animals', 'food', 'vehicles', 'random'];
 const failures = [];
 const fail = (m) => { if (failures.length < 60) failures.push(m); };
 const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -59,10 +58,9 @@ const cards = (page) => page.evaluate(() => [...document.querySelectorAll('.mm-c
 })));
 const click = (page, i) => page.evaluate((i) => document.querySelectorAll('.mm-card')[i].click(), i);
 const winShown = (page) => page.evaluate(() => !document.getElementById('mm-win-screen').hidden);
-async function startWith(page, size, theme, peek) {
+async function startWith(page, size, peek) {
   await page.evaluate(() => goSettings());
   await page.click(`#mm-size-row [data-size="${size}"]`);
-  await page.click(`#mm-theme-row [data-theme="${theme}"]`);
   if ((await page.isChecked('#mm-peek-toggle')) !== peek) await page.click('.kg-switch');
   await page.click('#mm-play-btn');
   await page.waitForSelector('.mm-card');
@@ -106,27 +104,28 @@ async function play(page, strategy, tag) {
 // ---------- 1. The picture set ----------
 {
   const { ctx, page, errors } = await open(5);
-  const info = await page.evaluate(() => ({ P: PICTURES, T: THEMES }));
+  const info = await page.evaluate(() => ({ P: PICTURES, pool: POOL }));
   const labels = new Set();
-  for (const [theme, keys] of Object.entries(info.T)) {
-    if (keys.length !== 12) fail(`theme ${theme} has ${keys.length} pictures, expected 12`);
-    for (const k of keys) {
-      const p = info.P[k];
-      if (!p) { fail(`theme ${theme} lists unknown picture ${k}`); continue; }
-      if (p.todo) fail(`picture ${k} is still a placeholder`);
-      if (!p.line || !/^[MmLlHhVvCcSsQqTtAaZz0-9 .,\-]+$/.test(p.line)) fail(`picture ${k} has no valid path data`);
-      if (p.dots && !/^[MmLlHhVvCcSsQqTtAaZz0-9 .,\-]+$/.test(p.dots)) fail(`picture ${k} has invalid dots`);
-      if (!p.label || p.label.length > 20 || /[^\x20-\x7e]/.test(p.label)) fail(`picture ${k} label "${p.label}" is empty, long or not plain text`);
-      if (labels.has(p.label)) fail(`label "${p.label}" is used twice`);
-      labels.add(p.label);
-    }
+  if (info.pool.length < 20) fail(`only ${info.pool.length} pictures in the pool, expected at least 20 (a 4x5 board needs 10 pairs and variety)`);
+  if (new Set(info.pool).size !== info.pool.length) fail('a picture is listed twice in POOL');
+  if (Object.keys(info.P).length !== info.pool.length) fail('PICTURES and POOL differ in size');
+  const PATH = /^[MmLlHhVvCcSsQqTtAaZz0-9 .,\-]+$/;
+  for (const k of info.pool) {
+    const p = info.P[k];
+    if (!p) { fail(`POOL lists unknown picture ${k}`); continue; }
+    if (p.todo) fail(`picture ${k} is still a placeholder`);
+    if (!p.line || !PATH.test(p.line)) fail(`picture ${k} has no valid path data`);
+    if (p.detail && !PATH.test(p.detail)) fail(`picture ${k} has invalid detail path`);
+    if (p.dots && !PATH.test(p.dots)) fail(`picture ${k} has invalid dots`);
+    if (!p.label || p.label.length > 20 || /[^ -~]/.test(p.label)) fail(`picture ${k} label "${p.label}" is empty, long or not plain text`);
+    if (labels.has(p.label)) fail(`label "${p.label}" is used twice`);
+    labels.add(p.label);
   }
-  const unused = Object.keys(info.P).filter((k) => !Object.values(info.T).flat().includes(k));
-  if (unused.length) fail(`pictures not in any theme: ${unused.join(', ')}`);
+  if (await page.$('#mm-theme-row')) fail('the theme picker should be gone');
   if (errors.length) fail('picture set page errors: ' + errors.join(' | '));
-  console.log('picture set:', Object.fromEntries(Object.entries(info.T).map(([k, v]) => [k, v.length])), 'labels', labels.size);
+  console.log('picture set:', info.pool.length, 'pictures,', labels.size, 'distinct labels');
   // no emoji or pictographs anywhere in the page text or accessible names
-  await startWith(page, '4x5', 'random', false);
+  await startWith(page, '4x5', false);
   const emoji = await page.evaluate(() => {
     const re = /\p{Extended_Pictographic}/u; const hits = [];
     const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
@@ -150,15 +149,13 @@ async function play(page, strategy, tag) {
 // ---------- 2. Matrix ----------
 const t0 = Date.now();
 let games = 0;
-for (const age of [5, 8]) for (const size of Object.keys(SIZES)) for (const theme of THEMES) for (const peek of [true, false]) {
+for (const age of [5, 8]) for (const size of Object.keys(SIZES)) for (const peek of [true, false]) for (const rep_ of [1, 2, 3]) {
   const { ctx, page, errors } = await open(age);
-  const tag = `age${age}/${size}/${theme}/peek=${peek}`;
-  await startWith(page, size, theme, peek);
+  const tag = `age${age}/${size}/peek=${peek}/${rep_}`;
+  await startWith(page, size, peek);
   if ((await cards(page)).length !== SIZES[size]) fail(`${tag}: wrong card count`);
-  if (theme !== 'random') {
-    const pool = await page.evaluate((t) => THEMES[t], theme);
-    if ((await cards(page)).some((c) => !pool.includes(c.k))) fail(`${tag}: a card from the wrong theme`);
-  }
+  const pool = await page.evaluate(() => POOL);
+  if ((await cards(page)).some((c) => !pool.includes(c.k))) fail(`${tag}: a card from outside the pool`);
   const bracket = await page.evaluate(() => window.KidsGames.player.ageBracket);
   if (bracket !== (age === 5 ? '4-5' : '6-8')) fail(`${tag}: bracket ${bracket}`);
   const strategies = ['random', 'memory', 'perfect'];
@@ -213,7 +210,7 @@ console.log(`matrix: ${games} games in ${((Date.now() - t0) / 1000).toFixed(0)}s
   const { ctx, page } = await open(5);
   let given = 0, wrong = 0, early = 0, unseenGiven = 0, offered = 0;
   for (let g = 0; g < 40; g++) {
-    await startWith(page, '4x4', 'animals', g % 2 === 0); // half the games with a peek
+    await startWith(page, '4x4', g % 2 === 0); // half the games with a peek
     let misses = 0;
     for (let turn = 0; turn < 60; turn++) {
       const cs = await cards(page);
@@ -249,7 +246,7 @@ console.log(`matrix: ${games} games in ${((Date.now() - t0) / 1000).toFixed(0)}s
   if (offered) fail(`${offered} turns had 3+ misses and a seen twin but no hint`);
   console.log(`hint: given ${given} times, wrong ${wrong}, early ${early}, on unseen ${unseenGiven}, missed offers ${offered}`);
   // never during or because of the peek
-  await startWith(page, '4x4', 'animals', true);
+  await startWith(page, '4x4', true);
   await page.evaluate(() => { missStreak = 5; });
   const during = await cards(page);
   if (during.some((c) => c.hint)) fail('hint shown during the peek');
@@ -262,10 +259,10 @@ console.log(`matrix: ${games} games in ${((Date.now() - t0) / 1000).toFixed(0)}s
 // ---------- 5. Saved settings and best times ----------
 {
   const { ctx, page } = await open(5, { players: ['Mia', 'Zoe'], active: 'Mia' });
-  await page.click('#mm-size-row [data-size="4x4"]'); await page.click('#mm-theme-row [data-theme="vehicles"]'); await page.click('.kg-switch');
+  await page.click('#mm-size-row [data-size="4x4"]'); await page.click('.kg-switch');
   await page.reload(); await page.waitForSelector('#mm-play-btn');
-  const s1 = await page.evaluate(() => ({ size: state.size, theme: state.theme, peek: state.peek, pressed: document.querySelector('#mm-size-row [aria-pressed=true]').dataset.size, box: document.getElementById('mm-peek-toggle').checked }));
-  if (s1.size !== '4x4' || s1.theme !== 'vehicles' || s1.peek !== false || s1.pressed !== '4x4' || s1.box !== false) fail('saved settings not restored: ' + JSON.stringify(s1));
+  const s1 = await page.evaluate(() => ({ size: state.size, peek: state.peek, pressed: document.querySelector('#mm-size-row [aria-pressed=true]').dataset.size, box: document.getElementById('mm-peek-toggle').checked }));
+  if (s1.size !== '4x4' || s1.peek !== false || s1.pressed !== '4x4' || s1.box !== false) fail('saved settings not restored: ' + JSON.stringify(s1));
   // best times: play 5 quick games at 4x4 and read what is kept
   const finishFast = async () => { await page.click('#mm-play-btn'); await page.waitForSelector('.mm-card'); const cs = await cards(page); const byK = new Map(); cs.forEach((c) => byK.set(c.k, [...(byK.get(c.k) || []), c.i])); for (const [, [a, b]] of byK) { await click(page, a); await click(page, b); await settle(page, 'best'); } await page.waitForSelector('#mm-win-screen:not([hidden]) .mm-win'); };
   const notes = [], placed = [];
@@ -304,7 +301,7 @@ console.log(`matrix: ${games} games in ${((Date.now() - t0) / 1000).toFixed(0)}s
 // ---------- 6. Keyboard ----------
 {
   const { ctx, page } = await open(5);
-  await startWith(page, '4x4', 'animals', false);
+  await startWith(page, '4x4', false);
   const tabs = (await cards(page)).filter((c) => c.tab === 0).length;
   if (tabs !== 1) fail('expected one tab stop on the board, found ' + tabs);
   await page.evaluate(() => document.querySelectorAll('.mm-card')[0].focus());

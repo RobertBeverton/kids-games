@@ -14,13 +14,12 @@
 .mm-fieldset .kg-seg { gap: var(--s3); }
 
 /* Settings tiles */
-.mm-size, .mm-theme { flex-direction: column; gap: var(--s2); min-height: 124px; }
+.mm-size { flex-direction: column; gap: var(--s2); min-height: 124px; }
 .mm-size small { font-size: var(--t-small); font-weight: 400; }
 .mm-size .mm-best { font-weight: 700; }
 .mm-size .mm-best:empty { display: none; }
 .mm-thumb { display: grid; gap: 3px; height: 68px; align-content: center; justify-content: center; }
 .mm-thumb i { display: block; width: 11px; height: 11px; border-radius: 3px; background: currentColor; }
-.mm-theme .ic { width: 40px; height: 40px; }
 .mm-name { font-size: var(--t-body); }
 
 /* Board */
@@ -67,8 +66,9 @@
 .mm-card-back { background: var(--paint); color: var(--on-paint); }
 .mm-card-back .ic { width: 46%; height: 46%; stroke-width: 4; }
 .mm-card-front { background: var(--chalk); transform: rotateY(180deg); }
-/* One stroke weight, round ends (DESIGN.md Shapes). 5 in 96 is about 3px on the smallest card. */
+/* A bold main shape and thinner detail lines, round ends, like the Stories icons. 5 and 3 in 96 stay clear at 56px. */
 .mm-pic { width: 80%; height: 80%; fill: none; stroke: var(--line); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.mm-pic .d { stroke-width: 3; }
 .mm-pic .dot { fill: var(--line); stroke: none; }
 .mm-card--matched .mm-card-front { background: var(--right-wash); border-color: var(--right); border-width: 5px; }
 .mm-card--matched .mm-card-front::after {
@@ -129,16 +129,6 @@
         </div>
       </fieldset>
 
-      <fieldset class="mm-fieldset">
-        <legend class="kg-label">What pictures</legend>
-        <div class="kg-seg" id="mm-theme-row" role="group" aria-label="What pictures">
-          <button class="kg-seg__opt mm-theme" data-theme="animals" aria-pressed="true"><svg class="ic" aria-hidden="true"><use href="#i-animals"/></svg><span class="mm-name">Animals</span></button>
-          <button class="kg-seg__opt mm-theme" data-theme="food" aria-pressed="false"><svg class="ic" aria-hidden="true"><use href="#i-food"/></svg><span class="mm-name">Food</span></button>
-          <button class="kg-seg__opt mm-theme" data-theme="vehicles" aria-pressed="false"><svg class="ic" aria-hidden="true"><use href="#i-vehicles"/></svg><span class="mm-name">Vehicles</span></button>
-          <button class="kg-seg__opt mm-theme" data-theme="random" aria-pressed="false"><svg class="ic" aria-hidden="true"><use href="#i-random"/></svg><span class="mm-name">Random</span></button>
-        </div>
-      </fieldset>
-
       <label class="kg-switch">
         <span class="kg-switch__text"><b>Peek at start</b><small id="mm-peek-note">See all cards for 1.5s before playing</small></span>
         <input type="checkbox" id="mm-peek-toggle" checked>
@@ -179,7 +169,7 @@ const SIZES = {
   '4x4': { cols: 4, rows: 4 },
   '4x5': { cols: 4, rows: 5 },
 };
-const DEFAULTS = { size: '3x4', theme: 'animals', peek: true };
+const DEFAULTS = { size: '3x4', peek: true };
 
 // ===== STATE =====
 const state = { ...DEFAULTS };
@@ -190,68 +180,60 @@ function say(text) { if (window.KidsGames) window.KidsGames.say(text); }
 
 // ===== PICTURES (the faces of the cards) =====
 // Each picture is plain data on a 96x96 square, drawn with one stroke weight and round ends by the .mm-pic CSS:
-//   line  one or more stroked paths (the drawing)
-//   dots  filled paths (eyes, nose, wheel hubs)
-//   label the short name, used as the card's accessible name
-// To add or change a picture, edit only this block (and list new keys in THEMES). Nothing else needs to change.
+//   line   the bold main shape, stroked
+//   detail thinner stroked lines (optional)
+//   dots   small filled shapes: eyes, noses, hubs (optional)
+//   label  the short name, used as the card's accessible name
+// There are no themes: every picture is chosen to have a clearly different silhouette from the others, because
+// telling pictures apart at a glance matters more than their subject. To add or change a picture, edit only this
+// block (and list a new key in POOL). Nothing else needs to change.
 // BEGIN_PICTURES
 const PICTURES = {
   // animals
-  cat: { label: "cat", line: "M20 52L17 16L40 31Q48 29 56 31L79 16L76 52Q80 82 48 82Q16 82 20 52Z M6 56H21 M8 68L21 63 M90 56H75 M88 68L75 63 M48 66v3 M42 72q6 4 6-3 0 7 6 3", dots: "M34 51a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0M55 51a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0M44 59h8l-4 5Z" },
-  rabbit: { label: "rabbit", line: "M38 40C28 26 30 6 38 6C46 6 46 28 46 38 M50 38C50 28 50 6 58 6C66 6 68 26 58 40 M24 62a24 22 0 1 0 48 0a24 22 0 1 0-48 0 M48 70q-5 5-9 2 M48 70q5 5 9 2", dots: "M36 60a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M54 60a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M45 67a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" },
-  fish: { label: "fish", line: "M10 50C22 28 56 28 72 50C56 72 22 72 10 50Z M72 50L90 33V67Z M40 38Q47 50 40 62 M46 33L52 22L62 38", dots: "M21.5 47a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0" },
-  snail: { label: "snail", line: "M36 38a22 22 0 1 0 44 0a22 22 0 1 0-44 0 M58 38a4 4 0 0 1 4 4a8 8 0 0 1-8 8a12 12 0 0 1-12-12a16 16 0 0 1 16-16 M82 66C88 76 84 82 74 82H22C10 82 8 70 14 62C18 56 20 50 20 44C20 40 26 40 26 46C26 54 30 60 38 61 M20 41L15 27 M26 41L31 27", dots: "M12 25.5a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M28 25.5a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" },
+  cat: { label: "cat", line: "M20 52L17 16L40 31Q48 29 56 31L79 16L76 52Q80 82 48 82Q16 82 20 52Z", detail: "M6 56H21 M8 68L21 63 M90 56H75 M88 68L75 63 M48 66v3 M42 72q6 4 6-3 0 7 6 3", dots: "M34 51a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0M55 51a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0M44 59h8l-4 5Z" },
+  rabbit: { label: "rabbit", line: "M38 40C28 26 30 6 38 6C46 6 46 28 46 38 M50 38C50 28 50 6 58 6C66 6 68 26 58 40 M24 62a24 22 0 1 0 48 0a24 22 0 1 0-48 0", detail: "M48 70q-5 5-9 2 M48 70q5 5 9 2", dots: "M36 60a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M54 60a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M45 67a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" },
+  fish: { label: "fish", line: "M10 50C22 28 56 28 72 50C56 72 22 72 10 50Z M72 50L90 33V67Z", detail: "M40 38Q47 50 40 62 M50 33L55 24L63 38", dots: "M21.5 47a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0" },
+  snail: { label: "snail", line: "M36 38a22 22 0 1 0 44 0a22 22 0 1 0-44 0 M82 66C88 76 84 82 74 82H22C10 82 8 70 14 62C18 56 20 50 20 44C20 40 26 40 26 46C26 54 30 60 38 61", detail: "M58 38a4 4 0 0 1 4 4a8 8 0 0 1-8 8a12 12 0 0 1-12-12a16 16 0 0 1 16-16 M20 41L15 27 M26 41L31 27", dots: "M12 25.5a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M28 25.5a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" },
   elephant: { label: "elephant", line: "M28 47a20 20 0 1 0 40 0a20 20 0 1 0-40 0 M31 36.5A15 15 0 1 0 31 57.5 M65 36.5A15 15 0 1 1 65 57.5 M42 64V82Q42 88 48 88Q54 88 54 82V64", dots: "M37 44a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M53 44a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" },
-  giraffe: { label: "giraffe", line: "M20 62V58Q20 52 28 52H44L51 26L50 15Q50 8 58 8H69Q79 8 79 15Q79 22 71 22H65L64 52H68Q74 52 74 58V66H26Q20 66 20 62Z M56 8L55 2 M64 8L66 2 M26 66V90 M36 66V90 M58 66V90 M68 66V90 M20 56Q12 58 14 68", dots: "M66.5 14a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0M27.5 59a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0M39.5 59a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0M54.5 60a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0M54.5 36a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0M55.5 45a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0" },
-  turtle: { label: "turtle", line: "M30 30H66V66H30Z", todo: true },
-  bird: { label: "bird", line: "M30 30H66V66H30Z", todo: true },
-  butterfly: { label: "butterfly", line: "M30 30H66V66H30Z", todo: true },
-  snake: { label: "snake", line: "M30 30H66V66H30Z", todo: true },
-  crab: { label: "crab", line: "M30 30H66V66H30Z", todo: true },
-  spider: { label: "spider", line: "M30 30H66V66H30Z", todo: true },
+  butterfly: { label: "butterfly", line: "M48 44C40 20 14 14 12 30C10 44 28 52 48 50 M48 52C30 52 20 70 28 76C36 82 46 70 48 60 M48 44C56 20 82 14 84 30C86 44 68 52 48 50 M48 52C66 52 76 70 68 76C60 82 50 70 48 60 M48 28V76", detail: "M48 28L40 14 M48 28L56 14", dots: "M23 32a4 4 0 1 0 8 0a4 4 0 1 0 -8 0M65 32a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" },
   // food
   apple: { label: "apple", line: "M30 30H66V66H30Z", todo: true },
   banana: { label: "banana", line: "M30 30H66V66H30Z", todo: true },
   carrot: { label: "carrot", line: "M30 30H66V66H30Z", todo: true },
   cherries: { label: "cherries", line: "M30 30H66V66H30Z", todo: true },
-  strawberry: { label: "strawberry", line: "M30 30H66V66H30Z", todo: true },
-  pizza: { label: "pizza slice", line: "M30 30H66V66H30Z", todo: true },
   icecream: { label: "ice cream", line: "M30 30H66V66H30Z", todo: true },
-  burger: { label: "burger", line: "M30 30H66V66H30Z", todo: true },
-  watermelon: { label: "watermelon", line: "M30 30H66V66H30Z", todo: true },
-  grapes: { label: "grapes", line: "M30 30H66V66H30Z", todo: true },
-  cupcake: { label: "cupcake", line: "M30 30H66V66H30Z", todo: true },
-  broccoli: { label: "broccoli", line: "M30 30H66V66H30Z", todo: true },
   // vehicles
   car: { label: "car", line: "M30 30H66V66H30Z", todo: true },
-  bus: { label: "bus", line: "M30 30H66V66H30Z", todo: true },
-  lorry: { label: "lorry", line: "M30 30H66V66H30Z", todo: true },
-  train: { label: "train", line: "M30 30H66V66H30Z", todo: true },
   plane: { label: "plane", line: "M30 30H66V66H30Z", todo: true },
-  helicopter: { label: "helicopter", line: "M30 30H66V66H30Z", todo: true },
-  rocket: { label: "rocket", line: "M30 30H66V66H30Z", todo: true },
   sailboat: { label: "sailboat", line: "M30 30H66V66H30Z", todo: true },
-  bicycle: { label: "bicycle", line: "M30 30H66V66H30Z", todo: true },
-  tractor: { label: "tractor", line: "M30 30H66V66H30Z", todo: true },
-  balloon: { label: "hot-air balloon", line: "M30 30H66V66H30Z", todo: true },
-  submarine: { label: "submarine", line: "M30 30H66V66H30Z", todo: true },
+  rocket: { label: "rocket", line: "M30 30H66V66H30Z", todo: true },
+  // things
+  sun: { label: "sun", line: "M30 30H66V66H30Z", todo: true },
+  moon: { label: "moon", line: "M30 30H66V66H30Z", todo: true },
+  star: { label: "star", line: "M30 30H66V66H30Z", todo: true },
+  heart: { label: "heart", line: "M30 30H66V66H30Z", todo: true },
+  house: { label: "house", line: "M30 30H66V66H30Z", todo: true },
+  tree: { label: "tree", line: "M30 30H66V66H30Z", todo: true },
+  flower: { label: "flower", line: "M30 30H66V66H30Z", todo: true },
+  umbrella: { label: "umbrella", line: "M30 30H66V66H30Z", todo: true },
+  bell: { label: "bell", line: "M30 30H66V66H30Z", todo: true },
 };
-const THEMES = {
-  animals : ['cat', 'rabbit', 'fish', 'snail', 'elephant', 'giraffe', 'turtle', 'bird', 'butterfly', 'snake', 'crab', 'spider'],
-  food    : ['apple', 'banana', 'carrot', 'cherries', 'strawberry', 'pizza', 'icecream', 'burger', 'watermelon', 'grapes', 'cupcake', 'broccoli'],
-  vehicles: ['car', 'bus', 'lorry', 'train', 'plane', 'helicopter', 'rocket', 'sailboat', 'bicycle', 'tractor', 'balloon', 'submarine'],
-};
+const POOL = [
+  'cat', 'rabbit', 'fish', 'snail', 'elephant', 'butterfly',  // animals
+  'apple', 'banana', 'carrot', 'cherries', 'icecream',  // food
+  'car', 'plane', 'sailboat', 'rocket',  // vehicles
+  'sun', 'moon', 'star', 'heart', 'house', 'tree', 'flower', 'umbrella', 'bell',  // things
+];
 // END_PICTURES
 
 (function checkPictures() {
   const seen = new Set();
-  for (const [theme, keys] of Object.entries(THEMES)) {
-    for (const k of keys) {
-      if (!PICTURES[k]) throw new Error('Theme ' + theme + ' lists unknown picture: ' + k);
-      if (seen.has(k)) throw new Error('Picture listed twice: ' + k);
-      seen.add(k);
-    }
+  for (const k of POOL) {
+    if (!PICTURES[k]) throw new Error('POOL lists unknown picture: ' + k);
+    if (seen.has(k)) throw new Error('Picture listed twice: ' + k);
+    seen.add(k);
   }
+  for (const k of Object.keys(PICTURES)) if (!seen.has(k)) throw new Error('Picture not in POOL: ' + k);
 })();
 
 function picture(key) {
@@ -262,24 +244,20 @@ function picture(key) {
 function pictureSvg(key) {
   const p = picture(key);
   return '<svg class="mm-pic" viewBox="0 0 96 96" aria-hidden="true"><path d="' + p.line + '"/>' +
+    (p.detail ? '<path class="d" d="' + p.detail + '"/>' : '') +
     (p.dots ? '<path class="dot" d="' + p.dots + '"/>' : '') + '</svg>';
 }
-function themeKeys(theme) {
-  return theme === 'random' ? [].concat(THEMES.animals, THEMES.food, THEMES.vehicles) : THEMES[theme];
-}
-
 // ===== SAVED DATA (per player, via the shell) =====
 function loadSaved() {
   saved = (window.KidsGames && window.KidsGames.loadGameData(GAME_ID)) || {};
   state.size = SIZES[saved.size] ? saved.size : DEFAULTS.size;
-  state.theme = (saved.theme === 'random' || THEMES[saved.theme]) ? saved.theme : DEFAULTS.theme;
   state.peek = typeof saved.peek === 'boolean' ? saved.peek : DEFAULTS.peek;
   showSettings();
 }
 function persist() {
   if (!window.KidsGames) return;
   window.KidsGames.saveGameData(GAME_ID, {
-    size: state.size, theme: state.theme, peek: state.peek,
+    size: state.size, peek: state.peek,
     best: saved.best || {}, games: saved.games || 0,
     lastPlayed: new Date().toISOString().slice(0, 10),
   });
@@ -312,7 +290,6 @@ function showSettings() {
     const el = b.querySelector('.mm-best');
     if (el) el.textContent = best ? 'Best ' + fmtTime(best) : '';
   });
-  document.querySelectorAll('#mm-theme-row .kg-seg__opt').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.theme === state.theme)));
   document.getElementById('mm-peek-toggle').checked = state.peek;
   document.getElementById('mm-peek-state').textContent = state.peek ? 'On' : 'Off';
 }
@@ -331,7 +308,6 @@ function initToggleGroup(rowId, stateKey) {
 }
 
 initToggleGroup('mm-size-row', 'size');
-initToggleGroup('mm-theme-row', 'theme');
 
 document.getElementById('mm-peek-toggle').addEventListener('change', e => {
   state.peek = e.target.checked;
@@ -352,8 +328,8 @@ function shuffle(arr) {
   return a;
 }
 
-function buildDeck(theme, pairs) {
-  const chosen = shuffle(themeKeys(theme)).slice(0, pairs);
+function buildDeck(pairs) {
+  const chosen = shuffle(POOL).slice(0, pairs);
   return shuffle([...chosen, ...chosen]);
 }
 
@@ -427,7 +403,7 @@ function cardLabel(card, mode) {
 function startGame() {
   cancelTimers();
   const pairs = SIZES[state.size].cols * SIZES[state.size].rows / 2;
-  const deck = buildDeck(state.theme, pairs);
+  const deck = buildDeck(pairs);
 
   flipped = []; matched = 0; flips = 0; locked = false; totalPairs = pairs;
   missStreak = 0; seen = new Set(); hintCard = null; startedAt = null;
