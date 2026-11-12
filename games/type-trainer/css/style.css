@@ -160,7 +160,7 @@
 .key[data-zone="right-pinky"]::after  { background-image: repeating-linear-gradient(90deg, currentColor 0 4px, transparent 4px 8px); background-size: 8px 5px; }
 
 /* F and J bumps */
-.key--home-indicator::before { content: ''; position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); width: 14px; height: 3px; background: currentColor; border-radius: 2px; z-index: 1; }
+.key--home-indicator::before { content: ''; position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); width: 14px; height: 3px; background: currentColor; border-radius: 3px; z-index: 1; }
 
 /* Interaction states: shape and weight, not just colour */
 .key--target { outline: 5px solid var(--ink); outline-offset: 1px; transform: scale(1.12); z-index: 2; }
@@ -169,7 +169,7 @@
 .keyboard--spotlight .key { opacity: 0.4; }
 .keyboard--spotlight .key--target { opacity: 1; }
 
-@media (max-width: 760px) { .keyboard-container { padding: var(--s1) var(--s2); } .keyboard { --key-height: clamp(30px, 5.4vh, 44px); } .key { font-size: 0.7rem; } }
+@media (max-width: 760px) { .keyboard-container { padding: var(--s1) var(--s2); } .keyboard { --key-height: clamp(30px, 5.4vh, 44px); } .key { font-size: 0.75rem; } }
 
 /* === Overlays (pause, game over): a full chalk panel === */
 .overlay {

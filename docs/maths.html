@@ -262,6 +262,15 @@ button { font: inherit; color: inherit; }
   .kg-iconbtn[aria-pressed="true"]:hover { background: var(--ink); }
 }
 
+.kg-iconbtn__label { display: none; font-size: var(--t-small); font-weight: 700; }
+@media (min-width: 760px) {
+  .kg-iconbtn--quiet { width: auto; padding: 0 var(--s3); gap: var(--s2); }
+  .kg-iconbtn--quiet .kg-iconbtn__label { display: inline; }
+}
+.kg-guide { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s2); font-size: var(--t-small); }
+.kg-guide li { display: flex; justify-content: space-between; gap: var(--s3); padding: var(--s2) var(--s3); background: var(--ground); border: var(--line-w) solid var(--line); border-radius: var(--r-1); }
+.kg-guide li span:last-child { color: var(--ink-2); text-align: right; }
+
 /* Press-and-hold fill on the grown-ups button */
 .kg-hold { position: absolute; left: 0; bottom: 0; height: 8px; width: 0; background: var(--paint-yellow); }
 .kg-iconbtn.is-holding .kg-hold { width: 100%; transition: width 1100ms linear; }
@@ -550,13 +559,6 @@ button { font: inherit; color: inherit; }
 .maths-complexity-badge { padding: 4px 14px; border-radius: var(--r-pill); border: var(--line-w) solid var(--line); background: var(--paint-yellow); color: #141922; font-weight: 700; }
 .maths-complexity-example { font-weight: 700; }
 
-/* Play button dock: always in reach, never below the fold */
-.maths-dock {
-  position: sticky; bottom: 0; align-self: flex-end; width: 100%;
-  padding: var(--s3) var(--s4) calc(var(--s3) + var(--safe-b));
-  background: var(--ground); border-top: var(--line-w) solid var(--line);
-}
-.maths-dock .kg-btn { display: flex; max-width: 720px; margin: 0 auto; min-height: 76px; font-size: var(--t-title); }
 #maths-settings { flex-direction: column; align-items: center; justify-content: space-between; padding: 0; }
 #maths-settings .kg-wrap { padding: var(--s5) var(--s4); }
 
@@ -686,6 +688,7 @@ button { font: inherit; color: inherit; }
   <button id="kg-grownups-btn" class="kg-iconbtn kg-iconbtn--quiet" type="button"
           aria-label="Grown-ups. Press and hold to open." aria-haspopup="dialog">
     <svg class="ic"><use href="#i-grownups"/></svg>
+    <span class="kg-iconbtn__label">Grown-ups</span>
     <span class="kg-hold" aria-hidden="true"></span>
   </button>
 
@@ -784,6 +787,17 @@ button { font: inherit; color: inherit; }
       </button>
     </section>
 
+    <section class="kg-group" aria-labelledby="kg-g-games">
+      <h3 id="kg-g-games" class="kg-label">Games guide</h3>
+      <ul class="kg-guide">
+        <li><span>Number Bonds</span><span>Ages 4–12+</span></li>
+        <li><span>Maths</span><span>Ages 5–10</span></li>
+        <li><span>Opposites</span><span>Ages 4–8</span></li>
+        <li><span>Memory Match</span><span>Ages 4–10</span></li>
+        <li><span>Type Trainer</span><span>Ages 4–12+, needs a keyboard</span></li>
+      </ul>
+    </section>
+
     <section class="kg-group kg-about" aria-labelledby="kg-g-about">
       <h3 id="kg-g-about" class="kg-label">About</h3>
       <p>Free, no ads, no tracking. Made by Robert Beverton, with a lot of help from Claude.</p>
@@ -791,7 +805,7 @@ button { font: inherit; color: inherit; }
         Feedback or bug? Raise it on GitHub
         <svg class="ic ic--sm"><use href="#i-link"/></svg>
       </a>
-      <p>Version 43086c9 12 Nov 08:46</p>
+      <p>Version 1cd4ea8 12 Nov 08:55</p>
     </section>
   </div>
 </div>
@@ -881,7 +895,7 @@ button { font: inherit; color: inherit; }
       </fieldset>
     </div>
 
-    <div class="maths-dock">
+    <div class="kg-dock">
       <button id="maths-start-btn" class="kg-btn kg-btn--block maths-start">
         <svg class="ic ic--lg" aria-hidden="true"><use href="#i-play"/></svg><span>Let's go!</span>
       </button>

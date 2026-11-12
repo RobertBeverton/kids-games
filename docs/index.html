@@ -266,6 +266,15 @@ button { font: inherit; color: inherit; }
   .kg-iconbtn[aria-pressed="true"]:hover { background: var(--ink); }
 }
 
+.kg-iconbtn__label { display: none; font-size: var(--t-small); font-weight: 700; }
+@media (min-width: 760px) {
+  .kg-iconbtn--quiet { width: auto; padding: 0 var(--s3); gap: var(--s2); }
+  .kg-iconbtn--quiet .kg-iconbtn__label { display: inline; }
+}
+.kg-guide { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s2); font-size: var(--t-small); }
+.kg-guide li { display: flex; justify-content: space-between; gap: var(--s3); padding: var(--s2) var(--s3); background: var(--ground); border: var(--line-w) solid var(--line); border-radius: var(--r-1); }
+.kg-guide li span:last-child { color: var(--ink-2); text-align: right; }
+
 /* Press-and-hold fill on the grown-ups button */
 .kg-hold { position: absolute; left: 0; bottom: 0; height: 8px; width: 0; background: var(--paint-yellow); }
 .kg-iconbtn.is-holding .kg-hold { width: 100%; transition: width 1100ms linear; }
@@ -607,6 +616,29 @@ button { font: inherit; color: inherit; }
     .mark { padding: var(--s3); }
     .mark--lead .mark__desc { display: none !important; }
   }
+  /* Short landscape (phones on their side): one row of five */
+  @media (orientation: landscape) and (max-height: 520px) {
+    .hub { height: auto; min-height: calc(100dvh - var(--bar-h)); padding: var(--s2) var(--s3) var(--s3); gap: var(--s2); }
+    .hub__hello { font-size: var(--t-body); }
+    .hub__credit { display: none; }
+    .plan { grid-template-columns: 1.5fr repeat(4, minmax(0, 1fr)); grid-template-rows: minmax(210px, 1fr); }
+    .mark--lead { grid-column: 1; grid-row: 1; flex-direction: column; text-align: center; padding: var(--s3); }
+    .mark--lead .mk-wrap { flex: 1; }
+    .mark--lead .mark__text { align-items: center !important; }
+    .mark--lead .mark__name { font-size: var(--t-lead); }
+    .mark--lead .mark__desc { display: none !important; }
+    .mark--lead .mark__go { min-height: 48px; padding: 0 var(--s4); font-size: var(--t-body); }
+    .mark .kg-squares i { max-width: 12px; }
+    .plan { grid-template-rows: minmax(0, 1fr); }
+    .mark { padding: var(--s2); gap: var(--s1); }
+    .mark .mk { max-height: 76px; }
+    .mark--lead .mk { max-height: 110px; }
+    .mark__name { font-size: var(--t-small); }
+    .mark--lead .mark__name { font-size: var(--t-body); }
+    .mark__kbd { width: 32px; height: 32px; top: var(--s1); right: var(--s1); }
+    .mark__kbd .ic { width: 18px; height: 18px; }
+    .hub { height: max(calc(100dvh - var(--bar-h)), 300px); }
+  }
   .mark__text { display: contents; }
   .mark--lead .mark__text { display: flex; flex-direction: column; align-items: center; gap: var(--s3); }
   @media (max-aspect-ratio: 5/6), (max-width: 640px) { .mark--lead .mark__text { align-items: flex-start; } }
@@ -682,6 +714,7 @@ button { font: inherit; color: inherit; }
   <button id="kg-grownups-btn" class="kg-iconbtn kg-iconbtn--quiet" type="button"
           aria-label="Grown-ups. Press and hold to open." aria-haspopup="dialog">
     <svg class="ic"><use href="#i-grownups"/></svg>
+    <span class="kg-iconbtn__label">Grown-ups</span>
     <span class="kg-hold" aria-hidden="true"></span>
   </button>
 
@@ -780,6 +813,17 @@ button { font: inherit; color: inherit; }
       </button>
     </section>
 
+    <section class="kg-group" aria-labelledby="kg-g-games">
+      <h3 id="kg-g-games" class="kg-label">Games guide</h3>
+      <ul class="kg-guide">
+        <li><span>Number Bonds</span><span>Ages 4–12+</span></li>
+        <li><span>Maths</span><span>Ages 5–10</span></li>
+        <li><span>Opposites</span><span>Ages 4–8</span></li>
+        <li><span>Memory Match</span><span>Ages 4–10</span></li>
+        <li><span>Type Trainer</span><span>Ages 4–12+, needs a keyboard</span></li>
+      </ul>
+    </section>
+
     <section class="kg-group kg-about" aria-labelledby="kg-g-about">
       <h3 id="kg-g-about" class="kg-label">About</h3>
       <p>Free, no ads, no tracking. Made by Robert Beverton, with a lot of help from Claude.</p>
@@ -787,7 +831,7 @@ button { font: inherit; color: inherit; }
         Feedback or bug? Raise it on GitHub
         <svg class="ic ic--sm"><use href="#i-link"/></svg>
       </a>
-      <p>Version 43086c9 12 Nov 08:46</p>
+      <p>Version 1cd4ea8 12 Nov 08:55</p>
     </section>
   </div>
 </div>
@@ -904,7 +948,7 @@ button { font: inherit; color: inherit; }
     if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.button > 0) return;
     e.preventDefault();
     if (window.KidsGames) window.KidsGames.sfx('start');
-    var reduced = getComputedStyle(document.documentElement).getPropertyValue('--dur-paint').indexOf('0.01') === 0;
+    var reduced = !!(window.KidsGames && window.KidsGames.reducedMotion);
     a.classList.remove('is-painting'); void a.offsetWidth; a.classList.add('is-painting');
     setTimeout(function () { window.location.href = a.getAttribute('href'); }, reduced ? 0 : 260);
   });

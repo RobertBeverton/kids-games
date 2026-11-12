@@ -1,0 +1,35 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "hub.html"
+        ],
+        "createdAt": "2026-11-12T08:01:07.145Z",
+        "reason": "incumbent: cream --bg (#FFF8E7) is the shared colourful-light token in shared/tokens.css used by every game; polish preserves it. Not user confirmed."
+      },
+      {
+        "rule": "repeating-stripes-gradient",
+        "value": "*",
+        "files": [
+          "games/type-trainer/css/style.css"
+        ],
+        "createdAt": "2026-11-12T08:51:33.778Z",
+        "reason": "designer decision in-thread (not user-confirmed): the 8 key patterns are the non-colour cue that keeps finger zones distinguishable (WCAG 1.4.1); each zone has a unique pattern"
+      },
+      {
+        "rule": "repeating-stripes-gradient",
+        "value": "*",
+        "files": [
+          "docs/type-trainer.html"
+        ],
+        "createdAt": "2026-11-12T08:51:33.990Z",
+        "reason": "built copy of games/type-trainer/css/style.css; same deliberate non-colour key patterns"
+      }
+    ]
+  }
+}

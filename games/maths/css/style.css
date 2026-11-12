@@ -29,13 +29,6 @@
 .maths-complexity-badge { padding: 4px 14px; border-radius: var(--r-pill); border: var(--line-w) solid var(--line); background: var(--paint-yellow); color: #141922; font-weight: 700; }
 .maths-complexity-example { font-weight: 700; }
 
-/* Play button dock: always in reach, never below the fold */
-.maths-dock {
-  position: sticky; bottom: 0; align-self: flex-end; width: 100%;
-  padding: var(--s3) var(--s4) calc(var(--s3) + var(--safe-b));
-  background: var(--ground); border-top: var(--line-w) solid var(--line);
-}
-.maths-dock .kg-btn { display: flex; max-width: 720px; margin: 0 auto; min-height: 76px; font-size: var(--t-title); }
 #maths-settings { flex-direction: column; align-items: center; justify-content: space-between; padding: 0; }
 #maths-settings .kg-wrap { padding: var(--s5) var(--s4); }
 
