@@ -1,0 +1,8 @@
+/* Sentence Blocks. Shared parts live in shared/shell.css (kg-*). */
+
+/* Drawn pictures: one stroke weight and round ends, the same as Memory Match's .mm-pic. */
+.sb-pic { display: block; width: 100%; height: 100%; fill: none; stroke: var(--line); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.sb-pic .d { stroke-width: 3; }
+.sb-pic .dot { fill: var(--line); stroke: none; }
+/* A missing drawing is dashed with a cross, so it can never be mistaken for a finished one. */
+.sb-pic--missing { stroke-dasharray: 6 6; }

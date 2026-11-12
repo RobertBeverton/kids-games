@@ -897,12 +897,14 @@ export function missingSvg(key) {
 
 **Files:** Create `games/sentence-blocks/tests/contact-sheet.mjs`.
 
-A script that writes one HTML page showing every picture and header glyph at tile size and at 40px, in Day and Dusk, labelled with its key and slot colour, then (optionally) screenshots it with Playwright. It exists so drawing review is quick and exact.
+A script that writes two HTML pages (Day and Dusk; theme tokens only apply on `<html data-theme>`, so each theme needs its own page) showing every picture and header glyph, labelled with its key and slot colour, then (optionally) screenshots it with Playwright. It exists so drawing review is quick and exact.
 
 ```js
 // Usage: node games/sentence-blocks/tests/contact-sheet.mjs <out.html> [<out.png>]
+// Writes <out.html> (Day) and <out-dark.html> (Dusk); with PLAYWRIGHT_CORE it also writes <out.png> and <out-dark.png>.
 // Set PLAYWRIGHT_CORE to also write a screenshot.
 import fs from 'node:fs';
+import { pathToFileURL } from 'node:url';
 import { PICTURES, SLOT_GLYPHS, pictureSvg } from '../js/pictures.js';
 import { DATA } from '../js/words.js';
 import { SLOT_ORDER, tileText } from '../js/engine.js';
@@ -914,18 +916,27 @@ const tokens = fs.readFileSync(new URL('../../../shared/tokens.css', import.meta
 const cell = (slot, t) => `<figure class="cs sb-tile--${slot}"><div class="cs-pic">${pictureSvg(t.pic)}</div><figcaption>${tileText(slot, t)}<br><small>${t.pic}</small></figcaption></figure>`;
 const sections = SLOT_ORDER.map((slot) => `<h2>${slot}</h2><div class="cs-row">${DATA[slot].map((t) => cell(slot, t)).join('')}</div>`).join('');
 const glyphs = Object.keys(SLOT_GLYPHS).map((k) => `<figure class="cs"><div class="cs-pic">${pictureSvg(k)}</div><figcaption>${k}</figcaption></figure>`).join('');
-const html = (theme) => `<section data-theme="${theme}" class="cs-theme"><h1>${theme}</h1>${sections}<h2>slot glyphs</h2><div class="cs-row">${glyphs}</div></section>`;
-fs.writeFileSync(out, `<!doctype html><meta charset=utf-8><style>${tokens}\n${css}\n.cs-theme{background:var(--ground);color:var(--ink);padding:16px}.cs-row{display:flex;flex-wrap:wrap;gap:12px}.cs{margin:0;width:120px;text-align:center;font:14px sans-serif}.cs-pic{width:96px;height:96px;margin:auto}</style><body>${html('colourful-light')}${html('colourful-dark')}`);
+// Theme tokens only apply on <html data-theme=...>, so each theme is its own page.
+const page = (theme) => `<!doctype html><html data-theme="${theme}"><meta charset=utf-8><style>${tokens}
+${css}
+body{background:var(--ground);color:var(--ink);padding:16px;margin:0}.cs-row{display:flex;flex-wrap:wrap;gap:12px}.cs{margin:0;width:120px;text-align:center;font:14px sans-serif}.cs-pic{width:96px;height:96px;margin:auto}</style><body><h1>${theme}</h1>${sections}<h2>slot glyphs</h2><div class="cs-row">${glyphs}</div>`;
+const darkOf = (f) => f.replace(/(\.[a-z]+)$/, '-dark$1');
+fs.writeFileSync(out, page('colourful-light'));
+fs.writeFileSync(darkOf(out), page('colourful-dark'));
 if (png && process.env.PLAYWRIGHT_CORE) {
   const { chromium } = await import(process.env.PLAYWRIGHT_CORE);
   const b = await chromium.launch({ channel: 'msedge' });
   const p = await b.newPage({ viewport: { width: 1100, height: 900 } });
-  await p.goto('file:///' + out.replace(/\\/g, '/'));
-  await p.screenshot({ path: png, fullPage: true });
+  for (const [file, shot] of [[out, png], [darkOf(out), darkOf(png)]]) {
+    await p.goto(pathToFileURL(file).href);
+    await p.screenshot({ path: shot, fullPage: true });
+  }
   await b.close();
 }
-console.log('wrote', out);
+console.log('wrote', out, 'and', darkOf(out));
 ```
+
+**As built:** it also needs `css/style.css` to exist and to contain the base `.sb-pic` picture rules (stroke weights copied from Memory Match's `.mm-pic`), or every drawing renders as a black blob. Both are created in this task now (the plan originally left the CSS to Task 7). `PLAYWRIGHT_CORE` can be `file:///D:/GitHub/Stories/node_modules/playwright-core/index.mjs`, which already exists on this machine.
 
 Run it with the seed set: `node games/sentence-blocks/tests/contact-sheet.mjs /tmp/sheet.html`. Expected: `wrote /tmp/sheet.html` (all tiles show the ugly placeholder, which is correct this early). Commit `test(sentence-blocks): contact sheet for reviewing drawings`.
 
