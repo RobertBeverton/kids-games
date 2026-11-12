@@ -4,404 +4,146 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Memory Match</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../../shared/tokens.css">
 <link rel="stylesheet" href="../../shared/shell.css">
 <style>
-/* ===== Reset + Body ===== */
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-body {
-  font-family: var(--font-family);
-  background: var(--bg);
-  min-height: 100vh;
-  overflow-x: hidden;
-  position: relative;
-  padding-top: 56px;
-}
-
-body::before, body::after {
-  content: '';
-  position: fixed;
-  border-radius: 50%;
-  z-index: 0;
-  opacity: 0.15;
-  animation: mmFloat 8s ease-in-out infinite;
-  pointer-events: none;
-}
-body::before { width: 300px; height: 300px; background: var(--accent-blue); top: -80px; right: -80px; }
-body::after  { width: 250px; height: 250px; background: var(--accent-purple); bottom: -60px; left: -60px; animation-delay: -4s; }
-
-@keyframes mmFloat {
-  0%,100% { transform: translate(0,0) scale(1); }
-  50% { transform: translate(15px,20px) scale(1.05); }
-}
-
-/* ===== Screens ===== */
-#mm-app { position: relative; z-index: 1; }
-.mm-screen { min-height: calc(100vh - 56px); display: flex; align-items: flex-start; justify-content: center; padding: 24px 16px 48px; }
+/* Memory Match. Shared parts live in shared/shell.css (kg-*). */
+.mm-screen { padding-bottom: 0; }
 .mm-screen[hidden] { display: none !important; }
+.mm-fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.mm-fieldset .kg-seg { gap: var(--s3); }
 
-/* ===== Settings ===== */
-.mm-settings-wrap {
-  width: 100%;
-  max-width: 560px;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-lg);
-}
+/* Settings tiles */
+.mm-size, .mm-theme { flex-direction: column; gap: var(--s2); min-height: 124px; }
+.mm-size small { font-size: var(--t-small); font-weight: 400; }
+.mm-thumb { display: grid; gap: 3px; height: 68px; align-content: center; justify-content: center; }
+.mm-thumb i { display: block; width: 11px; height: 12px; border-radius: 3px; background: currentColor; }
+.mm-theme .ic { width: 40px; height: 40px; }
+.mm-name { font-size: var(--t-body); }
 
-.mm-logo { font-size: 4rem; text-align: center; animation: mmBounce 0.6s ease-out; }
-
-@keyframes mmBounce {
-  0% { transform: scale(0.5); opacity: 0; }
-  60% { transform: scale(1.1); }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-.mm-title {
-  font-size: 2.4rem;
-  font-weight: 900;
-  text-align: center;
-  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.mm-fieldset { border: none; padding: 0; }
-
-.mm-legend {
-  font-size: var(--text-sm);
-  font-weight: 800;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: var(--space-sm);
-  display: block;
-}
-
-.mm-toggle-row { display: flex; flex-wrap: wrap; gap: var(--space-xs); }
-
-.mm-toggle {
-  flex: 1;
-  min-width: 64px;
-  min-height: 48px;
-  border: 2px solid var(--border);
-  border-radius: var(--radius-xl);
-  background: var(--bg-surface);
-  font-family: var(--font-family);
-  font-size: var(--text-lg);
-  font-weight: 800;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  padding: 4px 8px;
-  line-height: 1.2;
-}
-.mm-toggle:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
-.mm-toggle--active {
-  background: var(--accent-blue);
-  border-color: var(--accent-blue);
-  color: #fff;
-}
-.mm-toggle--active:hover { background: var(--accent-blue); color: #fff; }
-
-/* Peek toggle row */
-.mm-peek-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: var(--bg-surface);
-  border-radius: var(--radius-xl);
-  padding: 14px 20px;
-  box-shadow: var(--shadow);
-}
-.mm-peek-label {
-  font-size: var(--text-lg);
-  font-weight: 800;
-  color: var(--text-primary);
-}
-.mm-peek-sub {
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
-  font-weight: 600;
-  display: block;
-}
-
-/* Toggle switch */
-.mm-switch { position: relative; display: inline-block; width: 52px; height: 28px; }
-.mm-switch input { opacity: 0; width: 0; height: 0; }
-.mm-slider {
-  position: absolute; cursor: pointer; inset: 0;
-  background: var(--border);
-  border-radius: 28px;
-  transition: background var(--transition-fast);
-}
-.mm-slider::before {
-  content: '';
-  position: absolute;
-  width: 20px; height: 20px;
-  left: 4px; top: 4px;
-  background: #fff;
-  border-radius: 50%;
-  transition: transform var(--transition-fast);
-}
-.mm-switch input:checked + .mm-slider { background: var(--accent-blue); }
-.mm-switch input:checked + .mm-slider::before { transform: translateX(24px); }
-
-/* Play button */
-.mm-play-btn {
-  width: 100%;
-  padding: 18px;
-  border: none;
-  border-radius: var(--radius-xl);
-  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-  color: #fff;
-  font-family: var(--font-family);
-  font-size: 1.4rem;
-  font-weight: 900;
-  cursor: pointer;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-  box-shadow: var(--shadow);
-  margin-top: var(--space-sm);
-}
-.mm-play-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
-.mm-play-btn:active { transform: translateY(0); }
-
-/* ===== Board Screen ===== */
-.mm-board-inner {
-  width: 100%;
-  max-width: 600px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.mm-hud {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 4px;
-}
-
-.mm-hud-back {
-  background: none;
-  border: none;
-  font-size: 1.4rem;
-  cursor: pointer;
-  color: var(--text-secondary);
-  font-family: var(--font-family);
-  font-weight: 800;
-  padding: 4px 8px;
-}
-.mm-hud-back:hover { color: var(--text-primary); }
-
-.mm-hud-flips {
-  font-size: var(--text-lg);
-  font-weight: 800;
-  color: var(--text-secondary);
-}
+/* Board */
+.mm-board-screen { flex-direction: column; align-items: center; justify-content: flex-start; gap: var(--s3); padding: var(--s3) var(--s4) calc(var(--s4) + var(--safe-b)); }
+.mm-hud { width: 100%; max-width: 760px; display: flex; align-items: center; gap: var(--s3); min-height: 56px; }
+.mm-hud .kg-squares { flex: 1; justify-content: center; flex-wrap: wrap; }
+.mm-hud .kg-squares i { width: 16px; height: 16px; }
+@media (max-width: 520px) { .mm-hud .kg-squares i { width: 12px; height: 12px; } .mm-hud .kg-squares { gap: 2px; } }
 
 .mm-grid {
-  display: grid;
-  gap: 6px;
+  --gap: 10px;
+  --cols: 3; --rows: 4;
+  --avail-h: calc(100dvh - var(--bar-h) - 56px - 3 * var(--s3) - var(--s4) - var(--safe-b));
+  --cw: min(
+    calc((100vw - 2 * var(--s4) - (var(--cols) - 1) * var(--gap)) / var(--cols)),
+    calc((var(--avail-h) - (var(--rows) - 1) * var(--gap)) / var(--rows) * 0.75),
+    170px);
+  display: grid; gap: var(--gap); justify-content: center;
+  grid-template-columns: repeat(var(--cols), var(--cw));
+  grid-auto-rows: calc(var(--cw) * 4 / 3);
+}
+.mm-grid[data-size="2x4"] { --cols: 2; --rows: 4; }
+.mm-grid[data-size="3x4"] { --cols: 3; --rows: 4; }
+.mm-grid[data-size="4x4"] { --cols: 4; --rows: 4; }
+.mm-grid[data-size="4x5"] { --cols: 4; --rows: 5; }
+/* Wide screens turn the board on its side so every card stays in view */
+@media (min-aspect-ratio: 1/1) {
+  .mm-grid[data-size="2x4"] { --cols: 4; --rows: 2; }
+  .mm-grid[data-size="3x4"] { --cols: 4; --rows: 3; }
+  .mm-grid[data-size="4x4"] { --cols: 4; --rows: 4; }
+  .mm-grid[data-size="4x5"] { --cols: 5; --rows: 4; }
 }
 
-/* ===== Cards ===== */
-.mm-card {
-  aspect-ratio: 3/4;
-  cursor: pointer;
-  perspective: 600px;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.mm-card-inner {
-  width: 100%; height: 100%;
-  position: relative;
-  transform-style: preserve-3d;
-  transition: transform 0.3s ease;
-  border-radius: var(--radius-xl);
-}
-
-.mm-card--flipped .mm-card-inner,
-.mm-card--matched .mm-card-inner {
-  transform: rotateY(180deg);
-}
-
+/* Cards are real buttons */
+.mm-card { padding: 0; border: 0; background: none; perspective: 700px; cursor: pointer; font: inherit; min-width: 0; min-height: 0; }
+.mm-card:disabled { cursor: default; }
+.mm-card-inner { position: relative; display: block; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform var(--dur-2) var(--ease); border-radius: var(--r-2); }
+.mm-card--flipped .mm-card-inner, .mm-card--matched .mm-card-inner { transform: rotateY(180deg); }
 .mm-card-back, .mm-card-front {
-  position: absolute; inset: 0;
-  border-radius: var(--radius-xl);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: absolute; inset: 0; display: grid; place-items: center;
+  border: var(--line-w) solid var(--line); border-radius: var(--r-2);
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
 }
+.mm-card-back { background: var(--paint); color: var(--on-paint); }
+.mm-card-back .ic { width: 46%; height: 46%; stroke-width: 4; }
+.mm-card-front { background: var(--chalk); transform: rotateY(180deg); }
+.mm-card-emoji { font-size: clamp(2rem, calc(var(--cw) * 0.5), 5rem); line-height: 1; user-select: none; }
+.mm-card--matched .mm-card-front { background: var(--right-wash); border-color: var(--right); border-width: 5px; }
+.mm-card--matched .mm-card-front::after {
+  content: ""; position: absolute; top: 6px; right: 6px; width: 26px; height: 26px; background: var(--right);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath d='M9 26l11 11L40 13' fill='none' stroke='black' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath d='M9 26l11 11L40 13' fill='none' stroke='black' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.mm-card--mismatch .mm-card-front { border-color: var(--wrong); border-width: 5px; background: var(--wrong-wash); }
+.mm-card--mismatch .mm-card-front::after {
+  content: ""; position: absolute; top: 6px; right: 6px; width: 26px; height: 26px; background: var(--wrong);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath d='M12 12l24 24M36 12L12 36' fill='none' stroke='black' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath d='M12 12l24 24M36 12L12 36' fill='none' stroke='black' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.mm-card--mismatch .mm-card-inner { animation: mmNudge var(--dur-2) var(--ease); }
+@keyframes mmNudge { 0%,100% { transform: rotateY(180deg) translateX(0); } 30% { transform: rotateY(180deg) translateX(-6px); } 70% { transform: rotateY(180deg) translateX(6px); } }
+.mm-card--hint .mm-card-back { outline: 6px dashed var(--ink); outline-offset: 3px; }
 
-.mm-card-back {
-  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-  box-shadow: var(--shadow);
-  font-size: 2rem;
-  color: rgba(255,255,255,0.7);
-  font-weight: 900;
-}
-
-.mm-card-front {
-  background: var(--bg-surface);
-  box-shadow: var(--shadow);
-  transform: rotateY(180deg);
-}
-
-.mm-card-emoji {
-  font-size: clamp(1.5rem, 5vw, 3rem);
-  line-height: 1;
-  user-select: none;
-}
-
-.mm-card--matched .mm-card-front {
-  background: #d4f7e4;
-  box-shadow: 0 0 0 3px #34c76f, var(--shadow);
-}
-
-@keyframes mmShake {
-  0%,100% { transform: rotateY(180deg) translateX(0); }
-  20% { transform: rotateY(180deg) translateX(-6px); }
-  40% { transform: rotateY(180deg) translateX(6px); }
-  60% { transform: rotateY(180deg) translateX(-4px); }
-  80% { transform: rotateY(180deg) translateX(4px); }
-}
-
-.mm-card--mismatch .mm-card-inner {
-  animation: mmShake 0.4s ease;
-}
-
-@keyframes mmPulse {
-  0%,100% { transform: scale(1); }
-  50% { transform: scale(1.08); }
-}
-@keyframes mmPulseGlow {
-  0%,100% { box-shadow: var(--shadow); }
-  50% { box-shadow: 0 0 0 4px var(--accent-blue), var(--shadow); }
-}
-.mm-card--hint { animation: mmPulse 0.6s ease 2; }
-.mm-card--hint .mm-card-inner { animation: mmPulseGlow 0.6s ease 2; }
-
-/* ===== Win Screen ===== */
-.mm-win-wrap {
-  width: 100%;
-  max-width: 480px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-lg);
-}
-
-.mm-win-emoji {
-  font-size: 5rem;
-  animation: mmBounce 0.6s ease-out;
-}
-
-.mm-win-title {
-  font-size: 2.8rem;
-  font-weight: 900;
-  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.mm-win-flips {
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: var(--text-secondary);
-}
-
-.mm-win-btn {
-  width: 100%;
-  padding: 16px;
-  border: none;
-  border-radius: var(--radius-xl);
-  font-family: var(--font-family);
-  font-size: 1.2rem;
-  font-weight: 900;
-  cursor: pointer;
-  transition: transform var(--transition-fast);
-}
-.mm-win-btn:hover { transform: translateY(-2px); }
-.mm-win-btn--primary {
-  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-  color: #fff;
-  box-shadow: var(--shadow);
-}
-.mm-win-btn--secondary {
-  background: var(--bg-surface);
-  color: var(--text-primary);
-  border: 2px solid var(--border);
-}
+/* Win */
+.mm-win { width: 100%; max-width: 520px; display: grid; justify-items: center; gap: var(--s4); text-align: center; margin: auto; }
+.mm-win .mk { width: clamp(120px, 26vmin, 200px); height: clamp(120px, 26vmin, 200px); color: var(--on-paint); background: var(--paint); border: var(--line-w) solid var(--line); border-radius: var(--r-2); padding: 18px; animation: kg-paint-on var(--dur-paint) var(--ease) both; }
+.mm-win h2 { margin: 0; font-size: var(--t-display); line-height: 1.05; }
+.mm-win p { margin: 0; font-size: var(--t-lead); }
+.mm-win .kg-actions { width: 100%; justify-content: center; }
+.mm-win .kg-btn { white-space: nowrap; }
 </style>
 </head>
-<body data-page="memory-match" data-page-title="Memory Match">
+<body data-page="memory-match" data-page-title="Memory Match" data-paint="green">
 
 <!-- Shell bar injected by build script -->
 
 <div id="mm-app">
 
-  <!-- SCREEN: Settings -->
-  <div id="mm-settings" class="mm-screen">
-    <div class="mm-settings-wrap">
-      <div class="mm-logo">🃏</div>
-      <h1 class="mm-title">Memory Match</h1>
+  <!-- STATION 1: settings -->
+  <div id="mm-settings" class="kg-screen mm-screen" style="flex-direction:column;align-items:center;justify-content:space-between;padding:0">
+    <div class="kg-wrap" style="padding:var(--s5) var(--s4)">
+      <h1 class="kg-title kg-title--paint">
+        <svg class="mk" viewBox="0 0 96 96" aria-hidden="true"><use href="#m-memory"/></svg>
+        Memory Match
+      </h1>
 
-      <!-- Board Size -->
       <fieldset class="mm-fieldset">
-        <legend class="mm-legend">Board Size</legend>
-        <div class="mm-toggle-row" id="mm-size-row">
-          <button class="mm-toggle" data-size="2x4" aria-pressed="false">Quick<br><small>2×4</small></button>
-          <button class="mm-toggle mm-toggle--active" data-size="3x4" aria-pressed="true">Medium<br><small>3×4</small></button>
-          <button class="mm-toggle" data-size="4x4" aria-pressed="false">Classic<br><small>4×4</small></button>
-          <button class="mm-toggle" data-size="4x5" aria-pressed="false">Challenge<br><small>4×5</small></button>
+        <legend class="kg-label">How many cards</legend>
+        <div class="kg-seg" id="mm-size-row" role="group" aria-label="How many cards">
+          <button class="kg-seg__opt mm-size" data-size="2x4" aria-pressed="false"><span class="mm-thumb" style="grid-template-columns:repeat(2,12px)" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="mm-name">Quick</span><small>2×4</small></button>
+          <button class="kg-seg__opt mm-size" data-size="3x4" aria-pressed="true"><span class="mm-thumb" style="grid-template-columns:repeat(3,12px)" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="mm-name">Medium</span><small>3×4</small></button>
+          <button class="kg-seg__opt mm-size" data-size="4x4" aria-pressed="false"><span class="mm-thumb" style="grid-template-columns:repeat(4,12px)" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="mm-name">Classic</span><small>4×4</small></button>
+          <button class="kg-seg__opt mm-size" data-size="4x5" aria-pressed="false"><span class="mm-thumb" style="grid-template-columns:repeat(4,12px)" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="mm-name">Challenge</span><small>4×5</small></button>
         </div>
       </fieldset>
 
-      <!-- Theme -->
       <fieldset class="mm-fieldset">
-        <legend class="mm-legend">Theme</legend>
-        <div class="mm-toggle-row" id="mm-theme-row">
-          <button class="mm-toggle mm-toggle--active" data-theme="animals" aria-pressed="true">🐾<br><small>Animals</small></button>
-          <button class="mm-toggle" data-theme="food" aria-pressed="false">🍕<br><small>Food</small></button>
-          <button class="mm-toggle" data-theme="vehicles" aria-pressed="false">🚗<br><small>Vehicles</small></button>
-          <button class="mm-toggle" data-theme="random" aria-pressed="false">🎲<br><small>Random</small></button>
+        <legend class="kg-label">What pictures</legend>
+        <div class="kg-seg" id="mm-theme-row" role="group" aria-label="What pictures">
+          <button class="kg-seg__opt mm-theme" data-theme="animals" aria-pressed="true"><svg class="ic" aria-hidden="true"><use href="#i-animals"/></svg><span class="mm-name">Animals</span></button>
+          <button class="kg-seg__opt mm-theme" data-theme="food" aria-pressed="false"><svg class="ic" aria-hidden="true"><use href="#i-food"/></svg><span class="mm-name">Food</span></button>
+          <button class="kg-seg__opt mm-theme" data-theme="vehicles" aria-pressed="false"><svg class="ic" aria-hidden="true"><use href="#i-vehicles"/></svg><span class="mm-name">Vehicles</span></button>
+          <button class="kg-seg__opt mm-theme" data-theme="random" aria-pressed="false"><svg class="ic" aria-hidden="true"><use href="#i-random"/></svg><span class="mm-name">Random</span></button>
         </div>
       </fieldset>
 
-      <!-- Peek toggle -->
-      <fieldset class="mm-fieldset">
-        <legend class="mm-legend">Options</legend>
-        <div class="mm-peek-row">
-          <div>
-            <span class="mm-peek-label">Peek at start</span>
-            <span class="mm-peek-sub">See all cards for 1.5s before playing</span>
-          </div>
-          <label class="mm-switch" aria-label="Peek at start">
-            <input type="checkbox" id="mm-peek-toggle" checked>
-            <span class="mm-slider"></span>
-          </label>
-        </div>
-      </fieldset>
+      <label class="kg-switch">
+        <span class="kg-switch__text"><b>Peek at start</b><small>See all cards for 1.5s before playing</small></span>
+        <input type="checkbox" id="mm-peek-toggle" checked>
+        <span class="kg-switch__track" aria-hidden="true"><span class="kg-switch__state" id="mm-peek-state">On</span></span>
+      </label>
+    </div>
 
-      <button class="mm-play-btn" id="mm-play-btn">Play! 🃏</button>
+    <div class="kg-dock">
+      <button class="kg-btn kg-btn--block" id="mm-play-btn" type="button"><svg class="ic ic--lg" aria-hidden="true"><use href="#i-play"/></svg><span>Play!</span></button>
     </div>
   </div>
 
-  <!-- SCREEN: Board -->
-  <div id="mm-board-screen" class="mm-screen" hidden>
+  <!-- STATION 2: board -->
+  <div id="mm-board-screen" class="kg-screen mm-screen mm-board-screen" hidden>
     <!-- populated by JS -->
   </div>
 
-  <!-- SCREEN: Win -->
-  <div id="mm-win-screen" class="mm-screen" hidden>
+  <!-- STATION 3: win -->
+  <div id="mm-win-screen" class="kg-screen mm-screen" hidden>
     <!-- populated by JS -->
   </div>
 
@@ -415,19 +157,19 @@ const state = {
   peek: true,
 };
 
+function sfx(name) { if (window.KidsGames) window.KidsGames.sfx(name); }
+function say(text) { if (window.KidsGames) window.KidsGames.say(text); }
+
 // ===== TOGGLE GROUPS =====
 function initToggleGroup(rowId, stateKey) {
   const row = document.getElementById(rowId);
   row.addEventListener('click', e => {
     const btn = e.target.closest('[data-' + stateKey + ']');
     if (!btn || !row.contains(btn)) return;
-    row.querySelectorAll('.mm-toggle').forEach(b => {
-      b.classList.remove('mm-toggle--active');
-      b.setAttribute('aria-pressed', 'false');
-    });
-    btn.classList.add('mm-toggle--active');
+    row.querySelectorAll('.kg-seg__opt').forEach(b => b.setAttribute('aria-pressed', 'false'));
     btn.setAttribute('aria-pressed', 'true');
     state[stateKey] = btn.dataset[stateKey];
+    sfx('tap');
   });
 }
 
@@ -436,11 +178,13 @@ initToggleGroup('mm-theme-row', 'theme');
 
 document.getElementById('mm-peek-toggle').addEventListener('change', e => {
   state.peek = e.target.checked;
+  document.getElementById('mm-peek-state').textContent = e.target.checked ? 'On' : 'Off';
+  sfx('tap');
 });
 
 document.getElementById('mm-play-btn').addEventListener('click', startGame);
 
-// ===== EMOJI POOLS =====
+// ===== EMOJI POOLS (the pictures on the cards) =====
 const EMOJIS = {
   animals:  ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐸','🐵','🐔','🐧','🐦','🦆','🦉','🦋','🐢'],
   food:     ['🍎','🍊','🍋','🍇','🍓','🍒','🍕','🍔','🌮','🍦','🍩','🍪','🎂','🧁','🍫','🍬','🥐','🧇','🥞','🍿'],
@@ -480,40 +224,39 @@ let matched = 0;
 let flips = 0;
 let locked = false;
 let firstTap = true;
+let totalPairs = 0;
+let _peekTimer = null;
+let _hintTimer = null;
 
 function showScreen(id) {
-  ['mm-settings','mm-board-screen','mm-win-screen'].forEach(s => {
+  ['mm-settings', 'mm-board-screen', 'mm-win-screen'].forEach(s => {
     document.getElementById(s).hidden = s !== id;
   });
+  window.scrollTo(0, 0);
 }
 
 function goSettings() {
-  if (_peekTimer) { clearTimeout(_peekTimer); _peekTimer = null; locked = false; }
-  window.removeEventListener('resize', handleResize);
+  if (_peekTimer) { clearTimeout(_peekTimer); _peekTimer = null; }
+  if (_hintTimer) { clearTimeout(_hintTimer); _hintTimer = null; }
+  locked = false;
   showScreen('mm-settings');
+  document.getElementById('mm-play-btn').focus({ preventScroll: true });
 }
 
-let _sizeArgs = null;
-function handleResize() {
-  if (!_sizeArgs) return;
-  const grid = document.getElementById('mm-grid');
-  if (grid) sizeCards(grid, _sizeArgs.cols, _sizeArgs.rows);
+function squaresHtml(done, total) {
+  let s = '';
+  for (let i = 0; i < total; i++) s += '<i' + (i < done ? ' class="on"' : '') + '></i>';
+  return s;
 }
 
-function sizeCards(grid, cols, rows) {
-  let c = cols, r = rows;
-  if (state.size === '4x5' && window.innerWidth > window.innerHeight) {
-    c = 5; r = 4;
+function renderHud() {
+  const sq = document.getElementById('mm-pairs');
+  if (sq) {
+    sq.innerHTML = squaresHtml(matched, totalPairs);
+    sq.setAttribute('aria-label', matched + ' of ' + totalPairs + ' pairs found');
   }
-  grid.style.gridTemplateColumns = `repeat(${c}, 1fr)`;
-  const pad = 32, gap = 6, headerH = 56 + 56;
-  const maxW = Math.floor((window.innerWidth - pad - gap * (c - 1)) / c);
-  const maxH = Math.floor((window.innerHeight - headerH - pad - gap * (r - 1)) / r);
-  const size = Math.min(maxW, maxH, 160);
-  grid.querySelectorAll('.mm-card').forEach(card => {
-    card.style.width = size + 'px';
-    card.style.height = Math.floor(size * 4 / 3) + 'px';
-  });
+  const display = document.getElementById('mm-flips-display');
+  if (display) display.textContent = flips + (flips === 1 ? ' flip' : ' flips');
 }
 
 function startGame() {
@@ -521,46 +264,45 @@ function startGame() {
   const pairs = cols * rows / 2;
   const deck = buildDeck(state.theme, pairs);
 
-  window.removeEventListener('resize', handleResize);
-  flipped = []; matched = 0; flips = 0; locked = false; firstTap = true;
+  flipped = []; matched = 0; flips = 0; locked = false; firstTap = true; totalPairs = pairs;
+  if (_peekTimer) { clearTimeout(_peekTimer); _peekTimer = null; }
+  sfx('start');
 
   const boardScreen = document.getElementById('mm-board-screen');
   boardScreen.innerHTML = `
-    <div class="mm-board-inner">
-      <div class="mm-hud">
-        <button class="mm-hud-back" id="mm-back-btn">← Settings</button>
-        <div class="mm-hud-flips" id="mm-flips-display">0 flips</div>
-      </div>
-      <div class="mm-grid" id="mm-grid"
-           style="grid-template-columns: repeat(${cols}, 1fr);">
-      </div>
+    <div class="mm-hud">
+      <button class="kg-iconbtn" id="mm-back-btn" type="button" aria-label="Back to settings"><svg class="ic"><use href="#i-back"/></svg></button>
+      <span class="kg-squares" id="mm-pairs" role="img"></span>
+      <span class="kg-chip kg-chip--paint" id="mm-flips-display">0 flips</span>
     </div>
+    <div class="mm-grid" id="mm-grid" data-size="${state.size}" role="group" aria-label="Cards"></div>
   `;
 
   const grid = document.getElementById('mm-grid');
-  _sizeArgs = { cols, rows };
-  sizeCards(grid, cols, rows);
-  window.addEventListener('resize', handleResize);
-
   deck.forEach((emoji, i) => {
-    const card = document.createElement('div');
+    const card = document.createElement('button');
+    card.type = 'button';
     card.className = 'mm-card';
     card.dataset.emoji = emoji;
     card.dataset.index = i;
-    card.innerHTML = `
-      <div class="mm-card-inner">
-        <div class="mm-card-back">?</div>
-        <div class="mm-card-front"><span class="mm-card-emoji">${emoji}</span></div>
-      </div>
-    `;
+    card.setAttribute('aria-label', 'Card ' + (i + 1) + ', face down');
+    card.innerHTML =
+      '<span class="mm-card-inner">' +
+        '<span class="mm-card-back"><svg class="ic" aria-hidden="true"><use href="#i-round"/></svg></span>' +
+        '<span class="mm-card-front"><span class="mm-card-emoji" aria-hidden="true">' + emoji + '</span></span>' +
+      '</span>';
     card.addEventListener('click', () => onCardClick(card));
     grid.appendChild(card);
   });
 
   document.getElementById('mm-back-btn').addEventListener('click', goSettings);
-
+  renderHud();
   showScreen('mm-board-screen');
   if (state.peek) doPeek(grid);
+}
+
+function setFace(card, up) {
+  card.setAttribute('aria-label', 'Card ' + (Number(card.dataset.index) + 1) + (up ? ': ' + card.dataset.emoji : ', face down'));
 }
 
 function onCardClick(card) {
@@ -574,12 +316,12 @@ function onCardClick(card) {
     showFirstPlayHint(card);
   }
 
-  playSound('flip');
+  sfx('flip');
   card.classList.add('mm-card--flipped');
+  setFace(card, true);
   flipped.push(card);
   flips++;
-  const display = document.getElementById('mm-flips-display');
-  if (display) display.textContent = flips + (flips === 1 ? ' flip' : ' flips');
+  renderHud();
 
   if (flipped.length === 2) {
     locked = true;
@@ -592,21 +334,25 @@ function evaluatePair() {
   if (a.dataset.emoji === b.dataset.emoji) {
     a.classList.add('mm-card--matched');
     b.classList.add('mm-card--matched');
-    playSound('match');
+    [a, b].forEach(c => { c.disabled = true; c.setAttribute('aria-label', 'Matched: ' + c.dataset.emoji); });
+    sfx('match');
+    say('A match!');
     matched++;
     flipped = [];
     locked = false;
-    const totalPairs = document.querySelectorAll('.mm-card').length / 2;
+    renderHud();
     if (matched === totalPairs) {
-      setTimeout(showWin, 400);
+      setTimeout(showWin, 500);
     }
   } else {
     a.classList.add('mm-card--mismatch');
     b.classList.add('mm-card--mismatch');
-    playSound('mismatch');
+    sfx('mismatch');
+    say('Not a match. Try again.');
     setTimeout(() => {
       a.classList.remove('mm-card--flipped', 'mm-card--mismatch');
       b.classList.remove('mm-card--flipped', 'mm-card--mismatch');
+      setFace(a, false); setFace(b, false);
       flipped = [];
       locked = false;
     }, 900);
@@ -614,24 +360,26 @@ function evaluatePair() {
 }
 
 function showWin() {
-  playSound('win');
-  window.removeEventListener('resize', handleResize);
+  sfx('win');
+  if (window.KidsGames) window.KidsGames.recordSession('memory-match');
   const winScreen = document.getElementById('mm-win-screen');
   winScreen.innerHTML = `
-    <div class="mm-win-wrap">
-      <div class="mm-win-emoji">🎉</div>
-      <div class="mm-win-title">You did it!</div>
-      <div class="mm-win-flips">Matched all pairs in <strong>${flips}</strong> flip${flips === 1 ? '' : 's'}!</div>
-      <button class="mm-win-btn mm-win-btn--primary" id="mm-play-again">Play Again 🃏</button>
-      <button class="mm-win-btn mm-win-btn--secondary" id="mm-change-settings">Change Settings</button>
+    <div class="mm-win">
+      <svg class="mk" viewBox="0 0 96 96" aria-hidden="true"><use href="#m-memory"/></svg>
+      <h2>You did it!</h2>
+      <p>Matched all pairs in <strong>${flips}</strong> flip${flips === 1 ? '' : 's'}!</p>
+      <div class="kg-actions">
+        <button class="kg-btn" id="mm-play-again" type="button"><svg class="ic" aria-hidden="true"><use href="#i-replay"/></svg><span>Play again</span></button>
+        <button class="kg-btn kg-btn--ghost" id="mm-change-settings" type="button"><svg class="ic" aria-hidden="true"><use href="#i-back"/></svg><span>Change settings</span></button>
+        <a class="kg-btn kg-btn--ghost" href="index.html"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg><span>All games</span></a>
+      </div>
     </div>
   `;
   document.getElementById('mm-play-again').addEventListener('click', startGame);
   document.getElementById('mm-change-settings').addEventListener('click', goSettings);
   showScreen('mm-win-screen');
+  document.getElementById('mm-play-again').focus({ preventScroll: true });
 }
-
-let _peekTimer = null;
 
 function doPeek(grid) {
   locked = true;
@@ -653,51 +401,7 @@ function showFirstPlayHint(tappedCard) {
   if (!candidates.length) return;
   const hint = candidates[Math.floor(Math.random() * candidates.length)];
   hint.classList.add('mm-card--hint');
-  hint.addEventListener('animationend', () => hint.classList.remove('mm-card--hint'), { once: true });
-}
-
-// ===== AUDIO =====
-let audioCtx = null;
-
-function getAudioCtx() {
-  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  return audioCtx;
-}
-
-function beep({ freq = 440, type = 'sine', gain = 0.3, duration = 0.1, delay = 0 } = {}) {
-  try {
-    const ctx = getAudioCtx();
-    const osc = ctx.createOscillator();
-    const g = ctx.createGain();
-    osc.connect(g);
-    g.connect(ctx.destination);
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
-    g.gain.setValueAtTime(gain, ctx.currentTime + delay);
-    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + duration);
-    osc.start(ctx.currentTime + delay);
-    osc.stop(ctx.currentTime + delay + duration + 0.05);
-  } catch (e) { /* audio not available */ }
-}
-
-function playSound(type) {
-  switch (type) {
-    case 'flip':
-      beep({ freq: 600, type: 'sine', gain: 0.15, duration: 0.08 });
-      break;
-    case 'match':
-      beep({ freq: 523, gain: 0.25, duration: 0.15 });
-      beep({ freq: 784, gain: 0.25, duration: 0.15, delay: 0.15 });
-      break;
-    case 'mismatch':
-      beep({ freq: 220, type: 'triangle', gain: 0.2, duration: 0.2 });
-      break;
-    case 'win':
-      [523, 659, 784, 1047].forEach((f, i) => {
-        beep({ freq: f, gain: 0.25, duration: 0.18, delay: i * 0.18 });
-      });
-      break;
-  }
+  _hintTimer = setTimeout(() => { hint.classList.remove('mm-card--hint'); _hintTimer = null; }, 1400);
 }
 </script>
 

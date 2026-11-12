@@ -100,6 +100,12 @@
       return { name: p.name, ageBracket: getAgeBracket(p), theme: p.theme, avatar: getAvatarIndex(p) };
     },
     get muted() { return muted; },
+    get reducedMotion() {
+      const m = document.documentElement.getAttribute('data-motion');
+      if (m === 'reduced') return true;
+      if (m === 'full') return false;
+      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    },
     get progress() { const p = getActivePlayer(); return p ? getProgress(p.name) : {}; },
     get lastGame() { const p = getActivePlayer(); return p ? getLastGame(p.name) : null; },
     loadGameData: loadGameData,

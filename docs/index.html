@@ -440,7 +440,7 @@ button { font: inherit; color: inherit; }
 .kg-hud__fill { flex: 1; }
 .kg-chip {
   display: inline-flex; align-items: center; gap: var(--s2);
-  min-height: 48px; padding: 0 var(--s4);
+  min-height: 48px; padding: var(--s2) var(--s4);
   background: var(--chalk); color: var(--ink);
   border: var(--line-w) solid var(--line); border-radius: var(--r-pill);
   font-size: var(--t-body); font-weight: 700; line-height: 1;
@@ -481,6 +481,35 @@ button { font: inherit; color: inherit; }
 /* A painted mark landing: the paint rolls across the shape */
 @keyframes kg-paint-on { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
 .kg-paint-on { animation: kg-paint-on var(--dur-paint) var(--ease) both; }
+
+/* Painted progress line: a keylined track, paint fills it */
+.kg-track { height: 20px; border: var(--line-w) solid var(--line); border-radius: var(--r-pill); background: transparent; overflow: hidden; }
+.kg-track__fill { height: 100%; width: 0; background: var(--paint); transition: width var(--dur-2) var(--ease); }
+
+/* An odd last tile spans the row so three answers never leave a hole */
+.kg-tiles > .kg-tile:last-child:nth-child(odd) { grid-column: 1 / -1; }
+
+/* Dock: the one big action, always in thumb reach */
+.kg-dock {
+  position: sticky; bottom: 0; width: 100%;
+  padding: var(--s3) var(--s4) calc(var(--s3) + var(--safe-b));
+  background: var(--ground); border-top: var(--line-w) solid var(--line);
+}
+.kg-dock .kg-btn { display: flex; max-width: 720px; margin: 0 auto; min-height: 76px; font-size: var(--t-title); }
+
+/* On/off switch: knob position and the word both say the state */
+.kg-switch { display: flex; align-items: center; justify-content: space-between; gap: var(--s4); min-height: var(--hit); padding: var(--s2) var(--s4); background: var(--chalk); border: var(--line-w) solid var(--line); border-radius: var(--r-1); cursor: pointer; }
+.kg-switch__text { display: grid; gap: 2px; }
+.kg-switch__text b { font-size: var(--t-body); }
+.kg-switch__text small { font-size: var(--t-small); color: var(--ink-2); }
+.kg-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.kg-switch__track { position: relative; flex: none; width: 76px; height: 40px; border: var(--line-w) solid var(--line); border-radius: var(--r-pill); background: var(--ground); transition: background var(--dur-2) var(--ease); }
+.kg-switch__track::before { content: ""; position: absolute; top: 3px; left: 3px; width: 28px; height: 28px; border-radius: var(--r-pill); background: var(--ink); transition: transform var(--dur-2) var(--ease); }
+.kg-switch__state { position: absolute; top: 50%; right: 8px; transform: translateY(-50%); font-size: var(--t-small); font-weight: 700; }
+.kg-switch input:checked + .kg-switch__track { background: var(--paint); }
+.kg-switch input:checked + .kg-switch__track::before { transform: translateX(36px); }
+.kg-switch input:checked + .kg-switch__track .kg-switch__state { right: auto; left: 10px; color: var(--on-paint); }
+.kg-switch input:focus-visible + .kg-switch__track { outline: 4px solid var(--focus); outline-offset: 3px; }
 
 /* === Stage helpers shared by every game === */
 .kg-screen { min-height: calc(100dvh - var(--bar-h)); display: flex; justify-content: center; padding: var(--s5) var(--s4) calc(var(--s6) + var(--safe-b)); }
@@ -610,6 +639,11 @@ button { font: inherit; color: inherit; }
     <symbol id="i-timer" viewBox="0 0 48 48"><circle cx="24" cy="27" r="15"/><path d="M24 27v-9M19 6h10M37 11l3-3"/></symbol>
     <symbol id="i-round" viewBox="0 0 48 48"><circle cx="24" cy="24" r="17"/><circle cx="24" cy="24" r="8"/><circle cx="24" cy="24" r="1" style="fill:currentColor"/></symbol>
     <symbol id="i-infinity" viewBox="0 0 48 48"><path d="M24 24c-6-10-18-10-18 0s12 10 18 0c6-10 18-10 18 0s-12 10-18 0z"/></symbol>
+    <symbol id="i-streak" viewBox="0 0 48 48"><path d="M10 40v-8M24 40V22M38 40V8"/></symbol>
+    <symbol id="i-animals" viewBox="0 0 48 48"><circle cx="11" cy="22" r="4.5"/><circle cx="20" cy="12" r="4.5"/><circle cx="32" cy="12" r="4.5"/><circle cx="41" cy="22" r="4.5"/><path d="M26 41q-10 0-10-8 0-6 10-9 10 3 10 9 0 8-10 8z"/></symbol>
+    <symbol id="i-food" viewBox="0 0 48 48"><path d="M24 17c-6-5-17-2-17 10 0 9 7 16 12 16 3 0 3-1 5-1s2 1 5 1c5 0 12-7 12-16 0-12-11-15-17-10zM24 17c0-5 2-9 7-11"/></symbol>
+    <symbol id="i-vehicles" viewBox="0 0 48 48"><path d="M5 32v-8l5-11h28l5 11v8zM5 24h38"/><circle cx="14" cy="35" r="5" style="fill:var(--ground)"/><circle cx="34" cy="35" r="5" style="fill:var(--ground)"/></symbol>
+    <symbol id="i-random" viewBox="0 0 48 48"><rect x="6" y="6" width="36" height="36" rx="8"/><circle cx="16" cy="16" r="2.4" style="fill:currentColor"/><circle cx="24" cy="24" r="2.4" style="fill:currentColor"/><circle cx="32" cy="32" r="2.4" style="fill:currentColor"/></symbol>
     <symbol id="i-trash" viewBox="0 0 48 48"><path d="M9 13h30M18 13V8h12v5M12 13l2 27h20l2-27M20 20v13M28 20v13"/></symbol>
     <symbol id="i-pencil" viewBox="0 0 48 48"><path d="M10 38l2-10L32 8l8 8-20 20zM28 12l8 8"/></symbol>
     <symbol id="i-user-add" viewBox="0 0 48 48"><circle cx="20" cy="16" r="7"/><path d="M6 40q0-12 14-12t14 12M38 12v12M32 18h12"/></symbol>
@@ -753,7 +787,7 @@ button { font: inherit; color: inherit; }
         Feedback or bug? Raise it on GitHub
         <svg class="ic ic--sm"><use href="#i-link"/></svg>
       </a>
-      <p>Version e4378af 12 Nov 08:33</p>
+      <p>Version cab8141 12 Nov 08:41</p>
     </section>
   </div>
 </div>
@@ -1157,6 +1191,12 @@ function setPref(key, val) { _write(STORAGE_PREFIX + 'pref_' + key, val); }
       return { name: p.name, ageBracket: getAgeBracket(p), theme: p.theme, avatar: getAvatarIndex(p) };
     },
     get muted() { return muted; },
+    get reducedMotion() {
+      const m = document.documentElement.getAttribute('data-motion');
+      if (m === 'reduced') return true;
+      if (m === 'full') return false;
+      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    },
     get progress() { const p = getActivePlayer(); return p ? getProgress(p.name) : {}; },
     get lastGame() { const p = getActivePlayer(); return p ? getLastGame(p.name) : null; },
     loadGameData: loadGameData,
