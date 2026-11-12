@@ -90,7 +90,6 @@ function initSettingsScreen() {
 function updateToggles(rowId, attr, activeVal) {
   document.getElementById(rowId).querySelectorAll(`[${attr}]`).forEach(btn => {
     const active = btn.dataset[attr.replace('data-', '')] === activeVal;
-    btn.classList.toggle('nb-toggle--active', active);
     btn.setAttribute('aria-pressed', active ? 'true' : 'false');
   });
 }
@@ -98,7 +97,6 @@ function updateToggles(rowId, attr, activeVal) {
 function updateModeButtons() {
   document.getElementById('nb-mode-row').querySelectorAll('[data-mode]').forEach(btn => {
     const active = btn.dataset.mode === settings.mode;
-    btn.classList.toggle('nb-mode-btn--active', active);
     btn.setAttribute('aria-pressed', active ? 'true' : 'false');
   });
 }
@@ -174,7 +172,6 @@ function updateComplexityPreview() {
   const info = COMPLEXITY_LEVELS[level];
   const badge = document.getElementById('nb-complexity-badge');
   badge.textContent = info.label;
-  badge.style.background = info.colour;
   document.getElementById('nb-complexity-ages').textContent = info.ages;
   document.getElementById('nb-complexity-example').textContent =
     'e.g. ' + buildNbExampleQuestion(settings.op, settings.custom);
@@ -183,6 +180,7 @@ function updateComplexityPreview() {
 // --- Screen management ---
 function showScreen(name) {
   Object.keys(screens).forEach(k => screens[k].hidden = k !== name);
+  window.scrollTo(0, 0);
 }
 
 // --- Persistence ---
@@ -220,7 +218,7 @@ function applyAgeBracketDefault() {
     const existing = window.KidsGames?.loadGameData('numberbonds');
     if (existing?.settings?.difficulty) return; // already set
     const bracket = window.KidsGames?.player?.ageBracket;
-    if (bracket === '4-5') settings.difficulty = 'easy';
+    if (bracket === '4-5') { settings.difficulty = 'easy'; settings.mode = 'round'; }
     else if (bracket === '9-12') settings.difficulty = 'hard';
     else settings.difficulty = 'medium';
   } catch (e) { /* ignore */ }
@@ -231,6 +229,7 @@ let activeSession = null;
 
 function startGame() {
   saveSettings();
+  if (window.KidsGames) window.KidsGames.sfx('start');
   const range = getActiveRange();
   activeSession = new GameSession({
     op: settings.op,
@@ -245,7 +244,7 @@ function startGame() {
         ?.querySelectorAll('.nb-choice')
         .forEach(btn => {
           if (Number(btn.textContent) === activeSession._currentQuestion.answer) {
-            btn.classList.add('nb-choice--hint');
+            btn.classList.add('is-hint');
           }
         });
     },
@@ -289,7 +288,7 @@ function renderQuestion(question, choiceNums) {
   choicesEl.innerHTML = '';
   choiceNums.forEach(num => {
     const btn = document.createElement('button');
-    btn.className = 'nb-choice';
+    btn.className = 'kg-tile nb-choice';
     btn.textContent = num;
     btn.setAttribute('aria-label', `Answer: ${num}`);
     btn.addEventListener('click', () => activeSession?.answer(num));
@@ -298,27 +297,31 @@ function renderQuestion(question, choiceNums) {
 }
 
 function renderAnswerFeedback({ correct, correctAnswer, chosen, requiresConfirmation }) {
+  if (window.KidsGames && chosen !== undefined) window.KidsGames.sfx(correct ? 'right' : 'wrong');
   document.getElementById('nb-choices')?.querySelectorAll('.nb-choice').forEach(btn => {
-    btn.classList.remove('nb-choice--hint');
+    btn.classList.remove('is-hint');
     const num = Number(btn.textContent);
     if (num === correctAnswer) {
-      btn.classList.add('nb-choice--reveal');
+      btn.classList.add('is-reveal');
       if (!requiresConfirmation) btn.disabled = true;
     } else {
       btn.disabled = true;
-      if (num === chosen && !correct) btn.classList.add('nb-choice--wrong');
+      if (num === chosen && !correct) btn.classList.add('is-wrong');
     }
-    if (num === chosen && correct) btn.classList.add('nb-choice--correct');
+    if (num === chosen && correct) { btn.classList.remove('is-reveal'); btn.classList.add('is-right'); }
   });
+  if (window.KidsGames) window.KidsGames.say(correct ? 'Right!' : 'Not that one. Tap the right answer.');
 }
 
 function renderHud(hudState) {
   document.getElementById('nb-score').textContent = hudState.score;
   const center = document.getElementById('nb-hud-center');
   if (hudState.mode === 'sprint') {
-    center.textContent = `⏱ ${hudState.timeLeft}s`;
+    center.innerHTML = '<span class="kg-chip"><svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg><span class="kg-sr">Seconds left</span><strong>' + hudState.timeLeft + '</strong></span>';
   } else if (hudState.mode === 'round') {
-    center.textContent = `${hudState.questionNum} / ${hudState.totalQuestions}`;
+    let sq = '';
+    for (let i = 1; i <= hudState.totalQuestions; i++) sq += '<i' + (i < hudState.questionNum ? ' class="on"' : '') + '></i>';
+    center.innerHTML = '<span class="kg-squares" role="img" aria-label="Question ' + hudState.questionNum + ' of ' + hudState.totalQuestions + '">' + sq + '</span>';
   } else {
     center.textContent = '';
   }
@@ -326,40 +329,49 @@ function renderHud(hudState) {
 
 // --- Results rendering ---
 function showResults(stats) {
-  // Use accuracy % so thresholds work consistently across all modes and score ranges
-  document.getElementById('nb-results-icon').textContent = stats.accuracy >= 80 ? '🏆' : stats.accuracy >= 50 ? '⭐' : '💪';
+  // Accuracy % keeps thresholds consistent across modes and score ranges
+  const stars = stats.accuracy >= 80 ? 3 : stats.accuracy >= 50 ? 2 : 1;
+  const starsEl = document.getElementById('nb-results-icon');
+  starsEl.innerHTML = [1, 2, 3].map(i =>
+    '<svg class="nb-star' + (i > stars ? ' off' : '') + '" viewBox="0 0 48 48" aria-hidden="true"><use href="#a-star"/></svg>').join('');
   document.getElementById('nb-results-title').textContent =
     stats.accuracy >= 80 ? 'Amazing!' : stats.accuracy >= 50 ? 'Well done!' : 'Keep practising!';
 
   const isBest = savePersonalBest(stats);
+  if (window.KidsGames) {
+    if (!stats.quit) window.KidsGames.recordSession('number-bonds');
+    if (!stats.quit && stats.accuracy >= 50) window.KidsGames.sfx('win');
+  }
 
+  const best = isBest ? '<svg class="ic ic--sm" viewBox="0 0 48 48" role="img" aria-label="New best"><use href="#a-star"/></svg>' : '';
   const statsEl = document.getElementById('nb-stats');
   statsEl.innerHTML = `
     <div class="nb-stat-row">
-      <span class="nb-stat-label">Score</span>
-      <span class="nb-stat-value${isBest ? ' nb-stat-value--best' : ''}">${stats.score}${isBest ? ' ★' : ''}</span>
+      <dt class="nb-stat-label">Score</dt>
+      <dd class="nb-stat-value">${stats.score}${best}</dd>
     </div>
     <div class="nb-stat-row">
-      <span class="nb-stat-label">Accuracy</span>
-      <span class="nb-stat-value">${stats.accuracy}%</span>
+      <dt class="nb-stat-label">Accuracy</dt>
+      <dd class="nb-stat-value">${stats.accuracy}%</dd>
     </div>
     <div class="nb-stat-row">
-      <span class="nb-stat-label">Best streak</span>
-      <span class="nb-stat-value">${stats.bestStreak}</span>
+      <dt class="nb-stat-label">Best streak</dt>
+      <dd class="nb-stat-value">${stats.bestStreak}</dd>
     </div>
     ${stats.timeTaken ? `<div class="nb-stat-row">
-      <span class="nb-stat-label">Time</span>
-      <span class="nb-stat-value">${stats.timeTaken}s</span>
+      <dt class="nb-stat-label">Time</dt>
+      <dd class="nb-stat-value">${stats.timeTaken}s</dd>
     </div>` : ''}
   `;
 
   document.getElementById('nb-play-again-btn').onclick = startGame;
   document.getElementById('nb-change-settings-btn').onclick = () => showScreen('settings');
   document.getElementById('nb-play-again-btn').className =
-    stats.quit ? 'nb-btn nb-btn--secondary' : 'nb-btn nb-btn--primary';
+    stats.quit ? 'kg-btn kg-btn--ghost' : 'kg-btn';
   document.getElementById('nb-change-settings-btn').className =
-    stats.quit ? 'nb-btn nb-btn--primary' : 'nb-btn nb-btn--secondary';
+    stats.quit ? 'kg-btn' : 'kg-btn kg-btn--ghost';
   showScreen('results');
+  document.getElementById(stats.quit ? 'nb-change-settings-btn' : 'nb-play-again-btn').focus({ preventScroll: true });
 }
 
 function savePersonalBest(stats) {

@@ -247,7 +247,9 @@ button { font: inherit; color: inherit; }
 .kg-laps { font-weight: 700; font-size: var(--t-small); margin-left: var(--s2); }
 
 /* === Game HUD chips === */
-.kg-hud { display: flex; align-items: center; gap: var(--s3); flex-wrap: wrap; }
+.kg-hud { display: flex; align-items: center; gap: var(--s3); }
+.kg-hud .kg-squares i { width: 14px; height: 14px; }
+@media (min-width: 640px) { .kg-hud .kg-squares i { width: 18px; height: 18px; } }
 .kg-hud__fill { flex: 1; }
 .kg-chip {
   display: inline-flex; align-items: center; gap: var(--s2);

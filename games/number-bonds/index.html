@@ -4,71 +4,55 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Number Bonds</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../../shared/tokens.css">
 <link rel="stylesheet" href="../../shared/shell.css">
 <link rel="stylesheet" href="css/style.css">
 </head>
-<body data-page="number-bonds" data-page-title="Number Bonds">
+<body data-page="number-bonds" data-page-title="Number Bonds" data-paint="yellow">
 
 <!-- Shell bar injected by build script -->
 
 <div id="nb-app">
 
-  <!-- SCREEN: Settings -->
-  <div id="nb-settings" class="nb-screen nb-screen--settings">
-    <div class="nb-settings-wrap">
-      <div class="nb-logo">🔢</div>
-      <h1 class="nb-title">Number Bonds</h1>
+  <!-- STATION 1: settings -->
+  <div id="nb-settings" class="kg-screen nb-screen">
+    <div class="kg-wrap">
+      <h1 class="kg-title kg-title--paint">
+        <svg class="mk" viewBox="0 0 96 96" aria-hidden="true"><use href="#m-hopscotch"/></svg>
+        Number Bonds
+      </h1>
 
-      <!-- Operation -->
       <fieldset class="nb-fieldset">
-        <legend class="nb-legend">Operation</legend>
-        <div class="nb-toggle-row" id="nb-op-row">
-          <button class="nb-toggle nb-toggle--active" data-op="+" aria-pressed="true">+</button>
-          <button class="nb-toggle" data-op="-" aria-pressed="false">−</button>
-          <button class="nb-toggle" data-op="*" aria-pressed="false">×</button>
-          <button class="nb-toggle" data-op="/" aria-pressed="false">÷</button>
-          <button class="nb-toggle" data-op="mixed" aria-pressed="false">Mixed</button>
+        <legend class="kg-label">Sums</legend>
+        <div class="kg-seg" id="nb-op-row" role="group" aria-label="Sums">
+          <button class="kg-seg__opt nb-op" data-op="+" aria-pressed="true"  aria-label="Add"><svg class="ic ic--lg"><use href="#i-plus"/></svg></button>
+          <button class="kg-seg__opt nb-op" data-op="-" aria-pressed="false" aria-label="Take away"><svg class="ic ic--lg"><use href="#i-minus"/></svg></button>
+          <button class="kg-seg__opt nb-op" data-op="*" aria-pressed="false" aria-label="Times"><svg class="ic ic--lg"><use href="#i-times"/></svg></button>
+          <button class="kg-seg__opt nb-op" data-op="/" aria-pressed="false" aria-label="Divide"><svg class="ic ic--lg"><use href="#i-divide"/></svg></button>
+          <button class="kg-seg__opt nb-op" data-op="mixed" aria-pressed="false" aria-label="Mixed"><svg class="ic ic--lg"><use href="#i-shuffle"/></svg><span class="nb-op__label">Mixed</span></button>
         </div>
       </fieldset>
 
-      <!-- Difficulty -->
       <fieldset class="nb-fieldset">
-        <legend class="nb-legend">Difficulty</legend>
-        <div class="nb-toggle-row" id="nb-diff-row">
-          <button class="nb-toggle" data-diff="easy" aria-pressed="false">Easy</button>
-          <button class="nb-toggle nb-toggle--active" data-diff="medium" aria-pressed="true">Medium</button>
-          <button class="nb-toggle" data-diff="hard" aria-pressed="false">Hard</button>
-          <button class="nb-toggle" data-diff="custom" aria-pressed="false">Custom</button>
+        <legend class="kg-label">How tricky</legend>
+        <div class="kg-seg" id="nb-diff-row" role="group" aria-label="How tricky">
+          <button class="kg-seg__opt nb-diff" data-diff="easy"   aria-pressed="false"><span class="kg-squares" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span>Easy</span></button>
+          <button class="kg-seg__opt nb-diff" data-diff="medium" aria-pressed="true"><span class="kg-squares" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></span><span>Medium</span></button>
+          <button class="kg-seg__opt nb-diff" data-diff="hard"   aria-pressed="false"><span class="kg-squares" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i></span><span>Hard</span></button>
+          <button class="kg-seg__opt nb-diff" data-diff="custom" aria-pressed="false"><svg class="ic"><use href="#i-pencil"/></svg><span>Custom</span></button>
         </div>
         <p class="nb-diff-hint" id="nb-diff-hint">Numbers 1–20, tables to 10</p>
       </fieldset>
 
       <!-- Custom options (hidden unless Custom selected) -->
       <div id="nb-custom-opts" class="nb-custom-opts" hidden>
-        <div class="nb-custom-row">
-          <label class="nb-label" for="nb-min">Min</label>
-          <input id="nb-min" class="nb-input" type="number" value="-100" min="-9999" max="9999">
+        <div class="nb-custom-grid">
+          <div><label class="kg-label" for="nb-min">Smallest number</label><input id="nb-min" class="kg-input" type="number" value="-100" min="-9999" max="9999"></div>
+          <div><label class="kg-label" for="nb-max">Biggest number</label><input id="nb-max" class="kg-input" type="number" value="100" min="-9999" max="9999"></div>
+          <div><label class="kg-label" for="nb-table">Biggest table (× ÷)</label><input id="nb-table" class="kg-input" type="number" value="12" min="2" max="99"></div>
         </div>
-        <div class="nb-custom-row">
-          <label class="nb-label" for="nb-max">Max</label>
-          <input id="nb-max" class="nb-input" type="number" value="100" min="-9999" max="9999">
-        </div>
-        <div class="nb-custom-row">
-          <label class="nb-label" for="nb-table">Max table (×÷)</label>
-          <input id="nb-table" class="nb-input" type="number" value="12" min="2" max="99">
-        </div>
-        <div class="nb-custom-row">
-          <label class="nb-label">
-            <input id="nb-negatives" type="checkbox"> Negative numbers
-          </label>
-        </div>
-        <div class="nb-custom-row">
-          <label class="nb-label">
-            <input id="nb-decimals" type="checkbox"> Decimals (1dp)
-          </label>
-        </div>
+        <label class="nb-check"><input id="nb-negatives" type="checkbox"> Negative numbers</label>
+        <label class="nb-check"><input id="nb-decimals" type="checkbox"> Decimals (1dp)</label>
         <div class="nb-complexity-row" id="nb-complexity-row">
           <span class="nb-complexity-badge" id="nb-complexity-badge">KS2</span>
           <span class="nb-complexity-ages" id="nb-complexity-ages">Ages 7–11</span>
@@ -76,56 +60,58 @@
         </div>
       </div>
 
-      <!-- Session Mode -->
       <fieldset class="nb-fieldset">
-        <legend class="nb-legend">Mode</legend>
-        <div class="nb-mode-row" id="nb-mode-row">
-          <button class="nb-mode-btn nb-mode-btn--active" data-mode="sprint" aria-pressed="true">
-            <span class="nb-mode-icon" aria-hidden="true">⏱</span>
-            <span class="nb-mode-name">Sprint</span>
-            <span class="nb-mode-desc">60 seconds</span>
+        <legend class="kg-label">How long</legend>
+        <div class="kg-seg nb-modes" id="nb-mode-row" role="group" aria-label="How long">
+          <button class="kg-seg__opt nb-mode" data-mode="sprint" aria-pressed="true">
+            <svg class="ic ic--lg" aria-hidden="true"><use href="#i-timer"/></svg>
+            <span class="nb-mode__name">Sprint</span><span class="nb-mode__desc">60 seconds</span>
           </button>
-          <button class="nb-mode-btn" data-mode="round" aria-pressed="false">
-            <span class="nb-mode-icon" aria-hidden="true">🎯</span>
-            <span class="nb-mode-name">Round</span>
-            <span class="nb-mode-desc">10 questions</span>
+          <button class="kg-seg__opt nb-mode" data-mode="round" aria-pressed="false">
+            <svg class="ic ic--lg" aria-hidden="true"><use href="#i-round"/></svg>
+            <span class="nb-mode__name">Round</span><span class="nb-mode__desc">10 questions</span>
           </button>
-          <button class="nb-mode-btn" data-mode="endless" aria-pressed="false">
-            <span class="nb-mode-icon" aria-hidden="true">∞</span>
-            <span class="nb-mode-name">Endless</span>
-            <span class="nb-mode-desc">Keep going</span>
+          <button class="kg-seg__opt nb-mode" data-mode="endless" aria-pressed="false">
+            <svg class="ic ic--lg" aria-hidden="true"><use href="#i-infinity"/></svg>
+            <span class="nb-mode__name">Endless</span><span class="nb-mode__desc">Keep going</span>
           </button>
         </div>
       </fieldset>
+    </div>
 
-      <button id="nb-start-btn" class="nb-btn nb-btn--primary nb-btn--large">Let's go! 🚀</button>
+    <div class="nb-dock">
+      <button id="nb-start-btn" class="kg-btn kg-btn--block nb-start">
+        <svg class="ic ic--lg" aria-hidden="true"><use href="#i-play"/></svg><span>Let's go!</span>
+      </button>
     </div>
   </div>
 
-  <!-- SCREEN: Game -->
-  <div id="nb-game" class="nb-screen nb-screen--game" hidden>
-    <div class="nb-hud">
-      <span class="nb-hud-score">Score: <strong id="nb-score">0</strong></span>
-      <span id="nb-hud-center" class="nb-hud-center"></span>
-      <button id="nb-quit-btn" class="nb-btn nb-btn--ghost">✕</button>
-    </div>
-    <div class="nb-game-body">
+  <!-- STATION 2: play -->
+  <div id="nb-game" class="kg-screen nb-screen nb-screen--game" hidden>
+    <div class="kg-wrap nb-play">
+      <div class="kg-hud">
+        <button id="nb-quit-btn" class="kg-iconbtn" type="button" aria-label="Stop playing"><svg class="ic"><use href="#i-close"/></svg></button>
+        <span class="kg-hud__fill"></span>
+        <span id="nb-hud-center" class="nb-hud-center"></span>
+        <span class="kg-chip kg-chip--paint"><svg class="ic" aria-hidden="true"><use href="#a-star" style="fill:currentColor"/></svg><span class="kg-sr">Score</span><strong id="nb-score">0</strong></span>
+      </div>
       <div class="nb-question-wrap">
         <div class="nb-question" id="nb-question" aria-live="polite" aria-atomic="true"></div>
       </div>
-      <div class="nb-choices" id="nb-choices" role="group" aria-label="Answer choices"></div>
+      <div class="kg-tiles nb-choices" id="nb-choices" role="group" aria-label="Answer choices"></div>
     </div>
   </div>
 
-  <!-- SCREEN: Results -->
-  <div id="nb-results" class="nb-screen nb-screen--results" hidden>
-    <div class="nb-results-wrap">
-      <div class="nb-results-icon" id="nb-results-icon">🎉</div>
-      <h2 class="nb-results-title" id="nb-results-title">Well done!</h2>
-      <div class="nb-stats" id="nb-stats"></div>
-      <div class="nb-results-actions">
-        <button id="nb-play-again-btn" class="nb-btn nb-btn--primary">Play again</button>
-        <button id="nb-change-settings-btn" class="nb-btn nb-btn--secondary">Change settings</button>
+  <!-- STATION 3: result -->
+  <div id="nb-results" class="kg-screen nb-screen" hidden>
+    <div class="kg-wrap nb-results-wrap">
+      <div class="nb-stars" id="nb-results-icon" aria-hidden="true"></div>
+      <h2 class="kg-title nb-results-title" id="nb-results-title">Well done!</h2>
+      <dl class="nb-stats" id="nb-stats"></dl>
+      <div class="kg-actions nb-results-actions">
+        <button id="nb-play-again-btn" class="kg-btn" type="button"><svg class="ic" aria-hidden="true"><use href="#i-replay"/></svg><span>Play again</span></button>
+        <button id="nb-change-settings-btn" class="kg-btn kg-btn--ghost" type="button"><svg class="ic" aria-hidden="true"><use href="#i-back"/></svg><span>Change settings</span></button>
+        <a class="kg-btn kg-btn--ghost" href="index.html"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg><span>All games</span></a>
       </div>
     </div>
   </div>

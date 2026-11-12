@@ -90,7 +90,6 @@ function initSettingsScreen() {
 function updateToggles(rowId, attr, activeVal) {
   document.getElementById(rowId).querySelectorAll(`[${attr}]`).forEach(btn => {
     const active = btn.dataset[attr.replace('data-', '')] === activeVal;
-    btn.classList.toggle('maths-toggle--active', active);
     btn.setAttribute('aria-pressed', active ? 'true' : 'false');
   });
 }
@@ -98,7 +97,6 @@ function updateToggles(rowId, attr, activeVal) {
 function updateModeButtons() {
   document.getElementById('maths-mode-row').querySelectorAll('[data-mode]').forEach(btn => {
     const active = btn.dataset.mode === settings.mode;
-    btn.classList.toggle('maths-mode-btn--active', active);
     btn.setAttribute('aria-pressed', active ? 'true' : 'false');
   });
 }
@@ -174,7 +172,6 @@ function updateComplexityPreview() {
   const info = COMPLEXITY_LEVELS[level];
   const badge = document.getElementById('maths-complexity-badge');
   badge.textContent = info.label;
-  badge.style.background = info.colour;
   document.getElementById('maths-complexity-ages').textContent = info.ages;
   document.getElementById('maths-complexity-example').textContent =
     'e.g. ' + buildMathsExampleQuestion(settings.op, settings.custom);
@@ -183,6 +180,7 @@ function updateComplexityPreview() {
 // --- Screen management ---
 function showScreen(name) {
   Object.keys(screens).forEach(k => screens[k].hidden = k !== name);
+  window.scrollTo(0, 0);
 }
 
 // --- Persistence ---
@@ -220,7 +218,7 @@ function applyAgeBracketDefault() {
     const existing = window.KidsGames?.loadGameData('maths');
     if (existing?.settings?.difficulty) return; // already set
     const bracket = window.KidsGames?.player?.ageBracket;
-    if (bracket === '4-5') settings.difficulty = 'easy';
+    if (bracket === '4-5') { settings.difficulty = 'easy'; settings.mode = 'round'; }
     else if (bracket === '9-12') settings.difficulty = 'hard';
     else settings.difficulty = 'medium';
   } catch (e) { /* ignore */ }
@@ -231,6 +229,7 @@ let activeSession = null;
 
 function startGame() {
   saveSettings();
+  if (window.KidsGames) window.KidsGames.sfx('start');
   const range = getActiveRange();
   activeSession = new GameSession({
     op: settings.op,
@@ -245,7 +244,7 @@ function startGame() {
         ?.querySelectorAll('.maths-choice')
         .forEach(btn => {
           if (Number(btn.textContent) === activeSession._currentQuestion.answer) {
-            btn.classList.add('maths-choice--hint');
+            btn.classList.add('is-hint');
           }
         });
     },
@@ -265,16 +264,22 @@ function initGameScreen() {
 
 // --- Question rendering ---
 function renderQuestion(question, choiceNums) {
-  const { left, op, right, result } = question;
+  // Render equation with blank
+  const { left, op, right, result, blank } = question;
   const opStr = { '+': '+', '-': '−', '*': '×', '/': '÷' }[op] ?? op;
   const safeLeft = Number(left);
   const safeRight = Number(right);
   const safeResult = Number(result);
-  // Render equation with blank
-  const html = `${safeLeft} ${opStr} ${safeRight} = <span class="maths-blank">?</span>`;
+  let html;
+  if (blank === 'left') {
+    html = `<span class="maths-blank">?</span> ${opStr} ${safeRight} = ${safeResult}`;
+  } else {
+    html = `${safeLeft} ${opStr} <span class="maths-blank">?</span> = ${safeResult}`;
+  }
   const hasLargeNum = [safeLeft, safeRight, safeResult].some(n => Math.abs(n) >= 100);
   const qEl = document.getElementById('maths-question');
   qEl.innerHTML = html;
+  // Shrink font if any number has 3+ digits (custom large ranges)
   qEl.classList.toggle('maths-question--long', hasLargeNum);
 
   // Render choice buttons
@@ -283,7 +288,7 @@ function renderQuestion(question, choiceNums) {
   choicesEl.innerHTML = '';
   choiceNums.forEach(num => {
     const btn = document.createElement('button');
-    btn.className = 'maths-choice';
+    btn.className = 'kg-tile maths-choice';
     btn.textContent = num;
     btn.setAttribute('aria-label', `Answer: ${num}`);
     btn.addEventListener('click', () => activeSession?.answer(num));
@@ -292,27 +297,31 @@ function renderQuestion(question, choiceNums) {
 }
 
 function renderAnswerFeedback({ correct, correctAnswer, chosen, requiresConfirmation }) {
+  if (window.KidsGames && chosen !== undefined) window.KidsGames.sfx(correct ? 'right' : 'wrong');
   document.getElementById('maths-choices')?.querySelectorAll('.maths-choice').forEach(btn => {
-    btn.classList.remove('maths-choice--hint');
+    btn.classList.remove('is-hint');
     const num = Number(btn.textContent);
     if (num === correctAnswer) {
-      btn.classList.add('maths-choice--reveal');
+      btn.classList.add('is-reveal');
       if (!requiresConfirmation) btn.disabled = true;
     } else {
       btn.disabled = true;
-      if (num === chosen && !correct) btn.classList.add('maths-choice--wrong');
+      if (num === chosen && !correct) btn.classList.add('is-wrong');
     }
-    if (num === chosen && correct) btn.classList.add('maths-choice--correct');
+    if (num === chosen && correct) { btn.classList.remove('is-reveal'); btn.classList.add('is-right'); }
   });
+  if (window.KidsGames) window.KidsGames.say(correct ? 'Right!' : 'Not that one. Tap the right answer.');
 }
 
 function renderHud(hudState) {
   document.getElementById('maths-score').textContent = hudState.score;
   const center = document.getElementById('maths-hud-center');
   if (hudState.mode === 'sprint') {
-    center.textContent = `⏱ ${hudState.timeLeft}s`;
+    center.innerHTML = '<span class="kg-chip"><svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg><span class="kg-sr">Seconds left</span><strong>' + hudState.timeLeft + '</strong></span>';
   } else if (hudState.mode === 'round') {
-    center.textContent = `${hudState.questionNum} / ${hudState.totalQuestions}`;
+    let sq = '';
+    for (let i = 1; i <= hudState.totalQuestions; i++) sq += '<i' + (i < hudState.questionNum ? ' class="on"' : '') + '></i>';
+    center.innerHTML = '<span class="kg-squares" role="img" aria-label="Question ' + hudState.questionNum + ' of ' + hudState.totalQuestions + '">' + sq + '</span>';
   } else {
     center.textContent = '';
   }
@@ -320,40 +329,49 @@ function renderHud(hudState) {
 
 // --- Results rendering ---
 function showResults(stats) {
-  // Use accuracy % so thresholds work consistently across all modes and score ranges
-  document.getElementById('maths-results-icon').textContent = stats.accuracy >= 80 ? '🏆' : stats.accuracy >= 50 ? '⭐' : '💪';
+  // Accuracy % keeps thresholds consistent across modes and score ranges
+  const stars = stats.accuracy >= 80 ? 3 : stats.accuracy >= 50 ? 2 : 1;
+  const starsEl = document.getElementById('maths-results-icon');
+  starsEl.innerHTML = [1, 2, 3].map(i =>
+    '<svg class="maths-star' + (i > stars ? ' off' : '') + '" viewBox="0 0 48 48" aria-hidden="true"><use href="#a-star"/></svg>').join('');
   document.getElementById('maths-results-title').textContent =
     stats.accuracy >= 80 ? 'Amazing!' : stats.accuracy >= 50 ? 'Well done!' : 'Keep practising!';
 
   const isBest = savePersonalBest(stats);
+  if (window.KidsGames) {
+    if (!stats.quit) window.KidsGames.recordSession('maths');
+    if (!stats.quit && stats.accuracy >= 50) window.KidsGames.sfx('win');
+  }
 
+  const best = isBest ? '<svg class="ic ic--sm" viewBox="0 0 48 48" role="img" aria-label="New best"><use href="#a-star"/></svg>' : '';
   const statsEl = document.getElementById('maths-stats');
   statsEl.innerHTML = `
     <div class="maths-stat-row">
-      <span class="maths-stat-label">Score</span>
-      <span class="maths-stat-value${isBest ? ' maths-stat-value--best' : ''}">${stats.score}${isBest ? ' ★' : ''}</span>
+      <dt class="maths-stat-label">Score</dt>
+      <dd class="maths-stat-value">${stats.score}${best}</dd>
     </div>
     <div class="maths-stat-row">
-      <span class="maths-stat-label">Accuracy</span>
-      <span class="maths-stat-value">${stats.accuracy}%</span>
+      <dt class="maths-stat-label">Accuracy</dt>
+      <dd class="maths-stat-value">${stats.accuracy}%</dd>
     </div>
     <div class="maths-stat-row">
-      <span class="maths-stat-label">Best streak</span>
-      <span class="maths-stat-value">${stats.bestStreak}</span>
+      <dt class="maths-stat-label">Best streak</dt>
+      <dd class="maths-stat-value">${stats.bestStreak}</dd>
     </div>
     ${stats.timeTaken ? `<div class="maths-stat-row">
-      <span class="maths-stat-label">Time</span>
-      <span class="maths-stat-value">${stats.timeTaken}s</span>
+      <dt class="maths-stat-label">Time</dt>
+      <dd class="maths-stat-value">${stats.timeTaken}s</dd>
     </div>` : ''}
   `;
 
   document.getElementById('maths-play-again-btn').onclick = startGame;
   document.getElementById('maths-change-settings-btn').onclick = () => showScreen('settings');
   document.getElementById('maths-play-again-btn').className =
-    stats.quit ? 'maths-btn maths-btn--secondary' : 'maths-btn maths-btn--primary';
+    stats.quit ? 'kg-btn kg-btn--ghost' : 'kg-btn';
   document.getElementById('maths-change-settings-btn').className =
-    stats.quit ? 'maths-btn maths-btn--primary' : 'maths-btn maths-btn--secondary';
+    stats.quit ? 'kg-btn' : 'kg-btn kg-btn--ghost';
   showScreen('results');
+  document.getElementById(stats.quit ? 'maths-change-settings-btn' : 'maths-play-again-btn').focus({ preventScroll: true });
 }
 
 function savePersonalBest(stats) {

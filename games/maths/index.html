@@ -4,71 +4,55 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Maths</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../../shared/tokens.css">
 <link rel="stylesheet" href="../../shared/shell.css">
 <link rel="stylesheet" href="css/style.css">
 </head>
-<body data-page="maths" data-page-title="Maths">
+<body data-page="maths" data-page-title="Maths" data-paint="red">
 
 <!-- Shell bar injected by build script -->
 
 <div id="maths-app">
 
-  <!-- SCREEN: Settings -->
-  <div id="maths-settings" class="maths-screen maths-screen--settings">
-    <div class="maths-settings-wrap">
-      <div class="maths-logo">🧮</div>
-      <h1 class="maths-title">Maths</h1>
+  <!-- STATION 1: settings -->
+  <div id="maths-settings" class="kg-screen maths-screen">
+    <div class="kg-wrap">
+      <h1 class="kg-title kg-title--paint">
+        <svg class="mk" viewBox="0 0 96 96" aria-hidden="true"><use href="#m-maths"/></svg>
+        Maths
+      </h1>
 
-      <!-- Operation -->
       <fieldset class="maths-fieldset">
-        <legend class="maths-legend">Operation</legend>
-        <div class="maths-toggle-row" id="maths-op-row">
-          <button class="maths-toggle maths-toggle--active" data-op="+" aria-pressed="true">+</button>
-          <button class="maths-toggle" data-op="-" aria-pressed="false">−</button>
-          <button class="maths-toggle" data-op="*" aria-pressed="false">×</button>
-          <button class="maths-toggle" data-op="/" aria-pressed="false">÷</button>
-          <button class="maths-toggle" data-op="mixed" aria-pressed="false">Mixed</button>
+        <legend class="kg-label">Sums</legend>
+        <div class="kg-seg" id="maths-op-row" role="group" aria-label="Sums">
+          <button class="kg-seg__opt maths-op" data-op="+" aria-pressed="true"  aria-label="Add"><svg class="ic ic--lg"><use href="#i-plus"/></svg></button>
+          <button class="kg-seg__opt maths-op" data-op="-" aria-pressed="false" aria-label="Take away"><svg class="ic ic--lg"><use href="#i-minus"/></svg></button>
+          <button class="kg-seg__opt maths-op" data-op="*" aria-pressed="false" aria-label="Times"><svg class="ic ic--lg"><use href="#i-times"/></svg></button>
+          <button class="kg-seg__opt maths-op" data-op="/" aria-pressed="false" aria-label="Divide"><svg class="ic ic--lg"><use href="#i-divide"/></svg></button>
+          <button class="kg-seg__opt maths-op" data-op="mixed" aria-pressed="false" aria-label="Mixed"><svg class="ic ic--lg"><use href="#i-shuffle"/></svg><span class="maths-op__label">Mixed</span></button>
         </div>
       </fieldset>
 
-      <!-- Difficulty -->
       <fieldset class="maths-fieldset">
-        <legend class="maths-legend">Difficulty</legend>
-        <div class="maths-toggle-row" id="maths-diff-row">
-          <button class="maths-toggle" data-diff="easy" aria-pressed="false">Easy</button>
-          <button class="maths-toggle maths-toggle--active" data-diff="medium" aria-pressed="true">Medium</button>
-          <button class="maths-toggle" data-diff="hard" aria-pressed="false">Hard</button>
-          <button class="maths-toggle" data-diff="custom" aria-pressed="false">Custom</button>
+        <legend class="kg-label">How tricky</legend>
+        <div class="kg-seg" id="maths-diff-row" role="group" aria-label="How tricky">
+          <button class="kg-seg__opt maths-diff" data-diff="easy"   aria-pressed="false"><span class="kg-squares" aria-hidden="true"><i class="on"></i><i></i><i></i></span><span>Easy</span></button>
+          <button class="kg-seg__opt maths-diff" data-diff="medium" aria-pressed="true"><span class="kg-squares" aria-hidden="true"><i class="on"></i><i class="on"></i><i></i></span><span>Medium</span></button>
+          <button class="kg-seg__opt maths-diff" data-diff="hard"   aria-pressed="false"><span class="kg-squares" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i></span><span>Hard</span></button>
+          <button class="kg-seg__opt maths-diff" data-diff="custom" aria-pressed="false"><svg class="ic"><use href="#i-pencil"/></svg><span>Custom</span></button>
         </div>
         <p class="maths-diff-hint" id="maths-diff-hint">Numbers 1–20, tables to 10</p>
       </fieldset>
 
       <!-- Custom options (hidden unless Custom selected) -->
       <div id="maths-custom-opts" class="maths-custom-opts" hidden>
-        <div class="maths-custom-row">
-          <label class="maths-label" for="maths-min">Min</label>
-          <input id="maths-min" class="maths-input" type="number" value="-100" min="-9999" max="9999">
+        <div class="maths-custom-grid">
+          <div><label class="kg-label" for="maths-min">Smallest number</label><input id="maths-min" class="kg-input" type="number" value="-100" min="-9999" max="9999"></div>
+          <div><label class="kg-label" for="maths-max">Biggest number</label><input id="maths-max" class="kg-input" type="number" value="100" min="-9999" max="9999"></div>
+          <div><label class="kg-label" for="maths-table">Biggest table (× ÷)</label><input id="maths-table" class="kg-input" type="number" value="12" min="2" max="99"></div>
         </div>
-        <div class="maths-custom-row">
-          <label class="maths-label" for="maths-max">Max</label>
-          <input id="maths-max" class="maths-input" type="number" value="100" min="-9999" max="9999">
-        </div>
-        <div class="maths-custom-row">
-          <label class="maths-label" for="maths-table">Max table (×÷)</label>
-          <input id="maths-table" class="maths-input" type="number" value="12" min="2" max="99">
-        </div>
-        <div class="maths-custom-row">
-          <label class="maths-label">
-            <input id="maths-negatives" type="checkbox"> Negative numbers
-          </label>
-        </div>
-        <div class="maths-custom-row">
-          <label class="maths-label">
-            <input id="maths-decimals" type="checkbox"> Decimals (1dp)
-          </label>
-        </div>
+        <label class="maths-check"><input id="maths-negatives" type="checkbox"> Negative numbers</label>
+        <label class="maths-check"><input id="maths-decimals" type="checkbox"> Decimals (1dp)</label>
         <div class="maths-complexity-row" id="maths-complexity-row">
           <span class="maths-complexity-badge" id="maths-complexity-badge">KS2</span>
           <span class="maths-complexity-ages" id="maths-complexity-ages">Ages 7–11</span>
@@ -76,56 +60,58 @@
         </div>
       </div>
 
-      <!-- Session Mode -->
       <fieldset class="maths-fieldset">
-        <legend class="maths-legend">Mode</legend>
-        <div class="maths-mode-row" id="maths-mode-row">
-          <button class="maths-mode-btn maths-mode-btn--active" data-mode="sprint" aria-pressed="true">
-            <span class="maths-mode-icon" aria-hidden="true">⏱</span>
-            <span class="maths-mode-name">Sprint</span>
-            <span class="maths-mode-desc">60 seconds</span>
+        <legend class="kg-label">How long</legend>
+        <div class="kg-seg maths-modes" id="maths-mode-row" role="group" aria-label="How long">
+          <button class="kg-seg__opt maths-mode" data-mode="sprint" aria-pressed="true">
+            <svg class="ic ic--lg" aria-hidden="true"><use href="#i-timer"/></svg>
+            <span class="maths-mode__name">Sprint</span><span class="maths-mode__desc">60 seconds</span>
           </button>
-          <button class="maths-mode-btn" data-mode="round" aria-pressed="false">
-            <span class="maths-mode-icon" aria-hidden="true">🎯</span>
-            <span class="maths-mode-name">Round</span>
-            <span class="maths-mode-desc">10 questions</span>
+          <button class="kg-seg__opt maths-mode" data-mode="round" aria-pressed="false">
+            <svg class="ic ic--lg" aria-hidden="true"><use href="#i-round"/></svg>
+            <span class="maths-mode__name">Round</span><span class="maths-mode__desc">10 questions</span>
           </button>
-          <button class="maths-mode-btn" data-mode="endless" aria-pressed="false">
-            <span class="maths-mode-icon" aria-hidden="true">∞</span>
-            <span class="maths-mode-name">Endless</span>
-            <span class="maths-mode-desc">Keep going</span>
+          <button class="kg-seg__opt maths-mode" data-mode="endless" aria-pressed="false">
+            <svg class="ic ic--lg" aria-hidden="true"><use href="#i-infinity"/></svg>
+            <span class="maths-mode__name">Endless</span><span class="maths-mode__desc">Keep going</span>
           </button>
         </div>
       </fieldset>
+    </div>
 
-      <button id="maths-start-btn" class="maths-btn maths-btn--primary maths-btn--large">Let's go! 🚀</button>
+    <div class="maths-dock">
+      <button id="maths-start-btn" class="kg-btn kg-btn--block maths-start">
+        <svg class="ic ic--lg" aria-hidden="true"><use href="#i-play"/></svg><span>Let's go!</span>
+      </button>
     </div>
   </div>
 
-  <!-- SCREEN: Game -->
-  <div id="maths-game" class="maths-screen maths-screen--game" hidden>
-    <div class="maths-hud">
-      <span class="maths-hud-score">Score: <strong id="maths-score">0</strong></span>
-      <span id="maths-hud-center" class="maths-hud-center"></span>
-      <button id="maths-quit-btn" class="maths-btn maths-btn--ghost">✕</button>
-    </div>
-    <div class="maths-game-body">
+  <!-- STATION 2: play -->
+  <div id="maths-game" class="kg-screen maths-screen maths-screen--game" hidden>
+    <div class="kg-wrap maths-play">
+      <div class="kg-hud">
+        <button id="maths-quit-btn" class="kg-iconbtn" type="button" aria-label="Stop playing"><svg class="ic"><use href="#i-close"/></svg></button>
+        <span class="kg-hud__fill"></span>
+        <span id="maths-hud-center" class="maths-hud-center"></span>
+        <span class="kg-chip kg-chip--paint"><svg class="ic" aria-hidden="true"><use href="#a-star" style="fill:currentColor"/></svg><span class="kg-sr">Score</span><strong id="maths-score">0</strong></span>
+      </div>
       <div class="maths-question-wrap">
         <div class="maths-question" id="maths-question" aria-live="polite" aria-atomic="true"></div>
       </div>
-      <div class="maths-choices" id="maths-choices" role="group" aria-label="Answer choices"></div>
+      <div class="kg-tiles maths-choices" id="maths-choices" role="group" aria-label="Answer choices"></div>
     </div>
   </div>
 
-  <!-- SCREEN: Results -->
-  <div id="maths-results" class="maths-screen maths-screen--results" hidden>
-    <div class="maths-results-wrap">
-      <div class="maths-results-icon" id="maths-results-icon">🎉</div>
-      <h2 class="maths-results-title" id="maths-results-title">Well done!</h2>
-      <div class="maths-stats" id="maths-stats"></div>
-      <div class="maths-results-actions">
-        <button id="maths-play-again-btn" class="maths-btn maths-btn--primary">Play again</button>
-        <button id="maths-change-settings-btn" class="maths-btn maths-btn--secondary">Change settings</button>
+  <!-- STATION 3: result -->
+  <div id="maths-results" class="kg-screen maths-screen" hidden>
+    <div class="kg-wrap maths-results-wrap">
+      <div class="maths-stars" id="maths-results-icon" aria-hidden="true"></div>
+      <h2 class="kg-title maths-results-title" id="maths-results-title">Well done!</h2>
+      <dl class="maths-stats" id="maths-stats"></dl>
+      <div class="kg-actions maths-results-actions">
+        <button id="maths-play-again-btn" class="kg-btn" type="button"><svg class="ic" aria-hidden="true"><use href="#i-replay"/></svg><span>Play again</span></button>
+        <button id="maths-change-settings-btn" class="kg-btn kg-btn--ghost" type="button"><svg class="ic" aria-hidden="true"><use href="#i-back"/></svg><span>Change settings</span></button>
+        <a class="kg-btn kg-btn--ghost" href="index.html"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg><span>All games</span></a>
       </div>
     </div>
   </div>
