@@ -19,6 +19,7 @@
     font-family: var(--font-family);
     background: var(--bg);
     min-height: 100vh;
+    min-height: 100dvh;
     overflow-x: hidden;
     position: relative;
     padding-top: 56px;
@@ -97,6 +98,13 @@
     transform: translateY(-2px) scale(0.98);
   }
 
+  .game-card:focus-visible {
+    outline: 4px solid var(--btn-primary-bg);
+    outline-offset: 4px;
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-lg);
+  }
+
   .game-card.type-trainer::before {
     background: linear-gradient(90deg, var(--accent-primary), var(--accent-tertiary), var(--accent-secondary));
   }
@@ -115,23 +123,6 @@
 
   .game-card.memory-match::before {
     background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple), var(--accent-tertiary));
-  }
-
-  .game-card.coming-soon {
-    opacity: 0.7;
-    cursor: default;
-    pointer-events: none;
-  }
-
-  .coming-soon-badge {
-    display: inline-block;
-    background: var(--bg);
-    border-radius: var(--radius-lg);
-    padding: 4px 14px;
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: var(--text-secondary);
-    margin-bottom: 16px;
   }
 
   .game-icon {
@@ -169,7 +160,7 @@
     display: inline-block;
     border-radius: var(--radius-lg);
     padding: 4px 14px;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     font-weight: 700;
     margin-bottom: 16px;
   }
@@ -184,21 +175,18 @@
     color: var(--warning-text);
   }
 
-  /* On touch-only devices, dim keyboard-required games and reorder grid */
-  .touch-device .game-card.needs-keyboard {
-    opacity: 0.55;
-    order: 1;
-  }
-  .touch-device .game-card.needs-keyboard:hover {
-    opacity: 0.8;
-  }
-  .touch-device .game-card:not(.needs-keyboard) {
-    order: 0;
+  /* On touch-only devices, dim keyboard-required games and move them last */
+  @media (hover: none) and (pointer: coarse) {
+    .game-card.needs-keyboard {
+      opacity: 0.55;
+      order: 1;
+    }
   }
 
   .play-btn {
     display: inline-block;
-    background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+    margin-top: auto;
+    background: linear-gradient(135deg, var(--btn-primary-bg), var(--btn-primary-hover));
     color: var(--btn-primary-text);
     border-radius: var(--radius-xl);
     padding: 12px 32px;
@@ -209,7 +197,7 @@
   }
 
   .game-card:hover .play-btn {
-    box-shadow: 0 4px 15px rgba(167,139,250,0.3);
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--btn-primary-bg) 35%, transparent);
   }
 
   .kg-hub-welcome {
@@ -226,7 +214,7 @@
     z-index: 10;
     text-align: center;
     padding: 8px 16px;
-    font-size: 0.78rem;
+    font-size: 0.85rem;
     font-weight: 600;
     color: var(--text-secondary);
     background: var(--bg);
@@ -240,6 +228,11 @@
   }
 
   .hub-footer a:hover { color: var(--text-primary); }
+  .hub-footer a:focus-visible {
+    outline: 3px solid var(--btn-primary-bg);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
 
   @media (max-width: 480px) {
     .game-card { padding: 16px 12px; }
@@ -253,8 +246,8 @@
 
   <div class="games-grid">
     <a href="type-trainer.html" class="game-card type-trainer needs-keyboard">
-      <span class="game-icon">⌨️</span>
-      <div class="game-title">Type Trainer</div>
+      <span class="game-icon" aria-hidden="true">⌨️</span>
+      <h2 class="game-title">Type Trainer</h2>
       <div class="game-desc">Letters and words fall from the sky — type them before they land!</div>
       <div class="game-badge">Ages 4–12+</div>
       <div class="device-badge keyboard-required">⌨️ Needs a keyboard</div>
@@ -262,8 +255,8 @@
     </a>
 
     <a href="opposites.html" class="game-card opposites">
-      <span class="game-icon">🔄</span>
-      <div class="game-title">Opposites</div>
+      <span class="game-icon" aria-hidden="true">🔄</span>
+      <h2 class="game-title">Opposites</h2>
       <div class="game-desc">Find the opposite word — choose or type your answer!</div>
       <div class="game-badge">Ages 4–8</div>
       <div class="device-badge any-device">📱 Works on any device</div>
@@ -271,8 +264,8 @@
     </a>
 
     <a href="number-bonds.html" class="game-card number-bonds">
-      <span class="game-icon">🔢</span>
-      <div class="game-title">Number Bonds</div>
+      <span class="game-icon" aria-hidden="true">🔢</span>
+      <h2 class="game-title">Number Bonds</h2>
       <div class="game-desc">Answer + − × ÷ questions by choosing the missing number!</div>
       <div class="game-badge">Ages 4–12+</div>
       <div class="device-badge any-device">📱 Works on any device</div>
@@ -280,8 +273,8 @@
     </a>
 
     <a href="maths.html" class="game-card maths">
-      <span class="game-icon">🧮</span>
-      <div class="game-title">Maths</div>
+      <span class="game-icon" aria-hidden="true">🧮</span>
+      <h2 class="game-title">Maths</h2>
       <div class="game-desc">Work out the answer — tap the right number as fast as you can!</div>
       <div class="game-badge">Ages 5–10</div>
       <div class="device-badge any-device">📱 Works on any device</div>
@@ -289,8 +282,8 @@
     </a>
 
     <a href="memory-match.html" class="game-card memory-match">
-      <span class="game-icon">🃏</span>
-      <div class="game-title">Memory Match</div>
+      <span class="game-icon" aria-hidden="true">🃏</span>
+      <h2 class="game-title">Memory Match</h2>
       <div class="game-desc">Flip cards and find the matching pairs!</div>
       <div class="game-badge">Ages 4–10</div>
       <div class="device-badge any-device">📱 Works on any device</div>
