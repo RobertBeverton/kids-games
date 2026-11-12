@@ -123,6 +123,8 @@ def main():
                         help='Min Brown corpus frequency (0 = no filter)')
     parser.add_argument('--dry-run', action='store_true',
                         help='Print stats only; do not write files')
+    parser.add_argument('--write-legacy-format', action='store_true',
+                        help='Overwrite the game data in the OLD format (breaks the current game; see docstring)')
     parser.add_argument('--seed', type=int, default=42,
                         help='Random seed for reproducible distractor selection')
     args = parser.parse_args()
@@ -275,6 +277,14 @@ def main():
     # -----------------------------------------------------------------------
     # Patch games/opposites/index.html
     # -----------------------------------------------------------------------
+    # The game now reads the curated list (tools/opposites-words.txt, built by
+    # tools/build_opposites_data.mjs) in a different data format. This legacy WordNet
+    # output uses the OLD format ({word, opposites, distractors, difficulty}) and would
+    # break the game, so it refuses to write unless you really mean it.
+    if not args.write_legacy_format:
+        print('Refusing to write: the game uses the curated list now (see tools/build_opposites_data.mjs).')
+        print('This generator is kept for its WordNet data only. Use --dry-run to inspect, or --write-legacy-format to overwrite anyway.')
+        return
     html = GAME_HTML.read_text(encoding='utf-8')
 
     new_block = (

@@ -10,7 +10,18 @@ Fun, free, ad-free educational games for kids — built for my twins (age 5) and
 Letters and words fall from the sky — type them before they land! Four age brackets (4-5, 6-8, 9-12, Adult) with adaptive difficulty, on-screen keyboard, and per-player profiles.
 
 ### Opposites
-Find the opposite word! Choose from multiple choice or type your answer. 40 word pairs with sound effects and streak tracking.
+Find the opposite word! Choose from multiple choice or type your answer. A hand-curated list of about 330 words in UK English: simple pairs for age 5, story words for ages 6 to 7. Every sensible answer counts (happy: sad, unhappy, upset...), common misspellings are accepted when typed, and words a child missed come back in later games.
+
+The word list lives in `tools/opposites-words.txt` (with `tools/opposites-misspellings.txt`). After editing it:
+
+```
+node tools/validate-opposites.mjs              # structure, distractors, bias checks
+python tools/check_opposites_wordnet.py        # dictionary check (needs nltk)
+node tools/build_opposites_data.mjs            # embeds the list in games/opposites/index.html
+bash build.sh                                  # fails if the list is invalid or not embedded
+```
+
+`games/opposites/tests/play-test.mjs` plays the built page in a real browser and checks that nothing wrong is accepted and nothing right is rejected (see its header for how to run it).
 
 ## Tech
 

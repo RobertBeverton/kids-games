@@ -76,6 +76,15 @@ done
 echo "All source files found."
 echo ""
 
+# --- Opposites word list: validate it, and make sure the game carries the current copy ---
+# (the list lives in tools/opposites-words.txt; after editing it run: node tools/build_opposites_data.mjs)
+if command -v node >/dev/null 2>&1; then
+  node tools/build_opposites_data.mjs --check || { echo "Error: Opposites word list failed validation or is not embedded in the game." >&2; exit 1; }
+else
+  echo "  [WARN] node not found: skipped the Opposites word-list check"
+fi
+echo ""
+
 # --- Create docs directory ---
 mkdir -p "$DOCS_DIR"
 
