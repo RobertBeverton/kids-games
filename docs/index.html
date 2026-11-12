@@ -532,7 +532,7 @@ button { font: inherit; color: inherit; }
   :root { --t-display: 2.5rem; --t-title: 1.75rem; }
   .kg-sheet { padding: var(--s4); }
 }
-  /* Hub: a ground plan. One dominant marking (carry on), four others. */
+  /* Hub: a ground plan. One dominant marking (carry on), three others. */
   .hub {
     max-width: 1280px; margin: 0 auto;
     height: max(calc(100dvh - var(--bar-h)), 560px);
@@ -547,8 +547,8 @@ button { font: inherit; color: inherit; }
   .plan {
     flex: 1; min-height: 0;
     display: grid; gap: var(--gap-tile);
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    grid-template-rows: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    grid-template-rows: repeat(3, minmax(0, 1fr));
   }
 
   .mark {
@@ -585,11 +585,17 @@ button { font: inherit; color: inherit; }
   }
 
   /* The dominant marking: carry on where you were */
-  .mark--lead { grid-column: 1 / span 2; grid-row: 1 / span 2; padding: var(--s5); gap: var(--s3); }
+  .mark--lead { grid-column: 1; grid-row: 1 / span 3; padding: var(--s5); gap: var(--s3); }
   .mark--lead .mark__name { font-size: var(--t-title); }
   .mark--lead .mark__go { display: inline-flex; }
   .mark--lead .mk { max-width: 280px; max-height: 280px; }
   :root[data-age="older"] .mark--lead .mark__desc { display: block; font-size: var(--t-body); }
+
+  /* The other three, tablet landscape: a row each, picture on the left, name and squares beside it */
+  .mark:not(.mark--lead) { flex-direction: row; justify-content: flex-start; text-align: left; gap: var(--s4); padding: var(--s3) var(--s4); }
+  .mark:not(.mark--lead) .mk-wrap { flex: 0 0 30%; max-width: 128px; height: 100%; }
+  .mark:not(.mark--lead) .mark__text { display: flex; flex: 1; min-width: 0; flex-direction: column; align-items: flex-start; gap: var(--s2); }
+  .mark:not(.mark--lead) .kg-squares { max-width: 200px; }
 
   .mark.is-painting .mk { animation: kg-paint-on var(--dur-paint) var(--ease) both; }
   .mark--lead .mk { animation: kg-paint-on var(--dur-paint) var(--ease) both; }
@@ -598,30 +604,42 @@ button { font: inherit; color: inherit; }
     margin: 0; text-align: center; font-size: var(--t-small); color: var(--ink-2);
   }
 
-  /* Portrait and phones: lead on top, the four below */
+  /* Portrait: lead across the top, the other three side by side below it */
   @media (max-aspect-ratio: 5/6), (max-width: 640px) {
     .hub { padding: var(--s3) var(--s4) var(--s4); gap: var(--s3); height: max(calc(100dvh - var(--bar-h)), 640px); }
     .plan {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      grid-template-rows: minmax(0, 1.15fr) repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-rows: minmax(0, 1.25fr) minmax(0, 1fr);
     }
-    .mark--lead { grid-column: 1 / span 2; grid-row: 1; flex-direction: row; text-align: left; gap: var(--s4); }
+    .mark:not(.mark--lead) { flex-direction: column; justify-content: space-between; text-align: center; gap: var(--s2); padding: var(--s3); }
+    .mark:not(.mark--lead) .mk-wrap { flex: 1; max-width: none; width: 100%; height: auto; }
+    .mark:not(.mark--lead) .mark__text { display: contents; }
+    .mark--lead { grid-column: 1 / span 3; grid-row: 1; flex-direction: row; text-align: left; gap: var(--s4); }
     .mark--lead .mk-wrap { flex: 0 0 38%; }
     .mark--lead .mark__text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--s3); align-items: flex-start; }
     .mark__name { font-size: var(--t-body); }
     .mark--lead .mark__name { font-size: var(--t-title); }
   }
+  /* Phones: lead on top, then the other three as a row each */
   @media (max-width: 640px) {
     .hub__hello { font-size: var(--t-lead); }
     .mark { padding: var(--s3); }
     .mark--lead .mark__desc { display: none !important; }
+    .plan { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1.5fr) repeat(3, minmax(0, 1fr)); }
+    .mark--lead { grid-column: 1; }
+    .mark:not(.mark--lead) { flex-direction: row; justify-content: flex-start; text-align: left; gap: var(--s3); }
+    .mark:not(.mark--lead) .mk-wrap { flex: 0 0 26%; max-width: 88px; height: 100%; width: auto; }
+    .mark:not(.mark--lead) .mark__text { display: flex; flex: 1; min-width: 0; flex-direction: column; align-items: flex-start; gap: var(--s1); }
   }
-  /* Short landscape (phones on their side): one row of five */
+  /* Short landscape (phones on their side): one row, the lead and three more */
   @media (orientation: landscape) and (max-height: 520px) {
     .hub { height: auto; min-height: calc(100dvh - var(--bar-h)); padding: var(--s2) var(--s3) var(--s3); gap: var(--s2); }
     .hub__hello { font-size: var(--t-body); }
     .hub__credit { display: none; }
-    .plan { grid-template-columns: 1.5fr repeat(4, minmax(0, 1fr)); grid-template-rows: minmax(210px, 1fr); }
+    .plan { grid-template-columns: 1.5fr repeat(3, minmax(0, 1fr)); grid-template-rows: minmax(210px, 1fr); }
+    .mark:not(.mark--lead) { flex-direction: column; justify-content: space-between; text-align: center; gap: var(--s1); }
+    .mark:not(.mark--lead) .mk-wrap { flex: 1; max-width: none; width: 100%; height: auto; }
+    .mark:not(.mark--lead) .mark__text { display: contents; }
     .mark--lead { grid-column: 1; grid-row: 1; flex-direction: column; text-align: center; padding: var(--s3); }
     .mark--lead .mk-wrap { flex: 1; }
     .mark--lead .mark__text { align-items: center !important; }
@@ -816,8 +834,7 @@ button { font: inherit; color: inherit; }
     <section class="kg-group" aria-labelledby="kg-g-games">
       <h3 id="kg-g-games" class="kg-label">Games guide</h3>
       <ul class="kg-guide">
-        <li><span>Number Bonds</span><span>Ages 4–12+</span></li>
-        <li><span>Maths</span><span>Ages 5–10</span></li>
+        <li><span>Maths</span><span>Ages 5–12+</span></li>
         <li><span>Opposites</span><span>Ages 4–8</span></li>
         <li><span>Memory Match</span><span>Ages 4–10</span></li>
         <li><span>Type Trainer</span><span>Ages 4–12+, needs a keyboard</span></li>
@@ -831,7 +848,7 @@ button { font: inherit; color: inherit; }
         Feedback or bug? Raise it on GitHub
         <svg class="ic ic--sm"><use href="#i-link"/></svg>
       </a>
-      <p>Version 0ab8519 12 Nov 14:15</p>
+      <p>Version 8495991 12 Nov 16:09</p>
     </section>
   </div>
 </div>
@@ -856,21 +873,11 @@ button { font: inherit; color: inherit; }
   <h1 id="kg-hub-welcome" class="hub__hello">Pick a game!</h1>
 
   <nav class="plan" aria-label="Games">
-    <a href="number-bonds.html" class="mark" data-game="number-bonds" data-paint="yellow">
-      <span class="mk-wrap"><svg class="mk" viewBox="0 0 96 96" aria-hidden="true"><use href="#m-hopscotch"/></svg></span>
-      <span class="mark__text">
-        <h2 class="mark__name">Number Bonds</h2>
-        <p class="mark__desc">Answer + − × ÷ questions by choosing the missing number!</p>
-        <span class="kg-squares" role="img"></span>
-        <span class="mark__go"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>Play</span>
-      </span>
-    </a>
-
     <a href="maths.html" class="mark" data-game="maths" data-paint="red">
       <span class="mk-wrap"><svg class="mk" viewBox="0 0 96 96" aria-hidden="true"><use href="#m-maths"/></svg></span>
       <span class="mark__text">
         <h2 class="mark__name">Maths</h2>
-        <p class="mark__desc">Work out the answer — tap the right number as fast as you can!</p>
+        <p class="mark__desc">Work out the answer, or find the missing number!</p>
         <span class="kg-squares" role="img"></span>
         <span class="mark__go"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>Play</span>
       </span>
@@ -932,7 +939,7 @@ button { font: inherit; color: inherit; }
     var progress = (kg && kg.progress) || {};
     var last = kg && kg.lastGame;
     var ids = marks.map(function (m) { return m.dataset.game; });
-    var lead = ids.indexOf(last) >= 0 ? last : (player && player.ageBracket === '4-5' ? 'memory-match' : 'number-bonds');
+    var lead = ids.indexOf(last) >= 0 ? last : (player && player.ageBracket === '4-5' ? 'memory-match' : 'maths');
     marks.forEach(function (m) {
       var id = m.dataset.game;
       var isLead = id === lead;
@@ -1133,6 +1140,54 @@ function setLastGame(name, gameId) {
 // --- Device preferences (not per player) ---
 function getPref(key) { return _read(STORAGE_PREFIX + 'pref_' + key); }
 function setPref(key, val) { _write(STORAGE_PREFIX + 'pref_' + key, val); }
+
+// --- Maths merge: Number Bonds became a style ("Find the missing number") inside Maths ---
+// Runs once per player (guarded by a flag), never deletes the old data. Moves, per player:
+//   - settings and personal bests: kidsgames_maths_<name> / kidsgames_numberbonds_<name>  ->  kidsgames_maths_<name>
+//     (personal-best keys gain the style: pb_<op>_<diff>_<mode>  ->  pb_<style>_<op>_<diff>_<mode>)
+//   - progress squares: 'number-bonds' is added to 'maths'
+//   - 'last game played': 'number-bonds' becomes 'maths'
+function migrateMathsMerge() {
+  let players;
+  try { players = Object.keys(getAllPlayers()); } catch (e) { return; }
+  players.forEach(function (name) {
+    const flagKey = STORAGE_PREFIX + 'merged_maths_' + name;
+    if (_read(flagKey)) return;
+    try {
+      const maths = _read(STORAGE_PREFIX + 'maths_' + name);
+      const nb = _read(STORAGE_PREFIX + 'numberbonds_' + name);
+      if (maths && maths.v === 2) { _write(flagKey, true); return; }
+      if (maths || nb) {
+        const last = _read(STORAGE_PREFIX + 'last_' + name);
+        const fromNb = nb && nb.settings && (!maths || !maths.settings || last === 'number-bonds');
+        const src = fromNb ? nb : (maths && maths.settings ? maths : nb);
+        const merged = { v: 2 };
+        if (src && src.settings) {
+          merged.settings = Object.assign({}, src.settings, { style: src === nb ? 'missing' : 'answer' });
+        }
+        [[maths, 'answer'], [nb, 'missing']].forEach(function (pair) {
+          const data = pair[0], style = pair[1];
+          if (!data) return;
+          Object.keys(data).forEach(function (k) {
+            if (k.indexOf('pb_') !== 0 || k.indexOf('pb_answer_') === 0 || k.indexOf('pb_missing_') === 0) return;
+            merged['pb_' + style + '_' + k.slice(3)] = data[k];
+          });
+        });
+        _write(STORAGE_PREFIX + 'maths_' + name, merged);
+      }
+      const prog = _read(STORAGE_PREFIX + 'progress_' + name);
+      if (prog && prog['number-bonds']) {
+        prog.maths = (prog.maths || 0) + prog['number-bonds'];
+        delete prog['number-bonds'];
+        _write(STORAGE_PREFIX + 'progress_' + name, prog);
+      }
+      if (_read(STORAGE_PREFIX + 'last_' + name) === 'number-bonds') _write(STORAGE_PREFIX + 'last_' + name, 'maths');
+      _write(flagKey, true);
+    } catch (e) {
+      console.error('KidsGames: Maths merge skipped for', name, e);
+    }
+  });
+}
 // shared/shell.js — Shell bar, player sheets, grown-ups gate, shared sound.
 // NOTE: The build script wraps storage.js + shell.js together in a single IIFE.
 // Storage functions (getPlayer, savePlayer, etc.) are available here without import.
@@ -1232,7 +1287,7 @@ function setPref(key, val) { _write(STORAGE_PREFIX + 'pref_' + key, val); }
     get player() {
       const p = getActivePlayer();
       if (!p) return null;
-      return { name: p.name, ageBracket: getAgeBracket(p), theme: p.theme, avatar: getAvatarIndex(p) };
+      return { name: p.name, age: getAge(p), ageBracket: getAgeBracket(p), theme: p.theme, avatar: getAvatarIndex(p) };
     },
     get muted() { return muted; },
     get reducedMotion() {
@@ -1702,6 +1757,7 @@ function setPref(key, val) { _write(STORAGE_PREFIX + 'pref_' + key, val); }
     _initialized = true;
 
     if (document.body.dataset.page === 'type-trainer') migrateTypeTrainerData();
+    migrateMathsMerge();
 
     applyTheme(osTheme());
     applyMotion();
