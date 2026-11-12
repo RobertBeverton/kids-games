@@ -30,3 +30,10 @@ export function pictureSvg(key) {
 export function missingSvg(key) {
   return '<svg class="sb-pic sb-pic--missing" ' + attrs + '><rect x="12" y="12" width="72" height="72" rx="8"/><path class="d" d="M12 12L84 84M84 12L12 84"/></svg>';
 }
+
+// INTERIM scene picture (Task 8): the pictures a scene names, side by side. The Task 6 spike replaces this with real scene
+// drawing, because a row of the tile icons teaches matching, not language (see the plan review, finding 1).
+export function sceneSvg(scene) {
+  const r = scene.picture || {};
+  return [r.actor, r.pose, r.item, r.place].filter(Boolean).map((k) => '<span class="sb-scene__pic">' + pictureSvg(k) + '</span>').join('');
+}
