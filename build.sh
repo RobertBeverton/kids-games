@@ -93,6 +93,14 @@ else
 fi
 echo ""
 
+# --- Sentence Blocks: unit tests (grammar, rounds, stages, saved data) and word/scene/picture checks ---
+if command -v node >/dev/null 2>&1; then
+  (cd games/sentence-blocks/tests && node --test ./*.test.js) || { echo "Error: Sentence Blocks tests failed." >&2; exit 1; }
+else
+  echo "  [WARN] node not found: skipped the Sentence Blocks tests"
+fi
+echo ""
+
 # --- Create docs directory ---
 mkdir -p "$DOCS_DIR"
 
