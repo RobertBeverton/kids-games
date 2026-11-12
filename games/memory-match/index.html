@@ -14,11 +14,12 @@
 .mm-fieldset .kg-seg { gap: var(--s3); }
 
 /* Settings tiles */
-.mm-size, .mm-theme { flex-direction: column; gap: var(--s2); min-height: 124px; }
+.mm-size { flex-direction: column; gap: var(--s1); min-height: 124px; padding-block: var(--s3); }
 .mm-size small { font-size: var(--t-small); font-weight: 400; }
+.mm-size .mm-best { font-weight: 700; }
+.mm-size .mm-best:empty { display: none; }
 .mm-thumb { display: grid; gap: 3px; height: 68px; align-content: center; justify-content: center; }
-.mm-thumb i { display: block; width: 11px; height: 12px; border-radius: 3px; background: currentColor; }
-.mm-theme .ic { width: 40px; height: 40px; }
+.mm-thumb i { display: block; width: 11px; height: 11px; border-radius: 3px; background: currentColor; }
 .mm-name { font-size: var(--t-body); }
 
 /* Board */
@@ -54,7 +55,7 @@
 
 /* Cards are real buttons */
 .mm-card { padding: 0; border: 0; background: none; perspective: 700px; cursor: pointer; font: inherit; min-width: 0; min-height: 0; }
-.mm-card:disabled { cursor: default; }
+.mm-card:disabled, .mm-card[aria-disabled="true"] { cursor: default; }
 .mm-card-inner { position: relative; display: block; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform var(--dur-2) var(--ease); border-radius: var(--r-2); }
 .mm-card--flipped .mm-card-inner, .mm-card--matched .mm-card-inner { transform: rotateY(180deg); }
 .mm-card-back, .mm-card-front {
@@ -65,7 +66,11 @@
 .mm-card-back { background: var(--paint); color: var(--on-paint); }
 .mm-card-back .ic { width: 46%; height: 46%; stroke-width: 4; }
 .mm-card-front { background: var(--chalk); transform: rotateY(180deg); }
-.mm-card-emoji { font-size: clamp(2rem, calc(var(--cw) * 0.5), 5rem); line-height: 1; user-select: none; }
+/* A bold main shape and thinner detail lines, round ends, like the Stories icons. 5 and 3 in 96 stay clear at 56px. */
+.mm-pic { width: 80%; height: 80%; fill: none; stroke: var(--line); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.mm-pic--wide { width: 100%; height: auto; }   /* 120x82 drawings, same scale as the 96x96 ones at 80% */
+.mm-pic .d { stroke-width: 3; }
+.mm-pic .dot { fill: var(--line); stroke: none; }
 .mm-card--matched .mm-card-front { background: var(--right-wash); border-color: var(--right); border-width: 5px; }
 .mm-card--matched .mm-card-front::after {
   content: ""; position: absolute; top: 6px; right: 6px; width: 26px; height: 26px; background: var(--right);
@@ -84,10 +89,20 @@
 
 /* Win */
 .mm-win { width: 100%; max-width: 520px; display: grid; justify-items: center; gap: var(--s4); text-align: center; margin: auto; }
-.mm-win .mk { width: clamp(120px, 26vmin, 200px); height: clamp(120px, 26vmin, 200px); color: var(--on-paint); background: var(--paint); border: var(--line-w) solid var(--line); border-radius: var(--r-2); padding: 18px; animation: kg-paint-on var(--dur-paint) var(--ease) both; }
+.mm-win .mk { width: clamp(88px, 18vmin, 200px); height: clamp(88px, 18vmin, 200px); color: var(--on-paint); background: var(--paint); border: var(--line-w) solid var(--line); border-radius: var(--r-2); padding: 14px; animation: kg-paint-on var(--dur-paint) var(--ease) both; }
 .mm-win h2 { margin: 0; font-size: var(--t-display); line-height: 1.05; }
 .mm-win p { margin: 0; font-size: var(--t-lead); }
 .mm-win .kg-actions { width: 100%; justify-content: center; }
+.mm-win .mm-result { display: flex; align-items: center; justify-content: center; gap: var(--s3); }
+.mm-win .mm-result .ic { width: 40px; height: 40px; }
+.mm-win .mm-result strong { font-size: var(--t-numeral); line-height: 1; font-variant-numeric: tabular-nums; }
+.mm-win .mm-flipsnote { font-size: var(--t-body); align-self: flex-end; padding-bottom: var(--s2); }
+.mm-win .mm-note { font-weight: 700; }
+.mm-top { list-style: none; margin: 0; padding: 0; display: flex; gap: var(--s3); justify-content: center; flex-wrap: wrap; }
+.mm-top li { display: flex; align-items: center; gap: var(--s2); min-height: 48px; padding: 0 var(--s4); border: var(--line-w) solid var(--line); border-radius: 999px; background: var(--chalk); font-size: var(--t-body); font-weight: 700; font-variant-numeric: tabular-nums; }
+.mm-top li.mm-me { background: var(--ink); color: var(--ground); border-color: var(--ink); }
+.mm-top .mm-rank { opacity: .75; }
+.mm-top .ic { width: 24px; height: 24px; }
 .mm-win .kg-btn { white-space: nowrap; }
 </style>
 </head>
@@ -108,25 +123,15 @@
       <fieldset class="mm-fieldset">
         <legend class="kg-label">How many cards</legend>
         <div class="kg-seg" id="mm-size-row" role="group" aria-label="How many cards">
-          <button class="kg-seg__opt mm-size" data-size="2x4" aria-pressed="false"><span class="mm-thumb" style="grid-template-columns:repeat(2,12px)" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="mm-name">Quick</span><small>2×4</small></button>
-          <button class="kg-seg__opt mm-size" data-size="3x4" aria-pressed="true"><span class="mm-thumb" style="grid-template-columns:repeat(3,12px)" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="mm-name">Medium</span><small>3×4</small></button>
-          <button class="kg-seg__opt mm-size" data-size="4x4" aria-pressed="false"><span class="mm-thumb" style="grid-template-columns:repeat(4,12px)" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="mm-name">Classic</span><small>4×4</small></button>
-          <button class="kg-seg__opt mm-size" data-size="4x5" aria-pressed="false"><span class="mm-thumb" style="grid-template-columns:repeat(4,12px)" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="mm-name">Challenge</span><small>4×5</small></button>
-        </div>
-      </fieldset>
-
-      <fieldset class="mm-fieldset">
-        <legend class="kg-label">What pictures</legend>
-        <div class="kg-seg" id="mm-theme-row" role="group" aria-label="What pictures">
-          <button class="kg-seg__opt mm-theme" data-theme="animals" aria-pressed="true"><svg class="ic" aria-hidden="true"><use href="#i-animals"/></svg><span class="mm-name">Animals</span></button>
-          <button class="kg-seg__opt mm-theme" data-theme="food" aria-pressed="false"><svg class="ic" aria-hidden="true"><use href="#i-food"/></svg><span class="mm-name">Food</span></button>
-          <button class="kg-seg__opt mm-theme" data-theme="vehicles" aria-pressed="false"><svg class="ic" aria-hidden="true"><use href="#i-vehicles"/></svg><span class="mm-name">Vehicles</span></button>
-          <button class="kg-seg__opt mm-theme" data-theme="random" aria-pressed="false"><svg class="ic" aria-hidden="true"><use href="#i-random"/></svg><span class="mm-name">Random</span></button>
+          <button class="kg-seg__opt mm-size" data-size="2x4" aria-pressed="false"><span class="mm-thumb" style="grid-template-columns:repeat(2,12px)" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="mm-name">Quick</span><small>2×4</small><small class="mm-best"></small></button>
+          <button class="kg-seg__opt mm-size" data-size="3x4" aria-pressed="true"><span class="mm-thumb" style="grid-template-columns:repeat(3,12px)" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="mm-name">Medium</span><small>3×4</small><small class="mm-best"></small></button>
+          <button class="kg-seg__opt mm-size" data-size="4x4" aria-pressed="false"><span class="mm-thumb" style="grid-template-columns:repeat(4,12px)" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="mm-name">Classic</span><small>4×4</small><small class="mm-best"></small></button>
+          <button class="kg-seg__opt mm-size" data-size="4x5" aria-pressed="false"><span class="mm-thumb" style="grid-template-columns:repeat(4,12px)" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="mm-name">Challenge</span><small>4×5</small><small class="mm-best"></small></button>
         </div>
       </fieldset>
 
       <label class="kg-switch">
-        <span class="kg-switch__text"><b>Peek at start</b><small>See all cards for 1.5s before playing</small></span>
+        <span class="kg-switch__text"><b>Peek at start</b><small id="mm-peek-note">See all cards for 1.5s before playing</small></span>
         <input type="checkbox" id="mm-peek-toggle" checked>
         <span class="kg-switch__track" aria-hidden="true"><span class="kg-switch__state" id="mm-peek-state">On</span></span>
       </label>
@@ -150,17 +155,141 @@
 </div>
 
 <script>
-// ===== STATE =====
-const state = {
-  size: '3x4',
-  theme: 'animals',
-  peek: true,
+// ===== TUNING =====
+const GAME_ID = 'memory-match';
+const PEEK_MS = 1500;          // all cards face up at the start (when Peek is on)
+const CHECK_MS = 350;          // after the second card turns, before the pair is judged
+const MISMATCH_MS = 900;       // a wrong pair stays visible this long
+const WIN_MS = 500;            // last match to the win screen
+const HINT_AFTER_MISSES = 3;   // wrong pairs in a row before a hint is offered
+const BEST_KEEP = 3;           // best times kept per size
+
+const SIZES = {
+  '2x4': { cols: 2, rows: 4 },
+  '3x4': { cols: 3, rows: 4 },
+  '4x4': { cols: 4, rows: 4 },
+  '4x5': { cols: 4, rows: 5 },
 };
+const DEFAULTS = { size: '3x4', peek: true };
+
+// ===== STATE =====
+const state = { ...DEFAULTS };
+let saved = {};          // this player's saved data: choices, best times, games played
 
 function sfx(name) { if (window.KidsGames) window.KidsGames.sfx(name); }
 function say(text) { if (window.KidsGames) window.KidsGames.say(text); }
 
-// ===== TOGGLE GROUPS =====
+// ===== PICTURES (the faces of the cards) =====
+// Each picture is plain data on a 96x96 square, drawn with one stroke weight and round ends by the .mm-pic CSS:
+//   line   the bold main shape, stroked
+//   detail thinner stroked lines (optional)
+//   dots   small filled shapes: eyes, noses, hubs (optional)
+//   label  the short name, used as the card's accessible name
+//   wide   true for drawings on a 120x82 box (the Stories icons, copied as they are); otherwise 96x96
+// There are no themes: every picture is chosen to have a clearly different silhouette from the others, because
+// telling pictures apart at a glance matters more than their subject. To add or change a picture, edit only this
+// block (and list a new key in POOL). Nothing else needs to change.
+// BEGIN_PICTURES
+const PICTURES = {
+  // from the Stories icon set (120x82 box)
+  sun: { label: "sun", wide: true, line: "M18 59c15-20 24-35 42-35s27 15 42 35Z", detail: "M60 18v-8M40 23l-5-7M80 23l5-7M29 39h-9M91 39h9" },
+  boat: { label: "boat", wide: true, line: "M22 50h76c-4 12-14 18-26 18H48c-12 0-22-6-26-18ZM59 46V14l24 32ZM51 46V24L32 46Z", detail: "M55 8v42M14 77c8-4 16-4 24 0s16 4 24 0s16-4 24 0s16 4 20 0" },
+  berries: { label: "berries", wide: true, line: "M40 46a10 10 0 1 0 20 0a10 10 0 1 0-20 0ZM60 46a10 10 0 1 0 20 0a10 10 0 1 0-20 0ZM50 62a10 10 0 1 0 20 0a10 10 0 1 0-20 0Z", detail: "M60 38V18M60 26c-4-8-14-10-22-6c4 8 14 10 22 6ZM60 26c4-8 14-10 22-6c-4 8-14 10-22 6Z" },
+  cloud: { label: "cloud", wide: true, line: "M35 49c-5-13 12-24 23-14 9-18 36-8 30 9 14 0 16 17 3 21H34c-14-1-13-17 1-16Z", detail: "M40 56h40" },
+  pawprint: { label: "paw print", wide: true, line: "M60 40c-12 0-20 8-20 16s6 10 20 10s20-2 20-10s-8-16-20-16ZM30 34a6 6 0 1 0 12 0a6 6 0 1 0-12 0ZM44 22a6 6 0 1 0 12 0a6 6 0 1 0-12 0ZM64 22a6 6 0 1 0 12 0a6 6 0 1 0-12 0ZM78 34a6 6 0 1 0 12 0a6 6 0 1 0-12 0Z", detail: "M50 54c6 4 14 4 20 0" },
+  gate: { label: "gate", wide: true, line: "M14 20c14 5 78 5 92 0l-4 10H18ZM32 30h8v40h-8ZM80 30h8v40h-8Z", detail: "M30 44h60" },
+  lotus: { label: "lotus flower", wide: true, line: "M60 12c12 12 12 32 0 48c-12-16-12-36 0-48ZM60 62C44 60 30 50 26 34c14 2 26 10 34 28ZM60 62c16-2 30-12 34-28-14 2-26 10-34 28Z", detail: "M30 70h60" },
+  eye: { label: "eye", wide: true, line: "M16 40c14-18 74-18 88 0c-14 18-74 18-88 0ZM60 31a9 9 0 1 0 0 18a9 9 0 1 0 0-18Z", detail: "M28 26c20-10 44-10 64 0M58 52l-4 14h12" },
+  // animals
+  cat: { label: "cat", line: "M20 52L17 16L40 31Q48 29 56 31L79 16L76 52Q80 82 48 82Q16 82 20 52Z", detail: "M6 56H21 M8 68L21 63 M90 56H75 M88 68L75 63 M48 66v3 M42 72q6 4 6-3 0 7 6 3", dots: "M34 51a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0M55 51a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0M44 59h8l-4 5Z" },
+  rabbit: { label: "rabbit", line: "M38 40C28 26 30 6 38 6C46 6 46 28 46 38 M50 38C50 28 50 6 58 6C66 6 68 26 58 40 M24 62a24 22 0 1 0 48 0a24 22 0 1 0-48 0", detail: "M48 70q-5 5-9 2 M48 70q5 5 9 2", dots: "M36 60a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M54 60a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M45 67a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" },
+  fish: { label: "fish", line: "M10 50C22 28 56 28 72 50C56 72 22 72 10 50Z M72 50L90 33V67Z", detail: "M40 38Q47 50 40 62 M50 33L55 24L63 38", dots: "M21.5 47a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0" },
+  snail: { label: "snail", line: "M36 38a22 22 0 1 0 44 0a22 22 0 1 0-44 0 M82 66C88 76 84 82 74 82H22C10 82 8 70 14 62C18 56 20 50 20 44C20 40 26 40 26 46C26 54 30 60 38 61", detail: "M58 38a4 4 0 0 1 4 4a8 8 0 0 1-8 8a12 12 0 0 1-12-12a16 16 0 0 1 16-16 M20 41L15 27 M26 41L31 27", dots: "M12 25.5a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M28 25.5a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" },
+  elephant: { label: "elephant", line: "M28 47a20 20 0 1 0 40 0a20 20 0 1 0-40 0 M31 36.5A15 15 0 1 0 31 57.5 M65 36.5A15 15 0 1 1 65 57.5 M42 64V82Q42 88 48 88Q54 88 54 82V64", dots: "M37 44a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M53 44a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" },
+  butterfly: { label: "butterfly", line: "M48 44C40 20 14 14 12 30C10 44 28 52 48 50 M48 52C30 52 20 70 28 76C36 82 46 70 48 60 M48 44C56 20 82 14 84 30C86 44 68 52 48 50 M48 52C66 52 76 70 68 76C60 82 50 70 48 60 M48 28V76", detail: "M48 28L40 14 M48 28L56 14", dots: "M23 32a4 4 0 1 0 8 0a4 4 0 1 0 -8 0M65 32a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" },
+  // things
+  apple: { label: "apple", line: "M48 30C36 22 18 30 18 52C18 70 30 84 40 84C44 84 46 82 48 82C50 82 52 84 56 84C66 84 78 70 78 52C78 30 60 22 48 30Z", detail: "M48 30C48 22 52 15 58 11 M52 22C58 14 68 14 72 17C68 25 58 27 52 22Z" },
+  car: { label: "car", line: "M10 62V54Q10 47 17 46L28 44L38 28H62L74 44L83 46Q90 48 90 55V62Z M19 62a9 9 0 1 0 18 0a9 9 0 1 0-18 0 M63 62a9 9 0 1 0 18 0a9 9 0 1 0-18 0", detail: "M34 44L41 33H48V44Z M54 33H60L68 44H54Z" },
+  star: { label: "star", line: "M48 12L57.4 37.1L84.1 38.3L63.2 54.9L70.3 80.7L48 66L25.7 80.7L32.8 54.9L11.9 38.3L38.6 37.1Z" },
+  house: { label: "house", line: "M12 48L48 16L84 48 M22 42V82H74V42", detail: "M41 82V60H55V82 M66 30V20H74V36" },
+  heart: { label: "heart", line: "M48 82C20 62 10 46 10 32C10 20 20 12 30 12C38 12 44 16 48 24C52 16 58 12 66 12C76 12 86 20 86 32C86 46 76 62 48 82Z", detail: "M22 32q2-9 9-11" },
+  moon: { label: "moon", line: "M62 12C36 14 22 38 30 62C38 84 70 90 86 72C64 74 50 50 62 12Z", dots: "M73 26a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M81.5 44a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0" },
+};
+const POOL = [
+  'sun', 'boat', 'berries', 'cloud', 'pawprint', 'gate', 'lotus', 'eye',
+  'cat', 'rabbit', 'fish', 'snail', 'elephant', 'butterfly',
+  'apple', 'car', 'star', 'house', 'heart', 'moon',
+];
+// END_PICTURES
+
+(function checkPictures() {
+  const seen = new Set();
+  for (const k of POOL) {
+    if (!PICTURES[k]) throw new Error('POOL lists unknown picture: ' + k);
+    if (seen.has(k)) throw new Error('Picture listed twice: ' + k);
+    seen.add(k);
+  }
+  for (const k of Object.keys(PICTURES)) if (!seen.has(k)) throw new Error('Picture not in POOL: ' + k);
+})();
+
+function picture(key) {
+  const p = PICTURES[key];
+  if (!p) throw new Error('Unknown picture: ' + key);
+  return p;
+}
+function pictureSvg(key) {
+  const p = picture(key);
+  return '<svg class="mm-pic' + (p.wide ? ' mm-pic--wide' : '') + '" viewBox="' + (p.wide ? '0 0 120 82' : '0 0 96 96') + '" aria-hidden="true"><path d="' + p.line + '"/>' +
+    (p.detail ? '<path class="d" d="' + p.detail + '"/>' : '') +
+    (p.dots ? '<path class="dot" d="' + p.dots + '"/>' : '') + '</svg>';
+}
+// ===== SAVED DATA (per player, via the shell) =====
+function loadSaved() {
+  saved = (window.KidsGames && window.KidsGames.loadGameData(GAME_ID)) || {};
+  state.size = SIZES[saved.size] ? saved.size : DEFAULTS.size;
+  state.peek = typeof saved.peek === 'boolean' ? saved.peek : DEFAULTS.peek;
+  showSettings();
+}
+function persist() {
+  if (!window.KidsGames) return;
+  window.KidsGames.saveGameData(GAME_ID, {
+    size: state.size, peek: state.peek,
+    best: saved.best || {}, games: saved.games || 0,
+    lastPlayed: new Date().toISOString().slice(0, 10),
+  });
+}
+function bestTimes(size) {
+  const list = saved.best && saved.best[size];
+  return Array.isArray(list) ? list.filter(n => Number.isFinite(n) && n > 0).sort((a, b) => a - b).slice(0, BEST_KEEP) : [];
+}
+// Returns { rank, previousBest } where rank is 0..2 for a place in the top 3, or -1.
+function recordTime(size, ms) {
+  const before = bestTimes(size);
+  const list = before.concat([ms]).sort((a, b) => a - b);
+  const rank = list.indexOf(ms);
+  saved.best = saved.best || {};
+  saved.best[size] = list.slice(0, BEST_KEEP);
+  saved.games = (saved.games || 0) + 1;
+  persist();
+  return { rank: rank < BEST_KEEP ? rank : -1, previousBest: before.length ? before[0] : null };
+}
+function fmtTime(ms) {
+  const s = Math.round(ms / 1000);
+  return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+}
+
+// ===== SETTINGS SCREEN =====
+function showSettings() {
+  document.querySelectorAll('#mm-size-row .kg-seg__opt').forEach(b => {
+    b.setAttribute('aria-pressed', String(b.dataset.size === state.size));
+    const best = bestTimes(b.dataset.size)[0];
+    const el = b.querySelector('.mm-best');
+    if (el) el.textContent = best ? 'Best ' + fmtTime(best) : '';
+  });
+  document.getElementById('mm-peek-toggle').checked = state.peek;
+  document.getElementById('mm-peek-state').textContent = state.peek ? 'On' : 'Off';
+}
+
 function initToggleGroup(rowId, stateKey) {
   const row = document.getElementById(rowId);
   row.addEventListener('click', e => {
@@ -169,35 +298,23 @@ function initToggleGroup(rowId, stateKey) {
     row.querySelectorAll('.kg-seg__opt').forEach(b => b.setAttribute('aria-pressed', 'false'));
     btn.setAttribute('aria-pressed', 'true');
     state[stateKey] = btn.dataset[stateKey];
+    persist();
     sfx('tap');
   });
 }
 
 initToggleGroup('mm-size-row', 'size');
-initToggleGroup('mm-theme-row', 'theme');
 
 document.getElementById('mm-peek-toggle').addEventListener('change', e => {
   state.peek = e.target.checked;
   document.getElementById('mm-peek-state').textContent = e.target.checked ? 'On' : 'Off';
+  persist();
   sfx('tap');
 });
-
+document.getElementById('mm-peek-note').textContent = 'See all cards for ' + (PEEK_MS / 1000) + 's before playing';
 document.getElementById('mm-play-btn').addEventListener('click', startGame);
 
-// ===== EMOJI POOLS (the pictures on the cards) =====
-const EMOJIS = {
-  animals:  ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐸','🐵','🐔','🐧','🐦','🦆','🦉','🦋','🐢'],
-  food:     ['🍎','🍊','🍋','🍇','🍓','🍒','🍕','🍔','🌮','🍦','🍩','🍪','🎂','🧁','🍫','🍬','🥐','🧇','🥞','🍿'],
-  vehicles: ['🚗','🚕','🚙','🚌','🚎','🏎️','🚓','🚑','🚒','🚐','🛻','🚚','🚛','✈️','🚀','🛸','🚁','⛵','🚂','🚤'],
-};
-
-const SIZES = {
-  '2x4': { cols: 2, rows: 4 },
-  '3x4': { cols: 3, rows: 4 },
-  '4x4': { cols: 4, rows: 4 },
-  '4x5': { cols: 4, rows: 5 },
-};
-
+// ===== DECK =====
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -207,15 +324,25 @@ function shuffle(arr) {
   return a;
 }
 
-function buildDeck(theme, pairs) {
-  let pool;
-  if (theme === 'random') {
-    pool = shuffle([...EMOJIS.animals, ...EMOJIS.food, ...EMOJIS.vehicles]);
-  } else {
-    pool = shuffle([...EMOJIS[theme]]);
-  }
-  const chosen = pool.slice(0, pairs);
+function buildDeck(pairs) {
+  const chosen = shuffle(POOL).slice(0, pairs);
   return shuffle([...chosen, ...chosen]);
+}
+
+// ===== TIMERS =====
+// Every delayed step goes through later(). Leaving the board or starting a new game cancels them all, so a
+// late step from an old game can never touch the new one.
+let gen = 0;
+const timers = new Set();
+function later(fn, ms) {
+  const g = gen;
+  const id = setTimeout(() => { timers.delete(id); if (g === gen) fn(); }, ms);
+  timers.add(id);
+}
+function cancelTimers() {
+  gen++;
+  timers.forEach(clearTimeout);
+  timers.clear();
 }
 
 // ===== GAME STATE =====
@@ -223,10 +350,11 @@ let flipped = [];
 let matched = 0;
 let flips = 0;
 let locked = false;
-let firstTap = true;
 let totalPairs = 0;
-let _peekTimer = null;
-let _hintTimer = null;
+let missStreak = 0;       // wrong pairs in a row
+let seen = new Set();     // cards the child has turned over this game (the peek does not count)
+let hintCard = null;
+let startedAt = null;     // set on the first card turned; the time on the win screen runs from here
 
 function showScreen(id) {
   ['mm-settings', 'mm-board-screen', 'mm-win-screen'].forEach(s => {
@@ -236,9 +364,10 @@ function showScreen(id) {
 }
 
 function goSettings() {
-  if (_peekTimer) { clearTimeout(_peekTimer); _peekTimer = null; }
-  if (_hintTimer) { clearTimeout(_hintTimer); _hintTimer = null; }
+  cancelTimers();
   locked = false;
+  flipped = [];
+  showSettings();
   showScreen('mm-settings');
   document.getElementById('mm-play-btn').focus({ preventScroll: true });
 }
@@ -259,13 +388,21 @@ function renderHud() {
   if (display) display.textContent = flips + (flips === 1 ? ' flip' : ' flips');
 }
 
-function startGame() {
-  const { cols, rows } = SIZES[state.size];
-  const pairs = cols * rows / 2;
-  const deck = buildDeck(state.theme, pairs);
+function cardLabel(card, mode) {
+  const n = Number(card.dataset.index) + 1;
+  const name = picture(card.dataset.pic).label;
+  if (mode === 'matched') return 'Card ' + n + ', matched: ' + name;
+  if (mode === 'up') return 'Card ' + n + ': ' + name;
+  return 'Card ' + n + ', face down';
+}
 
-  flipped = []; matched = 0; flips = 0; locked = false; firstTap = true; totalPairs = pairs;
-  if (_peekTimer) { clearTimeout(_peekTimer); _peekTimer = null; }
+function startGame() {
+  cancelTimers();
+  const pairs = SIZES[state.size].cols * SIZES[state.size].rows / 2;
+  const deck = buildDeck(pairs);
+
+  flipped = []; matched = 0; flips = 0; locked = false; totalPairs = pairs;
+  missStreak = 0; seen = new Set(); hintCard = null; startedAt = null;
   sfx('start');
 
   const boardScreen = document.getElementById('mm-board-screen');
@@ -279,21 +416,24 @@ function startGame() {
   `;
 
   const grid = document.getElementById('mm-grid');
-  deck.forEach((emoji, i) => {
+  deck.forEach((key, i) => {
     const card = document.createElement('button');
     card.type = 'button';
     card.className = 'mm-card';
-    card.dataset.emoji = emoji;
+    card.dataset.pic = key;
     card.dataset.index = i;
-    card.setAttribute('aria-label', 'Card ' + (i + 1) + ', face down');
+    card.tabIndex = i === 0 ? 0 : -1;       // one tab stop; arrow keys move between cards
+    card.setAttribute('aria-label', cardLabel(card, 'down'));
     card.innerHTML =
       '<span class="mm-card-inner">' +
         '<span class="mm-card-back"><svg class="ic" aria-hidden="true"><use href="#i-round"/></svg></span>' +
-        '<span class="mm-card-front"><span class="mm-card-emoji" aria-hidden="true">' + emoji + '</span></span>' +
+        '<span class="mm-card-front">' + pictureSvg(key) + '</span>' +
       '</span>';
     card.addEventListener('click', () => onCardClick(card));
+    card.addEventListener('focus', () => grid.querySelectorAll('.mm-card').forEach(c => { c.tabIndex = c === card ? 0 : -1; }));
     grid.appendChild(card);
   });
+  grid.addEventListener('keydown', onGridKey);
 
   document.getElementById('mm-back-btn').addEventListener('click', goSettings);
   renderHud();
@@ -301,8 +441,25 @@ function startGame() {
   if (state.peek) doPeek(grid);
 }
 
-function setFace(card, up) {
-  card.setAttribute('aria-label', 'Card ' + (Number(card.dataset.index) + 1) + (up ? ': ' + card.dataset.emoji : ', face down'));
+// Arrow keys move between cards (Home and End jump to the ends). Enter or Space turns the card.
+function onGridKey(e) {
+  const grid = e.currentTarget;
+  const list = [...grid.querySelectorAll('.mm-card')];
+  const i = list.indexOf(document.activeElement);
+  if (i < 0) return;
+  const cols = getComputedStyle(grid).gridTemplateColumns.split(' ').length;
+  let n = i;
+  switch (e.key) {
+    case 'ArrowLeft': n = i - 1; break;
+    case 'ArrowRight': n = i + 1; break;
+    case 'ArrowUp': n = i - cols; break;
+    case 'ArrowDown': n = i + cols; break;
+    case 'Home': n = 0; break;
+    case 'End': n = list.length - 1; break;
+    default: return;
+  }
+  e.preventDefault();
+  if (n >= 0 && n < list.length) list[n].focus();
 }
 
 function onCardClick(card) {
@@ -311,63 +468,101 @@ function onCardClick(card) {
   if (card.classList.contains('mm-card--matched')) return;
   if (flipped.length === 2) return;
 
-  if (firstTap) {
-    firstTap = false;
-    showFirstPlayHint(card);
-  }
-
+  if (startedAt === null) startedAt = performance.now();
   sfx('flip');
   card.classList.add('mm-card--flipped');
-  setFace(card, true);
+  card.setAttribute('aria-label', cardLabel(card, 'up'));
+  seen.add(card);
   flipped.push(card);
   flips++;
   renderHud();
 
+  if (flipped.length === 1) offerHint(card);
   if (flipped.length === 2) {
+    clearHint();
     locked = true;
-    setTimeout(evaluatePair, 350);
+    later(evaluatePair, CHECK_MS);
   }
+}
+
+// A real hint, offered after several wrong pairs in a row: when the card just turned has a twin the child has
+// already turned over earlier, that twin gets a dashed ring. It only points at something they have seen,
+// so remembering is still the game. It is never given for a card whose twin has not been seen.
+function offerHint(card) {
+  if (missStreak < HINT_AFTER_MISSES) return;
+  const twin = [...document.querySelectorAll('.mm-card')].find(c =>
+    c !== card && c.dataset.pic === card.dataset.pic && !c.classList.contains('mm-card--matched') && seen.has(c));
+  if (!twin) return;
+  twin.classList.add('mm-card--hint');
+  hintCard = twin;
+  missStreak = 0;
+  say('Hint: the matching card is marked.');
+}
+function clearHint() {
+  if (hintCard) { hintCard.classList.remove('mm-card--hint'); hintCard = null; }
 }
 
 function evaluatePair() {
   const [a, b] = flipped;
-  if (a.dataset.emoji === b.dataset.emoji) {
+  if (a.dataset.pic === b.dataset.pic) {
     a.classList.add('mm-card--matched');
     b.classList.add('mm-card--matched');
-    [a, b].forEach(c => { c.disabled = true; c.setAttribute('aria-label', 'Matched: ' + c.dataset.emoji); });
+    [a, b].forEach(c => { c.setAttribute('aria-disabled', 'true'); c.setAttribute('aria-label', cardLabel(c, 'matched')); });
     sfx('match');
-    say('A match!');
+    say('A match! ' + picture(a.dataset.pic).label + '.');
     matched++;
+    missStreak = 0;
     flipped = [];
     locked = false;
     renderHud();
     if (matched === totalPairs) {
-      setTimeout(showWin, 500);
+      const elapsed = Math.max(100, Math.round((performance.now() - startedAt) / 100) * 100);
+      later(() => showWin(elapsed), WIN_MS);
     }
   } else {
     a.classList.add('mm-card--mismatch');
     b.classList.add('mm-card--mismatch');
+    missStreak++;
     sfx('mismatch');
     say('Not a match. Try again.');
-    setTimeout(() => {
+    later(() => {
       a.classList.remove('mm-card--flipped', 'mm-card--mismatch');
       b.classList.remove('mm-card--flipped', 'mm-card--mismatch');
-      setFace(a, false); setFace(b, false);
+      a.setAttribute('aria-label', cardLabel(a, 'down')); b.setAttribute('aria-label', cardLabel(b, 'down'));
       flipped = [];
       locked = false;
-    }, 900);
+    }, MISMATCH_MS);
   }
 }
 
-function showWin() {
+function showWin(elapsed) {
   sfx('win');
-  if (window.KidsGames) window.KidsGames.recordSession('memory-match');
+  if (window.KidsGames) window.KidsGames.recordSession(GAME_ID);
+  const res = recordTime(state.size, elapsed);
+  const top = bestTimes(state.size);
+  let note;
+  if (res.previousBest === null) note = 'Your first time. Can you beat it?';
+  else if (res.rank === 0) {
+    const gain = Math.max(1, Math.round((res.previousBest - elapsed) / 1000));
+    note = 'New best! ' + (gain >= 60 ? fmtTime(gain * 1000) : gain + 's') + ' faster';
+  }
+  else if (res.rank > 0) note = 'Top ' + BEST_KEEP + '!';
+  else note = 'Have another go!';
+  let usedMark = false;
+  const rows = top.map((t, i) => {
+    const mine = !usedMark && t === elapsed && i === res.rank;
+    if (mine) usedMark = true;
+    return '<li' + (mine ? ' class="mm-me"' : '') + '><span class="mm-rank">' + (i + 1) + '</span><span class="mm-t">' + fmtTime(t) + '</span>' +
+      (mine ? '<svg class="ic" aria-label="This game"><use href="#i-check"/></svg>' : '') + '</li>';
+  }).join('');
   const winScreen = document.getElementById('mm-win-screen');
   winScreen.innerHTML = `
     <div class="mm-win">
       <svg class="mk" viewBox="0 0 96 96" aria-hidden="true"><use href="#m-memory"/></svg>
       <h2>You did it!</h2>
-      <p>Matched all pairs in <strong>${flips}</strong> flip${flips === 1 ? '' : 's'}!</p>
+      <p class="mm-result"><svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg><strong>${fmtTime(elapsed)}</strong><span class="mm-flipsnote">${flips} flip${flips === 1 ? '' : 's'}</span></p>
+      <p class="mm-note">${note}</p>
+      <ol class="mm-top" aria-label="Best times, ${state.size.replace('x', ' by ')}">${rows}</ol>
       <div class="kg-actions">
         <button class="kg-btn" id="mm-play-again" type="button"><svg class="ic" aria-hidden="true"><use href="#i-replay"/></svg><span>Play again</span></button>
         <button class="kg-btn kg-btn--ghost" id="mm-change-settings" type="button"><svg class="ic" aria-hidden="true"><use href="#i-back"/></svg><span>Change settings</span></button>
@@ -383,25 +578,21 @@ function showWin() {
 
 function doPeek(grid) {
   locked = true;
-  grid.querySelectorAll('.mm-card').forEach(card => {
-    card.classList.add('mm-card--flipped');
-  });
-  _peekTimer = setTimeout(() => {
-    _peekTimer = null;
-    grid.querySelectorAll('.mm-card').forEach(card => {
-      card.classList.remove('mm-card--flipped');
-    });
+  const all = grid.querySelectorAll('.mm-card');
+  all.forEach(card => { card.classList.add('mm-card--flipped'); card.setAttribute('aria-label', cardLabel(card, 'up')); });
+  later(() => {
+    all.forEach(card => { card.classList.remove('mm-card--flipped'); card.setAttribute('aria-label', cardLabel(card, 'down')); });
     locked = false;
-  }, 1500);
+  }, PEEK_MS);
 }
 
-function showFirstPlayHint(tappedCard) {
-  const candidates = [...document.querySelectorAll('.mm-card')]
-    .filter(c => c !== tappedCard && !c.classList.contains('mm-card--matched'));
-  if (!candidates.length) return;
-  const hint = candidates[Math.floor(Math.random() * candidates.length)];
-  hint.classList.add('mm-card--hint');
-  _hintTimer = setTimeout(() => { hint.classList.remove('mm-card--hint'); _hintTimer = null; }, 1400);
+// ===== START =====
+loadSaved();
+if (window.KidsGames) {
+  // The player can change after the page loads (first visit, switching player): load their choices and times.
+  window.KidsGames.onPlayerChange(function () {
+    if (!document.getElementById('mm-settings').hidden) loadSaved();
+  });
 }
 </script>
 
