@@ -23,7 +23,7 @@ const miniTile = (slot, id, right) => {
   const t = drawnData[slot].find((x) => x.id === id);
   return `<figure class="cs sb-tile--${slot} mini${right ? ' right' : ''}"><div class="cs-band"></div><div class="cs-mini">${pictureSvg(t.pic)}${t.plural ? pictureSvg(t.pic) : ''}</div><figcaption>${tileText(slot, t)}${right ? '<br><b>RIGHT</b>' : ''}</figcaption></figure>`;
 };
-const wholeScene = (sc) => sceneIsDrawn(sc) && SLOT_ORDER.every((k) => !sc[k] || drawnData[k].some((t) => t.id === sc[k]));
+const wholeScene = (sc) => (!process.env.STAGE || sc.stage === +process.env.STAGE) && sceneIsDrawn(sc) && SLOT_ORDER.every((k) => !sc[k] || drawnData[k].some((t) => t.id === sc[k]));
 const sceneRows = SCENES.filter(wholeScene).map((sc, i) => {
   const r = buildSceneRound(drawnData, sc, seeded(i + 1));
   const trays = r.slots.map((k) => `<div class="cs-tray">${r.tray.filter((x) => x.slot === k).map((x) => miniTile(k, x.id, x.id === sc[k])).join('')}</div>`).join('');

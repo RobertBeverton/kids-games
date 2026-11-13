@@ -45,11 +45,11 @@ describe('picture data', () => {
   it('scenes the figure system cannot draw yet are reported, not silently drawn wrong', () => {
     for (const sc of SCENES.filter((x) => !sceneIsDrawn(x))) assert.equal(typeof sceneSvg(sc), 'string', sc.id);
   });
-  it('every scene can be drawn (12 per stage, Task 12)', { todo: 'enable after Task 12' }, () => {
+  it('every scene can be drawn (12 per stage, Task 12)', () => {
     for (const sc of SCENES) assert.ok(sceneIsDrawn(sc), sc.id + ' is not drawn');
   });
   // Switch this on at the end of the picture batches (Task 11): every tile and every scene must be drawable.
-  it('every tile has a picture, and every picture is used', { todo: 'enable after Task 11' }, () => {
+  it('every tile has a picture, and every picture is used', () => {
     const used = new Set();
     for (const slot of SLOT_ORDER) for (const t of DATA[slot]) { assert.ok(PICTURES[t.pic], slot + ':' + t.id + ' has no picture ' + t.pic); used.add(t.pic); }
     for (const k of Object.keys(PICTURES)) assert.ok(used.has(k) || k.startsWith('fig-') || k.startsWith('item-') || k.startsWith('place-'), 'unused picture ' + k);

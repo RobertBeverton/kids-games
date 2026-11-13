@@ -113,7 +113,7 @@ describe('scene rounds', () => {
     many(60, (i) => assert.ok(!buildSceneRound(DATA, scene, rng(i)).tray.some((x) => x.slot === 'where' && x.id === 'garden')));
   });
   it('right tiles lock in, wrong tiles and wrong slots bounce, and the round completes', () => {
-    const scene = SCENES.find((s) => s.id === 's2-boy-eating-apple');
+    const scene = SCENES.find((s) => s.id === 's2-girl-eating-apple');
     const r = buildSceneRound(DATA, scene, () => 0.3);
     const right = (k) => r.tray.find((x) => x.slot === k && x.id === scene[k]);
     const wrong = (k) => r.tray.find((x) => x.slot === k && x.id !== scene[k]);
@@ -127,7 +127,7 @@ describe('scene rounds', () => {
     assert.equal(roundSentence(DATA, r), null);
     assert.equal(tryPlace(r, right('what'), 'what'), 'ok');
     assert.equal(r.complete, true);
-    assert.equal(roundSentence(DATA, r), 'The boy is eating an apple.');
+    assert.equal(roundSentence(DATA, r), 'The girl is eating an apple.');
   });
   it('help appears only after repeated misses on one slot, and goes once it is placed', () => {
     const scene = SCENES.find((s) => s.id === 's1-girl-jumping');
@@ -237,7 +237,7 @@ describe('saved data', () => {
     assert.equal(save.recent.length, RECENT_KEEP);
   });
   // Switch this on when the full scene set exists (Task 12): without it a session cannot avoid the scenes just played.
-  it('every stage has enough scenes to avoid the last session', { todo: 'enable after Task 12' }, () => {
+  it('every stage has enough scenes to avoid the last session', () => {
     for (const s of STAGES) assert.ok(SCENES.filter((x) => x.stage === s.id).length >= RECENT_KEEP + TARGET_SENTENCES, 'stage ' + s.id + ' needs at least ' + (RECENT_KEEP + TARGET_SENTENCES) + ' scenes so a session can avoid the last one');
   });
   it('never offers a locked stage', () => {
