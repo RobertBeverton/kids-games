@@ -287,7 +287,7 @@ for (const style of ['answer', 'missing']) {
   await page.waitForSelector('.mark--lead');
   const hub = await page.evaluate(() => ({ lead: document.querySelector('.mark--lead').dataset.game, marks: [...document.querySelectorAll('.mark')].map((m) => m.dataset.game), maths: document.querySelector('.mark[data-game="maths"] .kg-squares').getAttribute('aria-label') }));
   if (hub.lead !== 'maths') note('hub lead tile is ' + hub.lead + ', expected maths');
-  if (hub.marks.length !== 4 || hub.marks.includes('number-bonds')) note('hub tiles: ' + hub.marks);
+  if (hub.marks.length !== 5 || hub.marks.includes('number-bonds')) note('hub tiles: ' + hub.marks);
   if (!/5 of 10/.test(hub.maths)) note('hub squares for Maths: ' + hub.maths);
   out('3. old link ->', url.replace(/^.*docs\//, ''), '| style', style, '| progress', JSON.stringify(data.prog), '| hub', JSON.stringify(hub.marks), hub.maths);
   await ctx.close();
@@ -374,7 +374,7 @@ for (const style of ['answer', 'missing']) {
         const marks = [...document.querySelectorAll('.mark')].map((el) => ({ id: el.dataset.game, lead: el.classList.contains('mark--lead'), ...r(el), nameW: el.querySelector('.mark__name').scrollWidth, nameBox: el.querySelector('.mark__name').clientWidth }));
         return { marks, docW: document.documentElement.scrollWidth, vw: window.innerWidth, docH: document.documentElement.scrollHeight, vh: window.innerHeight };
       });
-      if (m.marks.length !== 4) note(`${name}: ${m.marks.length} tiles`);
+      if (m.marks.length !== 5) note(`${name}: ${m.marks.length} tiles`);
       if (m.docW > m.vw + 1) note(`${name}/${theme}: sideways scroll (${m.docW} > ${m.vw})`);
       for (const k of m.marks) {
         if (k.w < 44 || k.h < 44) note(`${name}: tile ${k.id} is ${Math.round(k.w)}x${Math.round(k.h)}`);
@@ -392,7 +392,7 @@ for (const style of ['answer', 'missing']) {
       await ctx.close();
     }
   }
-  out('5. hub: four tiles, no overlap or sideways scroll, lead clearly biggest, at', Object.keys(shapes).join(', '));
+  out('5. hub: five tiles, no overlap or sideways scroll, lead clearly biggest, at', Object.keys(shapes).join(', '));
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
