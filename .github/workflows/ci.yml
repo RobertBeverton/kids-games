@@ -1,0 +1,65 @@
+name: CI
+
+# On every pull request: unit tests, rebuild docs/, play every game in a real browser.
+# If the rebuilt docs/ differ from what the branch committed, the bot commits them to the PR branch,
+# so merging a PR is enough to publish (GitHub Pages serves master:/docs).
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # a PR from this repo: check out the branch itself so a rebuild can be pushed back to it
+          ref: ${{ github.event.pull_request.head.ref || github.ref }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Unit tests
+        run: node --test games/*/tests/*.test.js
+
+      - name: Build docs
+        run: bash build.sh
+
+      - name: Install Playwright (not a repo dependency)
+        run: |
+          mkdir "$RUNNER_TEMP/pw" && cd "$RUNNER_TEMP/pw"
+          npm init -y >/dev/null && npm i playwright-core@1.52.0
+          echo "PLAYWRIGHT_CORE=file://$RUNNER_TEMP/pw/node_modules/playwright-core/index.mjs" >> "$GITHUB_ENV"
+          echo "BROWSER_CHANNEL=chrome" >> "$GITHUB_ENV"
+
+      - name: Play every game in a browser
+        run: |
+          for game in opposites maths memory-match sentence-blocks; do
+            echo "::group::$game"
+            node games/$game/tests/play-test.mjs
+            echo "::endgroup::"
+          done
+
+      - name: Commit rebuilt docs (PR only)
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        run: |
+          # the build stamps every page with the commit hash and time, so ignore that one line
+          if [ -n "$(git status --porcelain docs | grep -v '^ M')" ] || ! git diff --quiet -I'<p>Version ' -- docs; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add docs
+            git commit -m "build: rebuild docs"
+            git push
+          else
+            echo "docs/ already up to date"
+          fi

@@ -41,7 +41,7 @@ fs.writeFileSync(out, page('colourful-light'));
 fs.writeFileSync(darkOf(out), page('colourful-dark'));
 if (png && process.env.PLAYWRIGHT_CORE) {
   const { chromium } = await import(process.env.PLAYWRIGHT_CORE);
-  const b = await chromium.launch({ channel: 'msedge' });
+  const b = await chromium.launch({ channel: process.env.BROWSER_CHANNEL || 'msedge' });
   const p = await b.newPage({ viewport: { width: 1100, height: 900 } });
   for (const [file, shot] of [[out, png], [darkOf(out), darkOf(png)]]) {
     await p.goto(pathToFileURL(file).href);

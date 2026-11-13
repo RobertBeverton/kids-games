@@ -27,7 +27,7 @@ const issues = [];
 const note = (m) => { if (issues.length < 80) issues.push(m); };
 const out = (...a) => console.log(...a);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const browser = await chromium.launch({ channel: 'msedge', headless: true });
+const browser = await chromium.launch({ channel: process.env.BROWSER_CHANNEL || 'msedge', headless: true });
 // A crash (for example a screen that never appears because the game is broken) is reported as a failure, with what was found first.
 function finish() {
   if (issues.length) { out(`\nFAILED (${issues.length}):`); issues.forEach((i) => out('  - ' + i)); process.exit(1); }
