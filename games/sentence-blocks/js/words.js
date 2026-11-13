@@ -5,9 +5,17 @@ const ANY_PLACE = ['indoor', 'outdoor'];
 export const WHO = [
   { id: 'girl', det: 'the', noun: 'girl', kind: 'child', pic: 'girl' },
   { id: 'boy', det: 'the', noun: 'boy', kind: 'child', pic: 'boy' },
+  { id: 'baby', det: 'the', noun: 'baby', kind: 'baby', pic: 'baby' },
   { id: 'dog', det: 'the', noun: 'dog', kind: 'animal', pic: 'dog' },
   { id: 'cat', det: 'the', noun: 'cat', kind: 'animal', pic: 'cat' },
+  { id: 'horse', det: 'the', noun: 'horse', kind: 'animal', pic: 'horse' },
+  { id: 'rabbit', det: 'the', noun: 'rabbit', kind: 'animal', pic: 'rabbit' },
   { id: 'mum', text: 'Mum', named: true, kind: 'adult', pic: 'mum' },
+  { id: 'dad', text: 'Dad', named: true, kind: 'adult', pic: 'dad' },
+  { id: 'boys', det: 'the', noun: 'boys', plural: true, kind: 'child', pic: 'boy' },
+  { id: 'girls', det: 'the', noun: 'girls', plural: true, kind: 'child', pic: 'girl' },
+  { id: 'cats', det: 'the', noun: 'cats', plural: true, kind: 'animal', pic: 'cat' },
+  { id: 'rabbits', det: 'the', noun: 'rabbits', plural: true, kind: 'animal', pic: 'rabbit' },
   { id: 'dogs', det: 'the', noun: 'dogs', plural: true, kind: 'animal', pic: 'dog' },
 ];
 export const DOING = [
