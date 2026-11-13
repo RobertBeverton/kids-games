@@ -11,6 +11,7 @@ const circ = (cx, cy, r) => 'M' + pt(cx - r, cy) + 'a' + r + ' ' + r + ' 0 1 0 '
 
 // head [x, y]; torso [shoulder x, y, hip x, y]; arms: path; legs: [knee x, knee y, foot x, foot y] each, drawn from the hip (or the
 // hem of a dress); item: where the centre of a held item goes (beside the face, never on it); extra: thin marks (sleep Zs).
+const STD_LEGS = [[43, 74, 38, 88], [53, 74, 58, 88]];
 const PERSON_POSES = {
   standing: { head: [48, 18], torso: [48, 30, 48, 58], arms: 'M48 36L32 52M48 36L64 52', legs: [[43, 74, 38, 88], [53, 74, 58, 88]] },
   jumping: { head: [48, 16], torso: [48, 28, 48, 54], arms: 'M48 34L28 20M48 34L68 20', legs: [[34, 66, 38, 78], [62, 66, 58, 78]] },
@@ -20,6 +21,22 @@ const PERSON_POSES = {
 };
 // Drinking is eating with a cup, so it reuses the pose.
 PERSON_POSES.drinking = PERSON_POSES.eating;
+// Batch A: the rest of the doing words. `prop` is bold (held or ridden things), `propD` thin (backdrops: ladder, water), `propDots` filled.
+Object.assign(PERSON_POSES, {
+  walking: { head: [52, 18], torso: [50, 30, 46, 58], arms: 'M50 36L60 48M50 36L40 46', legs: [[56, 72, 68, 84], [40, 72, 26, 84]], side: true },
+  sitting: { head: [46, 18], torso: [46, 30, 44, 60], arms: 'M46 36L58 48L68 56', legs: [[66, 62, 68, 88]], prop: 'M30 62H62M34 62V88M58 62V88M30 62V34' },
+  crying: { head: [48, 18], torso: [48, 30, 48, 58], arms: 'M48 36L36 32L40 20M48 36L60 32L56 20', legs: STD_LEGS, propDots: circ(33, 34, 3) + circ(63, 34, 3) + circ(31, 46, 3) + circ(65, 46, 3) },
+  climbing: { head: [48, 22], torso: [48, 34, 48, 60], arms: 'M48 40L34 28M48 40L62 46', legs: [[40, 70, 36, 58], [56, 74, 58, 86]], propD: 'M26 6V92M70 6V92M26 20H70M26 40H70M26 58H70M26 76H70' },
+  swimming: { head: [76, 46], torso: [64, 54, 30, 56], arms: 'M64 54L84 62M64 54L76 34L90 38', legs: [[18, 58, 6, 52]], side: true, propD: 'M4 70q8-6 16 0t16 0t16 0t16 0t16 0t16 0' },
+  reading: { head: [48, 18], torso: [48, 30, 48, 58], arms: 'M48 36L36 42M48 36L60 42', legs: STD_LEGS, prop: 'M30 38L48 44L66 38V60L48 66L30 60ZM48 44V66' },
+  riding: { head: [46, 16], torso: [46, 28, 40, 52], arms: 'M46 34L68 44', legs: [[56, 60, 54, 72]], side: true, prop: circ(22, 72, 14) + circ(74, 72, 14) + 'M22 72L40 52H62L74 72M62 52L68 40M64 40H72M40 52L48 72H22' },
+  kicking: { head: [44, 18], torso: [44, 30, 44, 58], arms: 'M44 36L30 48M44 36L58 28', legs: [[41, 74, 38, 88], [60, 68, 76, 78]], prop: circ(88, 82, 6) },
+  throwing: { head: [44, 22], torso: [44, 34, 44, 60], arms: 'M44 40L30 52M44 40L60 30L70 14', legs: [[38, 74, 32, 88], [50, 74, 56, 88]], prop: circ(76, 10, 5) },
+  pushing: { head: [40, 22], torso: [42, 34, 28, 60], arms: 'M42 40L64 54', legs: [[36, 72, 44, 88], [22, 74, 12, 88]], side: true, prop: 'M64 46H90V84H64Z' },
+  painting: { head: [36, 18], torso: [36, 30, 36, 58], arms: 'M36 36L52 40L62 34', legs: [[31, 74, 28, 88], [41, 74, 46, 88]], prop: 'M56 18H92V54H56ZM64 54L58 88M84 54L90 88', propD: 'M64 30q6-8 12 0t10 0' },
+  washing: { head: [34, 18], torso: [34, 30, 34, 58], arms: 'M34 36L50 46L66 56', legs: [[29, 74, 26, 88], [39, 74, 44, 88]], prop: 'M56 56H90L86 86H60Z' + circ(62, 44, 5) + circ(76, 40, 4) },
+  brushing: { head: [48, 18], torso: [48, 30, 48, 58], arms: 'M48 36L60 38L62 22M48 36L34 52', legs: STD_LEGS, prop: 'M54 20H80', propD: 'M72 14v6M76 14v6M80 14v6', propDots: circ(70, 30, 2.5) + circ(80, 28, 2) },
+});
 
 // who: 'girl' (a dress and pigtails), 'boy' (spiky hair), anything else is neutral (used for the doing tiles).
 function personPic(pose, who, label) {
@@ -34,9 +51,10 @@ function personPic(pose, who, label) {
   else line += 'M' + pt(x1, y1) + 'L' + pt(x2, y2);
   line += P.arms;
   for (const [kx, ky, fx, fy] of P.legs) line += 'M' + pt(hem[0], hem[1]) + 'L' + pt(kx, ky) + 'L' + pt(fx, fy);
-  let detail = P.extra || '';
+  line += P.prop || '';
+  let detail = (P.extra || '') + (P.propD || '');
   if (boy) detail += 'M' + pt(hx - 5, hy - 11) + 'L' + pt(hx - 7, hy - 17) + 'M' + pt(hx, hy - 11) + 'L' + pt(hx, hy - 18) + 'M' + pt(hx + 5, hy - 11) + 'L' + pt(hx + 7, hy - 17);
-  let dots = '';
+  let dots = P.propDots || '';
   if (girl) dots += circ(hx - 14, hy + 3, 4) + circ(hx + 14, hy + 3, 4);
   if (P.closed) detail += 'M' + pt(hx - 5, hy) + 'L' + pt(hx - 1, hy) + 'M' + pt(hx + 1, hy) + 'L' + pt(hx + 5, hy);
   else if (P.side) dots += circ(hx + 4, hy - 1, 1.8);
@@ -74,6 +92,20 @@ export const PICTURES = {
   running: personPic('running', null, 'running'),
   sleeping: personPic('sleeping', null, 'sleeping'),
   eating: (() => { const p = personPic('eating', null, 'eating'); p.dots += circ(72, 26, 5); p.detail += 'M72 21L75 16'; return p; })(),
+  standing: personPic('standing', null, 'standing'),
+  walking: personPic('walking', null, 'walking'),
+  sitting: personPic('sitting', null, 'sitting'),
+  crying: personPic('crying', null, 'crying'),
+  climbing: personPic('climbing', null, 'climbing'),
+  swimming: personPic('swimming', null, 'swimming'),
+  reading: personPic('reading', null, 'reading'),
+  riding: personPic('riding', null, 'riding'),
+  kicking: personPic('kicking', null, 'kicking'),
+  throwing: personPic('throwing', null, 'throwing'),
+  pushing: personPic('pushing', null, 'pushing'),
+  painting: personPic('painting', null, 'painting'),
+  washing: personPic('washing', null, 'washing'),
+  brushing: personPic('brushing', null, 'brushing'),
   drinking: (() => { const p = personPic('drinking', null, 'drinking'); p.line += 'M66 18h13l-2 16h-9Z'; return p; })(),
   // what
   apple: { label: 'apple', line: 'M48 30C36 22 18 30 18 52C18 70 30 84 40 84C44 84 46 82 48 82C50 82 52 84 56 84C66 84 78 70 78 52C78 30 60 22 48 30Z', detail: 'M48 30C48 22 52 15 58 11 M52 22C58 14 68 14 72 17C68 25 58 27 52 22Z' },

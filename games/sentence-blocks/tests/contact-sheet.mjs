@@ -30,7 +30,8 @@ const sceneRows = SCENES.filter(wholeScene).map((sc, i) => {
   return `<section class="cs-scene"><div class="cs-scenepic">${sceneSvg(sc)}<small>${sc.id}</small></div><div class="cs-trays">${trays}</div></section>`;
 }).join('');
 const scenes = `<h2>scenes the figure system can draw (${SCENES.filter(wholeScene).length} of ${SCENES.length})</h2>${sceneRows}`;
-const everything = process.env.SHEET === 'scenes' ? scenes : scenes + sections + `<h2>slot glyphs</h2><div class="cs-row">${glyphs}</div>`;
+const only = SLOT_ORDER.includes(process.env.SHEET) ? process.env.SHEET : null;
+const everything = process.env.SHEET === 'scenes' ? scenes : only ? `<h2>${only}</h2><div class="cs-row">${DATA[only].map((t) => cell(only, t)).join('')}</div>` : scenes + sections + `<h2>slot glyphs</h2><div class="cs-row">${glyphs}</div>`;
 // Theme tokens only apply on <html data-theme=...>, so each theme is its own page.
 const page = (theme) => `<!doctype html><html data-theme="${theme}"><meta charset=utf-8><style>${tokens}
 ${css}
