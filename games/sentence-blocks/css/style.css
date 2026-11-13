@@ -61,6 +61,13 @@
 .sb-slot__tick .ic { width: 18px; height: 18px; }
 .sb-slot.is-filled .sb-slot__tick { display: grid; }
 /* Drawings on paint use the text colour for their lines, so they read on every paint. */
+/* Short phones: keep the slots sticky but smaller, so the tray keeps most of the screen. */
+@media (max-height: 720px) {
+  .sb-slot { min-height: calc(var(--hit) * 1.2); padding: var(--s1); gap: 2px; }
+  .sb-slot__glyph { width: 22px; height: 22px; }
+  .sb-slot__pic { width: 44px; height: 44px; padding: 2px; }
+  .sb-slot__word { font-size: 13px; }
+}
 .sb-slot > .sb-slot__glyph .sb-pic { stroke: var(--on-slot); }
 .sb-slot > .sb-slot__glyph .sb-pic .dot { fill: var(--on-slot); }
 
