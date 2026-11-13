@@ -66,11 +66,17 @@ export const WHAT = [
   { id: 'teeth', det: '', mass: true, noun: 'teeth', tags: ['brushable'], pic: 'teeth' },
   { id: 'hair', det: '', mass: true, noun: 'hair', tags: ['brushable'], pic: 'hair' },
 ];
+// Batch D. `group` marks tiles that look alike, so they are never offered as each other's wrong answer.
 export const WHERE = [
   { id: 'park', phrase: 'in the park', tags: ['outdoor'], group: 'green', pic: 'park' },
   { id: 'garden', phrase: 'in the garden', tags: ['outdoor'], group: 'green', pic: 'garden' },
-  { id: 'bed', phrase: 'on the bed', tags: ['indoor'], pic: 'bed' },
-  { id: 'beach', phrase: 'at the beach', tags: ['outdoor'], pic: 'beach' },
+  { id: 'beach', phrase: 'at the beach', tags: ['outdoor', 'water'], group: 'water', pic: 'beach' },
+  { id: 'pool', phrase: 'in the pool', tags: ['water'], group: 'water', pic: 'pool' },
+  { id: 'house', phrase: 'in the house', tags: ['indoor'], group: 'building', pic: 'house' },
+  { id: 'school', phrase: 'at school', tags: ['indoor'], group: 'building', pic: 'school' },
+  { id: 'shop', phrase: 'at the shop', tags: ['indoor'], group: 'building', pic: 'shop' },
+  { id: 'kitchen', phrase: 'in the kitchen', tags: ['indoor'], group: 'room', pic: 'kitchen' },
+  { id: 'bed', phrase: 'on the bed', tags: ['indoor'], group: 'room', pic: 'bed' },
 ];
 export const DESCRIBE = [
   { id: 'big', word: 'big', opposite: 'small', pic: 'big' },
