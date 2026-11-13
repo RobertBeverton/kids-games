@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { PICTURES, pictureSvg, missingSvg, SLOT_GLYPHS } from '../js/pictures.js';
+import { PICTURES, pictureSvg, missingSvg, SLOT_GLYPHS, sceneSvg, sceneIsDrawn } from '../js/pictures.js';
 import { DATA } from '../js/words.js';
 import { SCENES } from '../js/scenes.js';
 import { SLOT_ORDER } from '../js/engine.js';
@@ -31,6 +31,22 @@ describe('picture data', () => {
   });
   it('a missing picture renders a visible placeholder, never throws', () => {
     assert.match(missingSvg('dog'), /<svg/);
+  });
+  it('every scene the figure system draws renders a real, labelled-free svg that never says undefined', () => {
+    const drawn = SCENES.filter(sceneIsDrawn);
+    assert.ok(drawn.length >= 6, 'the spike scenes must be drawable');
+    for (const sc of drawn) {
+      const s = sceneSvg(sc);
+      assert.match(s, /^<svg [^>]*aria-hidden="true"/, sc.id);
+      assert.match(s, /<path d="M/, sc.id + ' draws nothing');
+      assert.ok(!s.includes('undefined') && !s.includes('NaN'), sc.id + ' has a bad number');
+    }
+  });
+  it('scenes the figure system cannot draw yet are reported, not silently drawn wrong', () => {
+    for (const sc of SCENES.filter((x) => !sceneIsDrawn(x))) assert.equal(typeof sceneSvg(sc), 'string', sc.id);
+  });
+  it('every scene can be drawn (12 per stage, Task 12)', { todo: 'enable after Task 12' }, () => {
+    for (const sc of SCENES) assert.ok(sceneIsDrawn(sc), sc.id + ' is not drawn');
   });
   // Switch this on at the end of the picture batches (Task 11): every tile and every scene must be drawable.
   it('every tile has a picture, and every picture is used', { todo: 'enable after Task 11' }, () => {

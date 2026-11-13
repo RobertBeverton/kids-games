@@ -6,6 +6,8 @@
 .sb-pic .dot { fill: var(--line); stroke: none; }
 /* A missing drawing is dashed with a cross, so it can never be mistaken for a finished one. */
 .sb-pic--missing { stroke-dasharray: 6 6; }
+/* A drawn scene is wider than a tile picture: 160 by 96. */
+.sb-scene { display: block; width: min(100%, 420px); height: auto; aspect-ratio: 160 / 96; }
 
 /* ===== The slot code =====
    Five colours are the game's meaning. They are the system's own paints (purple is Sentence Blocks' own), and every slot,
