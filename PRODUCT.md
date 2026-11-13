@@ -28,7 +28,7 @@ Hosted on GitHub Pages (`docs/`), built from `games/<name>/index.html` and `hub.
 - Touch and keyboard input must both work.
 - Pre-readers must be able to use the hub and games with minimal reading.
 - Web Audio API for synthesised sound effects; Canvas 2D in Type Trainer.
-- Live games: Type Trainer, Opposites, Maths (two styles: work it out, find the missing number), Memory Match.
+- Live games: Type Trainer, Opposites, Maths (two styles: work it out, find the missing number), Memory Match, Sentence Blocks (build sentences from colour-coded blocks, for a picture or for fun; ages 4 to 8).
 - Not confirmed as hard constraints: offline play and local-only storage (both are current behaviour, but the user did not mark them binding).
 
 ## Brand Commitments
@@ -37,7 +37,7 @@ Product name "Kids Games". Author credit: Robert Beverton. Hub greeting is "Pick
 
 ## Evidence on Hand
 
-Four working games and a shared design system (`shared/tokens.css`). No testimonials, analytics or usage data exist; do not fabricate any.
+Five working games and a shared design system (`shared/tokens.css`). No testimonials, analytics or usage data exist; do not fabricate any.
 
 ## Product Principles
 
