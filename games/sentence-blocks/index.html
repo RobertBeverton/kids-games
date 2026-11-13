@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="colourful-light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sentence Blocks</title>
+<link rel="stylesheet" href="../../shared/tokens.css">
+<link rel="stylesheet" href="../../shared/shell.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="sentence-blocks" data-page-title="Sentence Blocks" data-paint="purple">
+
+<!-- Shell bar injected by build script -->
+
+<div id="sb-app">
+
+  <!-- SCREEN 1: settings -->
+  <div id="sb-settings" class="kg-screen sb-screen" style="flex-direction:column;align-items:center;justify-content:space-between;padding:0">
+    <div class="kg-wrap" style="padding:var(--s5) var(--s4)">
+      <h1 class="kg-title kg-title--paint">
+        <svg class="mk" viewBox="0 0 96 96" aria-hidden="true"><use href="#m-sentence"/></svg>
+        Sentence Blocks
+      </h1>
+
+      <fieldset class="sb-fieldset">
+        <legend class="kg-label">How to play</legend>
+        <div class="kg-seg" id="sb-mode-row" role="group" aria-label="How to play">
+          <button type="button" class="kg-seg__opt sb-opt" data-mode="scene" aria-pressed="true"><span class="sb-opt__name">Describe the picture</span><small>Build the sentence for a picture</small></button>
+          <button type="button" class="kg-seg__opt sb-opt" data-mode="silly" aria-pressed="false"><span class="sb-opt__name">Silly sentences</span><small>Mix any blocks you like</small></button>
+        </div>
+      </fieldset>
+
+      <fieldset class="sb-fieldset">
+        <legend class="kg-label">Stage</legend>
+        <div class="kg-seg" id="sb-stage-row" role="group" aria-label="Stage"><!-- filled by main.js --></div>
+      </fieldset>
+    </div>
+
+    <div class="kg-dock">
+      <button class="kg-btn kg-btn--block" id="sb-play-btn" type="button"><svg class="ic ic--lg" aria-hidden="true"><use href="#i-play"/></svg><span>Play!</span></button>
+    </div>
+  </div>
+
+  <!-- SCREEN 2: board -->
+  <div id="sb-board" class="kg-screen sb-screen sb-board" hidden>
+    <div class="sb-hud">
+      <button type="button" class="kg-iconbtn" id="sb-stop" aria-label="Stop playing"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
+      <span class="kg-squares" id="sb-progress" role="img"></span>
+    </div>
+    <div class="sb-picture" id="sb-picture"></div>
+    <div class="sb-sticky">
+      <ol class="sb-slots" id="sb-slots"></ol>
+      <p class="sb-sentence" id="sb-sentence" hidden></p>
+    </div>
+    <div class="sb-tray" id="sb-tray" role="group" aria-label="Word tiles"></div>
+    <div class="sb-nextdock">
+      <button type="button" class="kg-btn" id="sb-next" hidden><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg><span id="sb-next-label">Next</span></button>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: done -->
+  <div id="sb-done" class="kg-screen sb-screen" hidden>
+    <div class="kg-wrap" style="align-items:center;text-align:center">
+      <h2 class="kg-title" id="sb-done-title">You built 5 sentences!</h2>
+      <span class="kg-squares sb-done-squares" id="sb-done-squares" role="img"></span>
+      <p class="sb-unlock" id="sb-unlock" hidden></p>
+      <div class="sb-done-actions">
+        <button type="button" class="kg-btn" id="sb-again"><svg class="ic" aria-hidden="true"><use href="#i-replay"/></svg><span>Play again</span></button>
+        <button type="button" class="kg-btn kg-btn--ghost" id="sb-choose"><span>Choose again</span></button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -90,6 +90,7 @@ Sorted by score:
 ## Notes
 
 - **Number Bonds** and **Memory Match** are the strongest KS1 games — prioritise these early.
+- **Sentence Blocks** (built, 2026-11): a language game after the Colourful Semantics idea (who, doing, what, where, describe). Two modes (describe a picture, silly sentences), three stages that unlock, 36 drawn scenes. Next: more scenes and words after play-testing; optional drag-and-drop.
 - **Memory Match** engine can be themed per area (maths pairs, word-picture, opposites, times tables answers) — one build, multiple uses.
 - **Word Finder** drops relative to previous scoring once KS1 fit is weighted — still worth building but after the numeracy games.
 - **Times Tables Drill** and **Number Bonds** are both quick builds — natural pair to ship together as a numeracy section.

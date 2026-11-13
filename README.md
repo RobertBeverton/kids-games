@@ -51,7 +51,7 @@ Games live under `games/<name>/`. Open any game's `index.html` in a browser for 
 
 ```bash
 bash build.sh
-# Produces docs/index.html (hub), docs/type-trainer.html, docs/opposites.html, docs/maths.html, docs/memory-match.html
+# Produces docs/index.html (hub), docs/type-trainer.html, docs/opposites.html, docs/maths.html, docs/memory-match.html, docs/sentence-blocks.html
 # (docs/number-bonds.html is only a redirect to Maths)
 ```
 

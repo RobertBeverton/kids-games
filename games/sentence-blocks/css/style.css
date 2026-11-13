@@ -1,0 +1,111 @@
+/* Sentence Blocks. Shared parts live in shared/shell.css (kg-*). */
+
+/* Drawn pictures: one stroke weight and round ends, the same as Memory Match's .mm-pic. */
+.sb-pic { display: block; width: 100%; height: 100%; fill: none; stroke: var(--line); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.sb-pic .d { stroke-width: 3; }
+.sb-pic .dot { fill: var(--line); stroke: none; }
+/* A missing drawing is dashed with a cross, so it can never be mistaken for a finished one. */
+.sb-pic--missing { stroke-dasharray: 6 6; }
+/* A drawn scene is wider than a tile picture: 160 by 96. */
+.sb-scene { display: block; width: min(100%, 420px); height: auto; aspect-ratio: 160 / 96; }
+
+/* ===== The slot code =====
+   Five colours are the game's meaning. They are the system's own paints (purple is Sentence Blocks' own), and every slot,
+   tile and sentence word also has a keyline, a glyph and a word, so colour is never the only cue. */
+.sb-slot--who,      .sb-tile--who,      .sb-w--who,      .sb-pill--who      { --slot: var(--paint-orange); --on-slot: var(--on-orange); }
+.sb-slot--doing,    .sb-tile--doing,    .sb-w--doing,    .sb-pill--doing    { --slot: var(--paint-yellow); --on-slot: var(--on-yellow); }
+.sb-slot--what,     .sb-tile--what,     .sb-w--what,     .sb-pill--what     { --slot: var(--paint-green);  --on-slot: var(--on-green); }
+.sb-slot--where,    .sb-tile--where,    .sb-w--where,    .sb-pill--where    { --slot: var(--paint-blue);   --on-slot: var(--on-blue); }
+.sb-slot--describe, .sb-tile--describe, .sb-w--describe, .sb-pill--describe { --slot: var(--paint-purple); --on-slot: var(--on-purple); }
+
+/* ===== Settings ===== */
+.sb-screen[hidden] { display: none !important; }
+.sb-fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.sb-opt { flex-direction: column; gap: var(--s1); min-height: 104px; padding-block: var(--s3); text-align: center; }
+.sb-opt small { font-size: var(--t-small); font-weight: 400; }
+.sb-opt__name { display: inline-flex; align-items: center; gap: var(--s2); }
+.sb-stage { flex: 1 1 200px; }
+.sb-stage[aria-disabled="true"] { opacity: 0.6; cursor: not-allowed; border-style: dashed; }
+.sb-lock { width: 22px; height: 22px; }
+.sb-pills { display: flex; flex-wrap: wrap; gap: var(--s1); justify-content: center; }
+.sb-pill { padding: 2px var(--s2); background: var(--slot); color: var(--on-slot); border: 2px solid var(--line); border-radius: var(--r-pill); font-size: var(--t-small); font-weight: 700; }
+.sb-prog { margin-top: var(--s1); }
+.sb-prog i { width: 12px; height: 12px; }
+
+/* ===== Board ===== */
+.sb-board { flex-direction: column; align-items: stretch; justify-content: flex-start; gap: var(--s3); padding: var(--s3) var(--s4) calc(var(--s5) + var(--safe-b)); max-width: 880px; margin: 0 auto; width: 100%; }
+.sb-hud { display: flex; align-items: center; gap: var(--s3); min-height: 56px; }
+.sb-hud .kg-squares { flex: 1; justify-content: center; }
+.sb-hud .kg-squares i { width: 16px; height: 16px; }
+
+.sb-picture { display: flex; align-items: center; justify-content: center; gap: var(--s3); min-height: 120px; max-height: 28dvh; padding: var(--s3); background: var(--chalk); border: var(--line-w) solid var(--line); border-radius: var(--r-2); }
+.sb-scene__pic { display: block; height: clamp(72px, 20dvh, 160px); aspect-ratio: 1; }
+.sb-scene__gap { display: block; height: clamp(48px, 12dvh, 96px); aspect-ratio: 1; border: var(--line-w) dashed var(--line); border-radius: var(--r-1); opacity: 0.5; }
+
+/* The slots and the finished sentence stay in view while the tray scrolls. */
+.sb-sticky { position: sticky; top: var(--bar-h); z-index: 2; background: var(--ground); padding-bottom: var(--s2); display: flex; flex-direction: column; gap: var(--s2); }
+.sb-slots { --n: 3; list-style: none; margin: 0; padding: var(--s2) 0 0; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: var(--s2); }
+.sb-slots li { display: flex; min-width: 0; }
+@media (max-width: 560px) { .sb-slots { grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); } }
+.sb-slot { position: relative; display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: flex-start; gap: var(--s1);
+  min-width: 0; min-height: calc(var(--hit) * 1.7); padding: var(--s2);
+  background: var(--slot); color: var(--on-slot); border: var(--line-w) dashed var(--line); border-radius: var(--r-1);
+  font: inherit; text-align: center; cursor: pointer; touch-action: manipulation; }
+.sb-slot.is-filled { border-style: solid; }
+.sb-slot__glyph { width: 32px; height: 32px; }
+.sb-slot__label { font-size: var(--t-small); font-weight: 700; line-height: 1.1; overflow-wrap: anywhere; }
+.sb-slot__fill { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; }
+.sb-slot__pic { display: flex; gap: 2px; width: var(--hit); height: var(--hit); padding: 4px; background: var(--chalk); border: 2px solid var(--line); border-radius: var(--r-1); }
+.sb-slot__word { font-size: var(--t-small); font-weight: 700; line-height: 1.1; overflow-wrap: anywhere; }
+.sb-slot__tick { display: none; position: absolute; top: -10px; right: -10px; width: 28px; height: 28px; place-items: center; background: var(--chalk); color: var(--ink); border: 2px solid var(--line); border-radius: var(--r-pill); }
+.sb-slot__tick .ic { width: 18px; height: 18px; }
+.sb-slot.is-filled .sb-slot__tick { display: grid; }
+/* Drawings on paint use the text colour for their lines, so they read on every paint. */
+/* Short phones: keep the slots sticky but smaller, so the tray keeps most of the screen. */
+@media (max-height: 720px) {
+  .sb-slot { min-height: calc(var(--hit) * 1.2); padding: var(--s1); gap: 2px; }
+  .sb-slot__glyph { width: 22px; height: 22px; }
+  .sb-slot__pic { width: 44px; height: 44px; padding: 2px; }
+  .sb-slot__word { font-size: 13px; }
+}
+.sb-slot > .sb-slot__glyph .sb-pic { stroke: var(--on-slot); }
+.sb-slot > .sb-slot__glyph .sb-pic .dot { fill: var(--on-slot); }
+
+.sb-sentence { margin: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: var(--s2); }
+.sb-sentence[hidden] { display: none; }
+.sb-w { display: inline-block; padding: var(--s1) var(--s3); background: var(--slot); color: var(--on-slot); border: var(--line-w) solid var(--line); border-radius: var(--r-1); font-size: var(--t-lead); font-weight: 700; line-height: 1.2; }
+.sb-w--join { background: var(--chalk); color: var(--ink); }
+
+/* ===== Tray ===== */
+.sb-tray { display: grid; grid-template-columns: repeat(auto-fit, minmax(124px, 1fr)); gap: var(--gap-tile); }
+.sb-tile { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: var(--s1);
+  min-height: calc(var(--hit) * 2); padding: calc(var(--s3) + 14px) var(--s2) var(--s2);
+  color: var(--ink); background: linear-gradient(var(--slot) 0 14px, var(--chalk) 14px);
+  border: var(--line-w) solid var(--line); border-radius: var(--r-1);
+  font: inherit; cursor: pointer; touch-action: manipulation; transition: transform var(--dur-1) var(--ease); }
+.sb-tile:active:not(:disabled) { transform: scale(0.96); }
+.sb-tile__badge { position: absolute; top: 18px; left: 6px; width: 24px; height: 24px; }
+.sb-tile__pic { display: flex; justify-content: center; gap: 2px; width: 100%; height: calc(var(--hit) * 1.1); }
+.sb-tile__pic .sb-pic { width: auto; height: 100%; aspect-ratio: 1; }
+.sb-tile__word { font-size: var(--t-body); font-weight: 700; line-height: 1.1; text-align: center; overflow-wrap: break-word; }
+.sb-tile__cross { display: none; position: absolute; top: 18px; right: 6px; width: 32px; height: 32px; place-items: center; background: var(--chalk); border: 2px solid var(--line); border-radius: var(--r-pill); }
+.sb-tile__cross .ic { width: 20px; height: 20px; }
+/* Held: lifted with a heavier keyline. Used: a dashed, faded place, so the tray never looks like it has lost a tile. */
+.sb-tile.is-held { transform: translateY(-6px); border-width: 6px; }
+.sb-tile.is-used { opacity: 0.35; border-style: dashed; cursor: default; }
+.sb-tile.is-help { border-width: 6px; animation: sb-pulse 900ms var(--ease) 3; }
+.sb-tile.is-bounce { animation: sb-bounce var(--dur-paint) var(--ease); }
+.sb-tile.is-bounce .sb-tile__cross { display: grid; }
+@keyframes sb-bounce { 0%, 100% { transform: none; } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+@keyframes sb-pulse { 50% { transform: scale(1.05); } }
+@media (prefers-reduced-motion: reduce) { .sb-tile.is-help, .sb-tile.is-bounce { animation: none; } }
+
+.sb-nextdock { display: flex; justify-content: center; min-height: var(--hit); }
+.sb-nextdock .kg-btn[hidden] { display: none; }
+.sb-nextdock .kg-btn { min-width: 220px; }
+
+/* ===== Done ===== */
+.sb-done-squares i { width: 22px; height: 22px; }
+.sb-unlock { display: flex; align-items: center; gap: var(--s2); margin: 0; padding: var(--s2) var(--s4); background: var(--chalk); border: var(--line-w) solid var(--line); border-radius: var(--r-pill); font-size: var(--t-lead); font-weight: 700; }
+.sb-unlock[hidden] { display: none; }
+.sb-done-actions { display: flex; flex-wrap: wrap; gap: var(--s3); justify-content: center; }

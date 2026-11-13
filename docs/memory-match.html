@@ -106,6 +106,7 @@
   --paint-red:    #C8242F;  --on-red:    #FFFFFF;
   --paint-blue:   #2456D8;  --on-blue:   #FFFFFF;
   --paint-green:  #0E7C4A;  --on-green:  #FFFFFF;
+  --paint-purple: #6A3FB5;  --on-purple: #FFFFFF;
 
   --right: #0E7C4A;         /* answered right: green + a tick shape */
   --wrong: #C8242F;         /* answered wrong: red + a cross shape */
@@ -130,6 +131,7 @@
   --paint-red:    #FF6B70;  --on-red:    #10141B;
   --paint-blue:   #6E9BFF;  --on-blue:   #10141B;
   --paint-green:  #3FD28A;  --on-green:  #10141B;
+  --paint-purple: #B79CFF;  --on-purple: #10141B;
 
   --right: #3FD28A;
   --wrong: #FF6B70;
@@ -145,6 +147,7 @@
 [data-paint="red"]    { --paint: var(--paint-red);    --on-paint: var(--on-red); }
 [data-paint="blue"]   { --paint: var(--paint-blue);   --on-paint: var(--on-blue); }
 [data-paint="green"]  { --paint: var(--paint-green);  --on-paint: var(--on-green); }
+[data-paint="purple"] { --paint: var(--paint-purple); --on-paint: var(--on-purple); }
 body { --paint: var(--paint-blue); --on-paint: var(--on-blue); }
 
 /* === Legacy aliases ===
@@ -669,6 +672,7 @@ button { font: inherit; color: inherit; }
     <symbol id="m-maths" viewBox="0 0 96 96"><circle cx="48" cy="48" r="38"/><path d="M48 10v76M10 48h76M27 29h14M34 22v14M55 29h14M27 63l14 14M41 63 27 77M55 70h14"/><circle cx="62" cy="63" r="2.6" style="fill:currentColor"/><circle cx="62" cy="77" r="2.6" style="fill:currentColor"/></symbol>
     <symbol id="m-opposites" viewBox="0 0 96 96"><path d="M82 32H16M32 16 16 32l16 16M14 64h66M64 48l16 16-16 16"/></symbol>
     <symbol id="m-memory" viewBox="0 0 96 96"><rect x="10" y="10" width="32" height="32" rx="8"/><rect x="54" y="10" width="32" height="32" rx="8"/><rect x="10" y="54" width="32" height="32" rx="8"/><rect x="54" y="54" width="32" height="32" rx="8"/><circle cx="26" cy="26" r="8" style="fill:currentColor"/><circle cx="70" cy="70" r="8" style="fill:currentColor"/></symbol>
+    <symbol id="m-sentence" viewBox="0 0 96 96"><rect x="8" y="12" width="30" height="30" rx="8"/><rect x="46" y="12" width="42" height="30" rx="8"/><rect x="8" y="54" width="42" height="30" rx="8"/><rect x="58" y="54" width="30" height="30" rx="8"/><path d="M54 27h26M16 69h26"/></symbol>
     <symbol id="m-type" viewBox="0 0 96 96"><rect x="12" y="12" width="72" height="72" rx="14"/><path d="M33 68 48 28l15 40M38 56h20"/></symbol>
 
     <!-- Player shapes: filled, colour set by --av on the use element. -->
@@ -802,6 +806,7 @@ button { font: inherit; color: inherit; }
         <li><span>Maths</span><span>Ages 5–12+</span></li>
         <li><span>Opposites</span><span>Ages 4–8</span></li>
         <li><span>Memory Match</span><span>Ages 4–10</span></li>
+        <li><span>Sentence Blocks</span><span>Ages 4–8</span></li>
         <li><span>Type Trainer</span><span>Ages 4–12+, needs a keyboard</span></li>
       </ul>
     </section>
@@ -813,7 +818,7 @@ button { font: inherit; color: inherit; }
         Feedback or bug? Raise it on GitHub
         <svg class="ic ic--sm"><use href="#i-link"/></svg>
       </a>
-      <p>Version 8495991 12 Nov 16:09</p>
+      <p>Version 3d3b35b 13 Nov 08:20</p>
     </section>
   </div>
 </div>

@@ -132,6 +132,7 @@ A restrained neutral ground, five committed paints (four for games, yellow for t
 - **Line Blue** (#2456D8 day / #6E9BFF dusk): Opposites, focus ring in Day. White text on Day blue (6.2:1), ink on Dusk blue.
 - **Pitch Green** (#0E7C4A day / #3FD28A dusk): Memory Match, and the right-answer cue. White text on Day green (5.3:1), ink on Dusk green.
 - **Cone Orange** (#FF8A2B day / #FF9B45 dusk): Type Trainer. Ink text (7.5:1).
+- **Bib Purple** (#6A3FB5 day / #B79CFF dusk): Sentence Blocks. White text on Day purple (7.0:1), ink on Dusk purple (8.1:1).
 
 ### Neutral
 - **Tarmac** (#E4E8EE day / #1B2028 dusk): the page ground. Worn tarmac (#D3D9E2 / #252B35) is for inset wells and hover.
@@ -142,6 +143,7 @@ A restrained neutral ground, five committed paints (four for games, yellow for t
 ### Named Rules
 **The One Paint Rule.** A screen belongs to one game, so it uses that game's paint as its accent and nothing else coloured. Right and wrong are the only other colours allowed, and they always arrive with a shape.
 **The Keyline Rule.** Any filled shape that matters has a 3px line in `--line` (ink at Day, chalk at Dusk). Yellow on pale grey is 1.3:1, so the line is what makes the shape findable.
+**The Slot Code Rule (Sentence Blocks only).** In Sentence Blocks the five paints are not decoration but the game's meaning: orange is Who, yellow is What doing, green is What, blue is Where and purple is Describe (the Colourful Semantics colour code). This is the one place paint carries meaning beyond the game's own accent, so every slot, tile and sentence word also carries a keyline, a glyph and a word: colour is never the only cue, and a colour-blind child can play by glyph and word alone. The Right/Wrong cue stays a tick or cross and is never one of these five.
 **The No Cream Rule.** No warm off-white page grounds. The ground is cool tarmac.
 
 ## Typography
