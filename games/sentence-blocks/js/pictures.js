@@ -124,29 +124,6 @@ function animalPic(species, pose, label) {
     line += 'M' + pt(hx + 6, hy - 3) + 'H' + r1(hx + 16) + 'Q' + pt(hx + 20, hy + 5) + ' ' + pt(hx + 15, hy + 12) + 'H' + r1(hx + 5) + 'M' + pt(hx - 3, hy - 8) + 'L' + pt(hx - 1, hy - 18) + 'L' + pt(hx + 5, hy - 9);
     detail += 'M' + pt(hx - 7, hy - 5) + 'Q' + pt(hx - 14, hy + 6) + ' ' + pt(hx - 9, hy + 16) + 'M' + pt(hx - 3, hy - 8) + 'Q' + pt(hx - 8, hy + 4) + ' ' + pt(hx - 4, hy + 14);
     dots += circ(hx + 15, hy + 3, 2);
-  } else if (species === 'pig') {
-    line += circ(hx + 12, hy + 2, 5) + 'M' + pt(hx - 7, hy - 6) + 'L' + pt(hx - 11, hy - 15) + 'L' + pt(hx - 1, hy - 9);
-    dots += circ(hx + 11, hy + 2, 1.2) + circ(hx + 14, hy + 2, 1.2);
-  } else if (species === 'cow') {
-    line += 'M' + pt(hx - 6, hy - 8) + 'Q' + pt(hx - 10, hy - 16) + ' ' + pt(hx - 6, hy - 18) + 'M' + pt(hx + 4, hy - 8) + 'Q' + pt(hx + 8, hy - 16) + ' ' + pt(hx + 4, hy - 18) + 'M' + pt(hx + 6, hy) + 'H' + r1(hx + 16) + 'V' + r1(hy + 9) + 'H' + r1(hx + 6);
-    if (pose === 'standing') dots += circ(36, 46, 5) + circ(52, 50, 4);
-  } else if (species === 'sheep') {
-    line += circ(34, 42, 10) + circ(48, 38, 10) + circ(60, 44, 9) + 'M' + pt(hx - 8, hy - 2) + 'Q' + pt(hx - 14, hy + 4) + ' ' + pt(hx - 8, hy + 8);
-  } else if (species === 'mouse') {
-    line += circ(hx - 4, hy - 11, 6) + circ(hx + 6, hy - 11, 6);
-    detail += 'M' + pt(hx + 9, hy + 3) + 'h9M' + pt(hx + 9, hy + 6) + 'l8 3';
-    dots += circ(hx + 9, hy + 2, 2);
-  } else if (species === 'monkey') {
-    line += circ(hx - 10, hy, 5) + circ(hx + 8, hy + 4, 5);
-    detail += 'M26 44Q8 44 10 26Q14 16 24 22';
-  } else if (species === 'lion') {
-    line += circ(hx, hy, 15);
-    dots += circ(14, 28, 3);
-  } else if (species === 'tiger') {
-    line += 'M' + pt(hx - 8, hy - 4) + 'L' + pt(hx - 8, hy - 17) + 'L' + pt(hx - 1, hy - 8) + 'M' + pt(hx + 1, hy - 8) + 'L' + pt(hx + 8, hy - 17) + 'L' + pt(hx + 8, hy - 4);
-    if (pose === 'standing') detail += 'M36 36V46M44 34V48M52 34V48M60 36V46';
-  } else if (species === 'elephant') {
-    line += circ(hx - 8, hy + 2, 11) + 'M' + pt(hx + 8, hy + 2) + 'Q' + pt(hx + 22, hy + 2) + ' ' + pt(hx + 18, hy + 22);
   }
   if (!D.closed) dots += circ(hx + 2, hy - 2, 1.8);
   return { label: label || species + ' ' + pose, line, detail, dots };
@@ -158,23 +135,23 @@ export const PICTURES = {
   girl: personPic('standing', 'girl', 'girl'),
   boy: personPic('standing', 'boy', 'boy'),
   baby: personPic('standing', 'baby', 'baby'),
-  dog: animalPic('dog', 'standing', 'dog'),
-  cat: animalPic('cat', 'standing', 'cat'),
-  horse: animalPic('horse', 'standing', 'horse'),
-  rabbit: animalPic('rabbit', 'standing', 'rabbit'),
+  dog: { label: 'dog', line: 'M28 44Q28 24 48 24Q68 24 68 44V58Q68 78 48 80Q28 78 28 58ZM28 34Q10 34 12 64Q22 66 28 54M68 34Q86 34 84 64Q74 66 68 54', detail: 'M48 58V64M42 69Q48 73 54 69', dots: circ(39, 42, 2.5) + circ(57, 42, 2.5) + circ(48, 54, 4.5) },
+  cat: { label: 'cat', line: 'M24 56Q24 32 48 32Q72 32 72 56Q72 78 48 80Q24 78 24 56ZM26 40L22 12L44 32M70 40L74 12L52 32', detail: 'M30 60H8M30 65L10 71M66 60H88M66 65L86 71M48 62V66M42 69Q48 73 54 69', dots: circ(38, 48, 2.5) + circ(58, 48, 2.5) + 'M44 56H52L48 61Z' },
+  horse: { label: 'horse', line: 'M36 16Q48 8 60 16L66 44Q68 70 60 84Q48 90 36 84Q28 70 30 44ZM34 18L30 2L42 12M62 18L66 2L54 12', detail: 'M48 10V28M38 72Q48 78 58 72', dots: circ(36, 40, 2.5) + circ(60, 40, 2.5) + circ(43, 78, 2.5) + circ(53, 78, 2.5) },
+  rabbit: { label: 'rabbit', line: circ(48, 58, 26) + 'M34 36Q22 6 34 6Q44 8 42 34M62 36Q74 6 62 6Q52 8 54 34', detail: 'M48 63V67M43 70Q48 74 53 70M34 66H12M34 70L14 77M62 66H84M62 70L82 77', dots: circ(39, 52, 2.5) + circ(57, 52, 2.5) + circ(48, 60, 3) },
   mum: personPic('standing', 'mum', 'Mum'),
   dad: personPic('standing', 'dad', 'Dad'),
   // v2 animals and poses
   pig: { label: 'pig', line: circ(48, 52, 30) + 'M24 30L16 12L38 22M72 30L80 12L58 22M34 62Q34 48 48 48Q62 48 62 62Q62 76 48 76Q34 76 34 62Z', detail: '', dots: circ(43, 62, 2.5) + circ(53, 62, 2.5) + circ(36, 40, 2.5) + circ(60, 40, 2.5) },
-  cow: animalPic('cow', 'standing', 'cow'),
-  sheep: animalPic('sheep', 'standing', 'sheep'),
+  cow: { label: 'cow', line: 'M30 38Q30 26 48 26Q66 26 66 38V62Q66 76 48 78Q30 76 30 62ZM32 32Q18 28 18 14M64 32Q78 28 78 14M30 40L14 38L18 50L30 50M66 40L82 38L78 50L66 50M34 64Q34 56 48 56Q62 56 62 64Q62 76 48 76Q34 76 34 64Z', detail: '', dots: circ(40, 40, 2.5) + circ(56, 40, 2.5) + circ(43, 66, 2.5) + circ(53, 66, 2.5) },
+  sheep: { label: 'sheep', line: 'M18 52A9 9 0 0 1 22 34A9 9 0 0 1 38 22A9 9 0 0 1 58 22A9 9 0 0 1 74 34A9 9 0 0 1 78 52M34 46Q34 38 48 38Q62 38 62 46V64Q62 80 48 82Q34 80 34 64ZM34 52L18 56L24 64L34 62M62 52L78 56L72 64L62 62', detail: 'M44 72Q48 75 52 72', dots: circ(41, 52, 2.5) + circ(55, 52, 2.5) + circ(48, 66, 2.5) },
   mouse: { label: 'mouse', line: circ(22, 28, 13) + circ(74, 28, 13) + 'M26 48Q26 30 48 30Q70 30 70 48Q70 74 48 80Q26 74 26 48Z', detail: 'M36 66H12M36 71L14 79M60 66H84M60 71L82 79', dots: circ(48, 62, 3.5) + circ(39, 46, 2.5) + circ(57, 46, 2.5) },
   monkey: { label: 'monkey', line: circ(48, 46, 28) + circ(16, 48, 9) + circ(80, 48, 9) + 'M34 52Q34 42 42 44Q48 48 54 44Q62 42 62 52Q62 72 48 74Q34 72 34 52Z', detail: 'M40 66Q48 71 56 66', dots: circ(40, 38, 2.5) + circ(56, 38, 2.5) + circ(45, 58, 1.6) + circ(51, 58, 1.6) },
   lion: { label: 'lion', line: scallop(48, 48, 38, 12, 9) + 'M32 42Q32 30 48 30Q64 30 64 42V58Q64 74 48 78Q32 74 32 58Z', detail: 'M48 62V68M40 70Q48 75 56 70M42 53H54', dots: circ(41, 44, 2.5) + circ(55, 44, 2.5) + 'M43 54H53L48 60Z' },
-  tiger: animalPic('tiger', 'standing', 'tiger'),
-  elephant: animalPic('elephant', 'standing', 'elephant'),
-  bird: { label: 'bird', line: 'M18 54Q22 34 46 36Q64 38 68 54Q66 72 42 74Q20 72 18 54ZM78 32' + circ(68, 32, 10) + 'M78 30L92 34L78 38M18 54L6 44M18 54L8 62M44 74V86M54 74V86', detail: 'M32 52Q44 44 56 54', dots: circ(70, 30, 2) },
-  duck: { label: 'duck', line: 'M12 52Q16 42 38 42Q56 42 64 54Q76 56 74 66Q70 80 42 80Q14 80 12 62ZM76 34' + circ(66, 34, 10) + 'M62 44V54M74 34Q90 32 90 40Q82 42 74 40', detail: 'M26 62Q40 56 54 64', dots: circ(68, 31, 2) },
+  tiger: { label: 'tiger', line: 'M24 56Q24 32 48 32Q72 32 72 56Q72 78 48 80Q24 78 24 56Z' + circ(28, 30, 9) + circ(68, 30, 9), detail: 'M48 32V42M38 34L40 43M58 34L56 43M26 52H35M26 60H35M70 52H61M70 60H61M48 64V68M42 71Q48 75 54 71', dots: circ(38, 48, 2.5) + circ(58, 48, 2.5) + 'M44 57H52L48 62Z' },
+  elephant: { label: 'elephant', line: circ(48, 38, 20) + circ(15, 40, 13) + circ(81, 40, 13) + 'M42 54Q40 72 44 86Q50 90 54 82Q54 72 54 54M38 56Q30 64 34 72M58 56Q66 64 62 72', detail: '', dots: circ(41, 34, 2.5) + circ(55, 34, 2.5) },
+  bird: { label: 'bird', line: circ(48, 54, 28) + 'M43 52L48 66L53 52ZM44 28Q46 14 50 12Q52 16 52 28M20 58Q10 62 12 72Q20 70 24 64M76 58Q86 62 84 72Q76 70 72 64', detail: '', dots: circ(38, 46, 2.8) + circ(58, 46, 2.8) },
+  duck: { label: 'duck', line: circ(38, 50, 26) + 'M60 44Q86 40 90 50Q86 62 60 58', detail: 'M72 48H80', dots: circ(40, 42, 3) },
   fish: { label: 'fish', line: 'M10 48Q30 22 62 34Q76 40 80 48Q76 56 62 62Q30 74 10 48ZM80 48L92 36V60Z', detail: 'M52 38Q58 48 52 58M34 60Q42 66 50 62', dots: circ(26, 44, 2.5) },
   frog: { label: 'frog', line: 'M20 70Q20 48 48 48Q76 48 76 70Q76 84 48 84Q20 84 20 70Z' + circ(36, 42, 8) + circ(60, 42, 8) + 'M20 76L10 88H26M76 76L86 88H70', detail: 'M34 68Q48 76 62 68', dots: circ(36, 42, 2.5) + circ(60, 42, 2.5) },
   dancing: personPic('dancing', null, 'dancing'),
