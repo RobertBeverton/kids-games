@@ -29,7 +29,7 @@ const fail = (m) => { if (failures.length < 60) failures.push(m); };
 const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const REAL = process.env.REAL_TIMERS === '1';
 
-const browser = await chromium.launch({ channel: 'msedge' });
+const browser = await chromium.launch({ channel: process.env.BROWSER_CHANNEL || 'msedge' });
 
 async function open(age, { fast = true, players, active = 'Mia', keepStorage } = {}) {
   const ctx = keepStorage || (await browser.newContext({ viewport: { width: 900, height: 1000 } }));

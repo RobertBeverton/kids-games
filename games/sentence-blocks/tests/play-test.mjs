@@ -32,7 +32,7 @@ const SENTENCE = /^[A-Z][a-z]*( [a-z]+)* (is|are) [a-z]+( (a|an) [a-z]+| [a-z]+)
 const failures = [];
 const fail = (m) => { if (failures.length < 80) failures.push(m); };
 const check = (cond, m) => { if (!cond) fail(m); };
-const browser = await chromium.launch({ channel: 'msedge' });
+const browser = await chromium.launch({ channel: process.env.BROWSER_CHANNEL || 'msedge' });
 const allErrors = [];
 const savedKey = (n) => 'kidsgames_sentence-blocks_' + n;
 

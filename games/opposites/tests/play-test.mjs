@@ -295,7 +295,7 @@ async function checkLayout(browser) {
   }
 }
 
-const browser = await chromium.launch({ channel: 'msedge', headless: true });
+const browser = await chromium.launch({ channel: process.env.BROWSER_CHANNEL || 'msedge', headless: true });
 const report = {};
 for (const diff of DIFFS) {
   const stats = { asked: 0, missedBack: [], consecShared: [], longest: 0, shortest: 0, typedChecks: 0, choiceScreens: 0 };
