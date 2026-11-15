@@ -17,6 +17,17 @@ export const WHO = [
   { id: 'cats', det: 'the', noun: 'cats', plural: true, kind: 'animal', pic: 'cat' },
   { id: 'rabbits', det: 'the', noun: 'rabbits', plural: true, kind: 'animal', pic: 'rabbit' },
   { id: 'dogs', det: 'the', noun: 'dogs', plural: true, kind: 'animal', pic: 'dog' },
+  // v2, undrawn. Animals:
+  ...['bird', 'duck', 'fish', 'pig', 'cow', 'sheep', 'mouse', 'frog', 'monkey', 'lion', 'elephant', 'tiger']
+    .map((n) => ({ id: n, det: 'the', noun: n, kind: 'animal' })),
+  ...['dinosaur', 'dragon'].map((n) => ({ id: n, det: 'the', noun: n, kind: 'animal', freeOnly: true })),
+  // People and characters:
+  // freeOnly: could also be true of a picture (a princess for a girl, Grandma for Mum), so never a wrong tile in a scene.
+  ...['teacher', 'nurse', 'king', 'queen', 'pirate', 'wizard', 'robot']
+    .map((n) => ({ id: n, det: 'the', noun: n, kind: 'adult', freeOnly: true })),
+  { id: 'princess', det: 'the', noun: 'princess', irregularS: true, kind: 'adult', freeOnly: true },   // ends in s but is singular
+  { id: 'grandma', text: 'Grandma', named: true, kind: 'adult', freeOnly: true },
+  { id: 'grandad', text: 'Grandad', named: true, kind: 'adult', freeOnly: true },
 ];
 // Where-tags: indoor, outdoor, water (pool, beach). A doing word lists the tags of the places it can happen.
 const WITH_BABY = ['animal', 'child', 'baby', 'adult'];
@@ -83,5 +94,14 @@ export const DESCRIBE = [
   { id: 'small', word: 'small', opposite: 'big', pic: 'small' },
   { id: 'happy', word: 'happy', opposite: 'sad', pic: 'happy' },
   { id: 'sad', word: 'sad', opposite: 'happy', pic: 'sad' },
+  // v2, undrawn pairs:
+  { id: 'fast', word: 'fast', opposite: 'slow' }, { id: 'slow', word: 'slow', opposite: 'fast' },
+  { id: 'hot', word: 'hot', opposite: 'cold' }, { id: 'cold', word: 'cold', opposite: 'hot' },
+  { id: 'tall', word: 'tall', opposite: 'short' }, { id: 'short', word: 'short', opposite: 'tall' },
+  { id: 'loud', word: 'loud', opposite: 'quiet' }, { id: 'quiet', word: 'quiet', opposite: 'loud' },
+  { id: 'wet', word: 'wet', opposite: 'dry' }, { id: 'dry', word: 'dry', opposite: 'wet' },
+  { id: 'giant', word: 'giant', opposite: 'tiny' }, { id: 'tiny', word: 'tiny', opposite: 'giant' },
+  { id: 'brave', word: 'brave', opposite: 'scared' }, { id: 'scared', word: 'scared', opposite: 'brave' },
+  { id: 'clean', word: 'clean', opposite: 'dirty' }, { id: 'dirty', word: 'dirty', opposite: 'clean' },
 ];
 export const DATA = { who: WHO, doing: DOING, what: WHAT, where: WHERE, describe: DESCRIBE };
