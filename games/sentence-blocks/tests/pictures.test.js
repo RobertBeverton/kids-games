@@ -49,9 +49,9 @@ describe('picture data', () => {
     for (const sc of SCENES) assert.ok(sceneIsDrawn(sc), sc.id + ' is not drawn');
   });
   // Switch this on at the end of the picture batches (Task 11): every tile and every scene must be drawable.
-  it('every tile has a picture, and every picture is used', () => {
+  it('every drawn tile has a picture, and every picture is used', () => {
     const used = new Set();
-    for (const slot of SLOT_ORDER) for (const t of DATA[slot]) { assert.ok(PICTURES[t.pic], slot + ':' + t.id + ' has no picture ' + t.pic); used.add(t.pic); }
+    for (const slot of SLOT_ORDER) for (const t of DATA[slot]) { if (!t.pic) continue; assert.ok(PICTURES[t.pic], slot + ':' + t.id + ' has no picture ' + t.pic); used.add(t.pic); }
     for (const k of Object.keys(PICTURES)) assert.ok(used.has(k) || k.startsWith('fig-') || k.startsWith('item-') || k.startsWith('place-'), 'unused picture ' + k);
     for (const s of SCENES) assert.ok(s.picture, s.id);
   });

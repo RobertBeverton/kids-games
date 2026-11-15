@@ -73,7 +73,8 @@ export function validateData(data, scenes) {
     for (const t of data[slot] || []) {
       if (seen.has(t.id)) say(slot + ': duplicate id ' + t.id);
       seen.add(t.id);
-      if (!t.pic) say(slot + ':' + t.id + ' has no picture');
+      if (t.pic !== undefined && (typeof t.pic !== 'string' || !t.pic)) say(slot + ':' + t.id + ' has a bad pic');
+
     }
     if (!(data[slot] || []).length) say(slot + ': no tiles');
   }
@@ -95,12 +96,18 @@ export function validateData(data, scenes) {
     const o = tileOf(data, 'describe', d.opposite);
     if (!o) say('describe:' + d.id + ' has no valid opposite');
     else if (o.opposite !== d.id) say('describe:' + d.id + ' and ' + o.id + ' are not opposites of each other');
+    if (o && d.pic && !o.pic) say('describe:' + d.id + ' is drawn but its opposite ' + o.id + ' is not');
+    if (o && !d.pic && o.pic) say('describe:' + o.id + ' is drawn but its opposite ' + d.id + ' is not');
   }
   for (const d of data.doing) {
     if (!/ing$/.test(d.ing || '')) say('doing:' + d.id + ' must be an -ing word');
     if (!d.actors || !d.actors.length) say('doing:' + d.id + ' lists no actors');
     else if (d.actors.some((a) => !KINDS.includes(a))) say('doing:' + d.id + ' lists an unknown actor kind');
     if (!d.wheres || !d.wheres.length) say('doing:' + d.id + ' lists no places');
+  }
+  for (const st of STAGES) for (const f of st.frames) for (const k of f.slots) {
+    const n = poolFor(data, f, k).length;
+    if (n < SILLY_CHOICES) say('stage ' + st.id + ': too few ' + k + ' tiles (' + n + ', need ' + SILLY_CHOICES + ')');
   }
   for (const s of scenes || []) {
     const tag = 'scene ' + s.id;
@@ -125,7 +132,13 @@ export function validateData(data, scenes) {
     if (frame) {
       for (const k of slots) {
         const right = tileOf(data, k, s[k]);
-        if (right && distractorsOf(data, frame, k, right, distractorsFor(s.stage), () => 0.5).length < Math.min(distractorsFor(s.stage), k === 'describe' ? 1 : 99)) say(tag + ': not enough wrong tiles for ' + k);
+        if (!right) continue;
+        if (!right.pic) say(tag + ': ' + k + ' tile ' + right.id + ' has no drawing');
+        if (right.freeOnly) say(tag + ': ' + k + ' tile ' + right.id + ' is freeOnly, so it cannot be a scene answer');
+        const want = Math.min(distractorsFor(s.stage), k === 'describe' ? 1 : 99);
+        for (const help of HELP_LEVELS) {
+          if (distractorsOf(bankFor(data, help, 'scene'), frame, k, right, distractorsFor(s.stage), () => 0.5).length < want) say(tag + ': not enough wrong tiles for ' + k + ' at help ' + help);
+        }
       }
     }
     try {
@@ -140,8 +153,18 @@ export function validateData(data, scenes) {
 // ---------- rounds ----------
 const shuffle = (a, rnd) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const pickN = (a, n, rnd) => shuffle(a, rnd).slice(0, n);
+export const hasPic = (t) => !!t.pic;
 // What a tile looks like in the tray: plural people are drawn twice, so "dog" and "dogs" look different but two "dog"s do not.
-export const lookOf = (t) => t.pic + (t.plural ? '*2' : '');
+// A word with no drawing looks like only itself, so two undrawn words never count as look-alikes.
+export const lookOf = (t) => (t.pic || 'word:' + t.id) + (t.plural ? '*2' : '');
+
+// The tiles on offer. Describe the picture at the easy level offers only words that have a drawing: the right tile is always
+// drawn, so an undrawn wrong tile would give it away. Everywhere else (Silly, Story, the harder levels) every word is offered,
+// and a word with no drawing is a coloured word tile.
+export function bankFor(data, help, mode) {
+  if (help !== 'pictures' || mode !== 'scene') return data;
+  return Object.fromEntries(Object.entries(data).map(([slot, tiles]) => [slot, tiles.filter(hasPic)]));
+}
 // n tiles that all look different from each other (and from anything in `avoid`).
 function pickDistinct(a, n, avoid, rnd) {
   const seen = new Set(avoid.map(lookOf)), out = [];
@@ -171,7 +194,7 @@ export const distractorsFor = (stageId) => (stageId >= 3 ? 1 : 2);
 //  - tiles in the same `group` look alike (park / garden / field), so a group-mate of the right tile is never offered.
 export function distractorsOf(data, frame, slot, right, n, rnd = Math.random) {
   if (slot === 'describe') { const o = tileOf(data, 'describe', right.opposite); return o ? [o] : []; }
-  const pool = poolFor(data, frame, slot).filter((t) => !(right.group && t.group === right.group));
+  const pool = poolFor(data, frame, slot).filter((t) => !(right.group && t.group === right.group) && !t.freeOnly);
   return pickDistinct(pool, n, [right], rnd);
 }
 
