@@ -34,9 +34,11 @@ One game, three new things, no new hub tile (no hub rework):
 
 | Level | Tile shows | Tray draws from |
 |---|---|---|
-| Pictures + colours | drawing, word, slot colour | words that have a drawing (today's game) |
+| Pictures + colours | drawing (if the word has one), word, slot colour | Describe the picture: only words that have a drawing (today's game). Silly and Story: the whole bank, so a word with no drawing shows as a plain coloured word tile |
 | Colours only | word, slot colour | the whole bank |
 | Words only | word; slots carry their text label and glyph, no colour | the whole bank |
+
+Why Describe the picture is the one exception: the right tile is always drawn, so an undrawn wrong tile would give the answer away.
 
 - Describe the picture always shows the scene drawing, whatever the Help level. The scene is the target; Help changes only the tiles.
 - State is never carried by colour alone: slots keep their glyph and label, and wrong tiles keep the cross shape.
@@ -46,15 +48,19 @@ One game, three new things, no new hub tile (no hub rework):
 - Each sentence is built on the usual board with free choice (as Silly). The engine guarantees grammar (is/are, a/an, with or without a "what"), not sense.
 - A heading above the slots gives the shape, as decoration only. Length 3: *Once upon a time… / Then… / In the end…*. Length 5 and 10: *Once upon a time…* first, *The end* last, *Then…* and *Suddenly…* between.
 - Every sentence gets a fresh random draw of tiles from the bank, with enough in every slot. A row of dots fills as sentences finish; no number, timer or score.
-- Next after each sentence. Stop works at any point; nothing is saved from an unfinished story.
+- Next after each sentence. Stop (the X) works at any point and discards the story; nothing is saved from it.
+- **The end:** from the third finished sentence until the last, a second button beside Next ends the story there and shows the book page with the sentences built so far. It paints one hub square, like a story that ran its full length. A 3-sentence story never shows it.
 - Stage sets the sentence length inside the story.
 - **Reveal:** a book-page view with the sentences stacked, in slot colours at the chosen Help level. Buttons: New story, Same settings, Choose again.
 
 ## Word bank
 
-- Each tile has a word and an **optional drawing**. Drawings can be added to a word later; it then becomes available at the easy level.
-- Describe the picture keeps its safety rules. A new word enters scene rounds only if the tests show it is never true of the scene by accident (opposite pairing and look-alike groups, as before). Undrawn words may be wrong tiles only where clearly wrong.
-- Word lists are reviewed by the user, proposed in batches per slot: Who, Doing, What, Where, then Describe.
+- Each tile has a word and an **optional drawing**.
+- **Rule for new words: if a word can be shown as one simple picture, it gets a drawing (reviewed by the user, in batches); if not, it stays a plain word tile.** Plain word tiles appear in Silly and Story at every level, and in Describe the picture at the harder levels. Proposed split: objects, places, animals, contrast pairs (hot/cold, wet/dry, loud/quiet, tall/short) and four new poses are drawn; roles and costumes (teacher, king, wizard), fantasy creatures, most action words and abstract describing words are plain. The user can move any word either way.
+- Drawings can still be added to a plain word later; it then also appears in Describe the picture at the easy level.
+- Describe the picture keeps its safety rules. A word that could be true of a picture by accident (a princess for a girl, Grandma for Mum, *dancing* for a girl jumping) is either marked `freeOnly` (Silly and Story only, never a wrong tile) or put in a `group` with the word it overlaps, so it is never offered beside it. The user's word review is the real check on these marks.
+- Word lists are reviewed by the user, proposed in batches per slot: Who and Describe, Doing, then What and Where. Drawings follow in their own reviewed batches.
+- Trying slots until a tile fits is fine: this is a learning game, so a wrong slot costs nothing and the child still learns where each word goes.
 
 ## Architecture and testing
 

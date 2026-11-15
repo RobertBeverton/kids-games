@@ -8,6 +8,9 @@ export const UNLOCK_AT = 5;         // finished describe-the-picture sentences t
 export const SAVE_VERSION = 1;
 export const RECENT_KEEP = TARGET_SENTENCES; // scenes remembered, so the next session avoids the ones just played (must stay below the scenes per stage)
 export const KINDS = ['animal', 'child', 'baby', 'adult'];
+export const HELP_LEVELS = ['pictures', 'colours', 'words'];  // how much the tiles help, easiest first
+export const STORY_LENGTHS = [3, 5, 10];
+export const DEFAULT_STORY_LENGTH = 5;
 
 // A frame is the set of colour slots one sentence uses. `transitive` says whether its doing word takes a "what".
 export const STAGES = [
@@ -70,7 +73,8 @@ export function validateData(data, scenes) {
     for (const t of data[slot] || []) {
       if (seen.has(t.id)) say(slot + ': duplicate id ' + t.id);
       seen.add(t.id);
-      if (!t.pic) say(slot + ':' + t.id + ' has no picture');
+      if (t.pic !== undefined && (typeof t.pic !== 'string' || !t.pic)) say(slot + ':' + t.id + ' has a bad pic');
+
     }
     if (!(data[slot] || []).length) say(slot + ': no tiles');
   }
@@ -92,12 +96,18 @@ export function validateData(data, scenes) {
     const o = tileOf(data, 'describe', d.opposite);
     if (!o) say('describe:' + d.id + ' has no valid opposite');
     else if (o.opposite !== d.id) say('describe:' + d.id + ' and ' + o.id + ' are not opposites of each other');
+    if (o && d.pic && !o.pic) say('describe:' + d.id + ' is drawn but its opposite ' + o.id + ' is not');
+    if (o && !d.pic && o.pic) say('describe:' + o.id + ' is drawn but its opposite ' + d.id + ' is not');
   }
   for (const d of data.doing) {
     if (!/ing$/.test(d.ing || '')) say('doing:' + d.id + ' must be an -ing word');
     if (!d.actors || !d.actors.length) say('doing:' + d.id + ' lists no actors');
     else if (d.actors.some((a) => !KINDS.includes(a))) say('doing:' + d.id + ' lists an unknown actor kind');
     if (!d.wheres || !d.wheres.length) say('doing:' + d.id + ' lists no places');
+  }
+  for (const st of STAGES) for (const f of st.frames) for (const k of f.slots) {
+    const n = poolFor(data, f, k).length;
+    if (n < SILLY_CHOICES) say('stage ' + st.id + ': too few ' + k + ' tiles (' + n + ', need ' + SILLY_CHOICES + ')');
   }
   for (const s of scenes || []) {
     const tag = 'scene ' + s.id;
@@ -122,7 +132,13 @@ export function validateData(data, scenes) {
     if (frame) {
       for (const k of slots) {
         const right = tileOf(data, k, s[k]);
-        if (right && distractorsOf(data, frame, k, right, distractorsFor(s.stage), () => 0.5).length < Math.min(distractorsFor(s.stage), k === 'describe' ? 1 : 99)) say(tag + ': not enough wrong tiles for ' + k);
+        if (!right) continue;
+        if (!right.pic) say(tag + ': ' + k + ' tile ' + right.id + ' has no drawing');
+        if (right.freeOnly) say(tag + ': ' + k + ' tile ' + right.id + ' is freeOnly, so it cannot be a scene answer');
+        const want = Math.min(distractorsFor(s.stage), k === 'describe' ? 1 : 99);
+        for (const help of HELP_LEVELS) {
+          if (distractorsOf(bankFor(data, help, 'scene'), frame, k, right, distractorsFor(s.stage), () => 0.5).length < want) say(tag + ': not enough wrong tiles for ' + k + ' at help ' + help);
+        }
       }
     }
     try {
@@ -137,8 +153,18 @@ export function validateData(data, scenes) {
 // ---------- rounds ----------
 const shuffle = (a, rnd) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const pickN = (a, n, rnd) => shuffle(a, rnd).slice(0, n);
+export const hasPic = (t) => !!t.pic;
 // What a tile looks like in the tray: plural people are drawn twice, so "dog" and "dogs" look different but two "dog"s do not.
-export const lookOf = (t) => t.pic + (t.plural ? '*2' : '');
+// A word with no drawing looks like only itself, so two undrawn words never count as look-alikes.
+export const lookOf = (t) => (t.pic || 'word:' + t.id) + (t.plural ? '*2' : '');
+
+// The tiles on offer. Describe the picture at the easy level offers only words that have a drawing: the right tile is always
+// drawn, so an undrawn wrong tile would give it away. Everywhere else (Silly, Story, the harder levels) every word is offered,
+// and a word with no drawing is a coloured word tile.
+export function bankFor(data, help, mode) {
+  if (help !== 'pictures' || mode !== 'scene') return data;
+  return Object.fromEntries(Object.entries(data).map(([slot, tiles]) => [slot, tiles.filter(hasPic)]));
+}
 // n tiles that all look different from each other (and from anything in `avoid`).
 function pickDistinct(a, n, avoid, rnd) {
   const seen = new Set(avoid.map(lookOf)), out = [];
@@ -168,7 +194,7 @@ export const distractorsFor = (stageId) => (stageId >= 3 ? 1 : 2);
 //  - tiles in the same `group` look alike (park / garden / field), so a group-mate of the right tile is never offered.
 export function distractorsOf(data, frame, slot, right, n, rnd = Math.random) {
   if (slot === 'describe') { const o = tileOf(data, 'describe', right.opposite); return o ? [o] : []; }
-  const pool = poolFor(data, frame, slot).filter((t) => !(right.group && t.group === right.group));
+  const pool = poolFor(data, frame, slot).filter((t) => !(right.group && t.group === right.group) && !t.freeOnly);
   return pickDistinct(pool, n, [right], rnd);
 }
 
@@ -195,6 +221,21 @@ export function buildSillyRound(data, stageId, rnd = Math.random) {
   const tray = [];
   for (const slot of frame.slots) for (const t of pickN(poolFor(data, frame, slot), SILLY_CHOICES, rnd)) tray.push({ slot, id: t.id });
   return { mode: 'silly', stage: stageId, slots: frame.slots.slice(), frame, answer: null, tray: shuffle(tray, rnd), placed: {}, misses: {}, complete: false };
+}
+
+// "Story": a free-choice round (like Silly) with a heading for where it sits in the story. The heading is decoration only.
+const STORY_MIDDLE = ['Then…', 'Suddenly…'];
+export function storyHeading(index, length) {
+  if (index === 0) return 'Once upon a time…';
+  if (index === length - 1) return length === 3 ? 'In the end…' : 'The end…';
+  return STORY_MIDDLE[(index - 1) % STORY_MIDDLE.length];
+}
+// A story can be finished early from this many finished sentences (and never when it is already at its length).
+export const STORY_EARLY_END = 3;
+export const canEndEarly = (done, length) => done >= STORY_EARLY_END && done < length;
+// Every call is a fresh random draw (buildSillyRound picks new tiles each time), so two stories rarely match.
+export function buildStoryRound(data, stageId, index, length, rnd = Math.random) {
+  return { ...buildSillyRound(data, stageId, rnd), mode: 'story', heading: storyHeading(index, length), index, length };
 }
 
 // Try a tile in a slot. Returns 'ok' | 'wrong-slot' | 'wrong-tile'. A wrong tile never stays.
@@ -239,8 +280,10 @@ export function normaliseSave(raw) {
   const done = r.done && typeof r.done === 'object' ? r.done : {};
   return {
     v: SAVE_VERSION,
-    mode: r.mode === 'silly' ? 'silly' : 'scene',
+    mode: r.mode === 'silly' || r.mode === 'story' ? r.mode : 'scene',
     stage: [1, 2, 3].includes(r.stage) ? r.stage : 1,
+    help: HELP_LEVELS.includes(r.help) ? r.help : 'pictures',
+    storyLength: STORY_LENGTHS.includes(r.storyLength) ? r.storyLength : DEFAULT_STORY_LENGTH,
     done: { 1: count(done[1]), 2: count(done[2]), 3: count(done[3]) },
     recent: Array.isArray(r.recent) ? r.recent.filter((x) => typeof x === 'string').slice(-RECENT_KEEP) : [],
   };

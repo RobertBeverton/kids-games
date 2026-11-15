@@ -9,6 +9,16 @@ const r1 = (n) => Math.round(n * 10) / 10;
 const pt = (x, y) => r1(x) + ' ' + r1(y);
 const circ = (cx, cy, r) => 'M' + pt(cx - r, cy) + 'a' + r + ' ' + r + ' 0 1 0 ' + r1(2 * r) + ' 0a' + r + ' ' + r + ' 0 1 0 ' + r1(-2 * r) + ' 0';
 
+// A ring of n round bumps around (cx, cy): a mane.
+function scallop(cx, cy, r, n, bump) {
+  let d = '';
+  for (let i = 0; i <= n; i++) {
+    const a = (i / n) * Math.PI * 2 - Math.PI / 2, x = cx + r * Math.cos(a), y = cy + r * Math.sin(a);
+    d += i === 0 ? 'M' + pt(x, y) : 'A' + bump + ' ' + bump + ' 0 0 1 ' + pt(x, y);
+  }
+  return d + 'Z';
+}
+
 // head [x, y]; torso [shoulder x, y, hip x, y]; arms: path; legs: [knee x, knee y, foot x, foot y] each, drawn from the hip (or the
 // hem of a dress); item: where the centre of a held item goes (beside the face, never on it); extra: thin marks (sleep Zs).
 // prop: bold (held or ridden things); propD: thin (backdrops: ladder, water); propDots: filled (tears).
@@ -35,6 +45,10 @@ Object.assign(PERSON_POSES, {
   pushing: { head: [40, 22], torso: [42, 34, 28, 60], arms: 'M42 40L64 54', legs: [[36, 72, 44, 88], [22, 74, 12, 88]], side: true, prop: 'M64 46H90V84H64Z' },
   painting: { head: [36, 18], torso: [36, 30, 36, 58], arms: 'M36 36L52 40L62 34', legs: [[31, 74, 28, 88], [41, 74, 46, 88]], prop: 'M56 18H92V54H56ZM64 54L58 88M84 54L90 88', propD: 'M64 30q6-8 12 0t10 0' },
   washing: { head: [34, 18], torso: [34, 30, 34, 58], arms: 'M34 36L50 46L66 56', legs: [[29, 74, 26, 88], [39, 74, 44, 88]], prop: 'M56 56H90L86 86H60Z' + circ(62, 44, 5) + circ(76, 40, 4) },
+  dancing: { head: [48, 16], torso: [48, 28, 48, 56], arms: 'M48 34L26 22M48 34L70 44', legs: [[36, 70, 28, 84], [58, 66, 70, 76]] },
+  hopping: { head: [48, 16], torso: [48, 28, 48, 54], arms: 'M48 34L32 46M48 34L64 46', legs: [[44, 70, 46, 86], [62, 62, 76, 70]] },
+  waving: { head: [48, 18], torso: [48, 30, 48, 58], arms: 'M48 36L34 52M48 36L66 24L72 12', legs: STD_LEGS },
+  catching: { head: [44, 20], torso: [44, 32, 44, 58], arms: 'M44 38L64 28L72 22M44 38L62 44', legs: STD_LEGS, prop: circ(82, 20, 6) },
   brushing: { head: [48, 18], torso: [48, 30, 48, 58], arms: 'M48 36L60 38L62 22M48 36L34 52', legs: STD_LEGS, prop: 'M54 20H80', propD: 'M72 14v6M76 14v6M80 14v6', propDots: circ(70, 30, 2.5) + circ(80, 28, 2) },
 });
 
@@ -121,12 +135,29 @@ export const PICTURES = {
   girl: personPic('standing', 'girl', 'girl'),
   boy: personPic('standing', 'boy', 'boy'),
   baby: personPic('standing', 'baby', 'baby'),
-  dog: animalPic('dog', 'standing', 'dog'),
-  cat: animalPic('cat', 'standing', 'cat'),
-  horse: animalPic('horse', 'standing', 'horse'),
-  rabbit: animalPic('rabbit', 'standing', 'rabbit'),
+  dog: { label: 'dog', line: 'M28 44Q28 24 48 24Q68 24 68 44V58Q68 78 48 80Q28 78 28 58ZM28 34Q10 34 12 64Q22 66 28 54M68 34Q86 34 84 64Q74 66 68 54', detail: 'M48 58V64M42 69Q48 73 54 69', dots: circ(39, 42, 2.5) + circ(57, 42, 2.5) + circ(48, 54, 4.5) },
+  cat: { label: 'cat', line: 'M24 56Q24 32 48 32Q72 32 72 56Q72 78 48 80Q24 78 24 56ZM26 40L22 12L44 32M70 40L74 12L52 32', detail: 'M30 60H8M30 65L10 71M66 60H88M66 65L86 71M48 62V66M42 69Q48 73 54 69', dots: circ(38, 48, 2.5) + circ(58, 48, 2.5) + 'M44 56H52L48 61Z' },
+  horse: { label: 'horse', line: 'M36 16Q48 8 60 16L66 44Q68 70 60 84Q48 90 36 84Q28 70 30 44ZM34 18L30 2L42 12M62 18L66 2L54 12', detail: 'M48 10V28M38 72Q48 78 58 72', dots: circ(36, 40, 2.5) + circ(60, 40, 2.5) + circ(43, 78, 2.5) + circ(53, 78, 2.5) },
+  rabbit: { label: 'rabbit', line: circ(48, 58, 26) + 'M34 36Q22 6 34 6Q44 8 42 34M62 36Q74 6 62 6Q52 8 54 34', detail: 'M48 63V67M43 70Q48 74 53 70M34 66H12M34 70L14 77M62 66H84M62 70L82 77', dots: circ(39, 52, 2.5) + circ(57, 52, 2.5) + circ(48, 60, 3) },
   mum: personPic('standing', 'mum', 'Mum'),
   dad: personPic('standing', 'dad', 'Dad'),
+  // v2 animals and poses
+  pig: { label: 'pig', line: circ(48, 52, 30) + 'M24 30L16 12L38 22M72 30L80 12L58 22M34 62Q34 48 48 48Q62 48 62 62Q62 76 48 76Q34 76 34 62Z', detail: '', dots: circ(43, 62, 2.5) + circ(53, 62, 2.5) + circ(36, 40, 2.5) + circ(60, 40, 2.5) },
+  cow: { label: 'cow', line: 'M30 38Q30 26 48 26Q66 26 66 38V62Q66 76 48 78Q30 76 30 62ZM32 32Q18 28 18 14M64 32Q78 28 78 14M30 40L14 38L18 50L30 50M66 40L82 38L78 50L66 50M34 64Q34 56 48 56Q62 56 62 64Q62 76 48 76Q34 76 34 64Z', detail: '', dots: circ(40, 40, 2.5) + circ(56, 40, 2.5) + circ(43, 66, 2.5) + circ(53, 66, 2.5) },
+  sheep: { label: 'sheep', line: 'M18 52A9 9 0 0 1 22 34A9 9 0 0 1 38 22A9 9 0 0 1 58 22A9 9 0 0 1 74 34A9 9 0 0 1 78 52M34 46Q34 38 48 38Q62 38 62 46V64Q62 80 48 82Q34 80 34 64ZM34 52L18 56L24 64L34 62M62 52L78 56L72 64L62 62', detail: 'M44 72Q48 75 52 72', dots: circ(41, 52, 2.5) + circ(55, 52, 2.5) + circ(48, 66, 2.5) },
+  mouse: { label: 'mouse', line: circ(22, 28, 13) + circ(74, 28, 13) + 'M26 48Q26 30 48 30Q70 30 70 48Q70 74 48 80Q26 74 26 48Z', detail: 'M36 66H12M36 71L14 79M60 66H84M60 71L82 79', dots: circ(48, 62, 3.5) + circ(39, 46, 2.5) + circ(57, 46, 2.5) },
+  monkey: { label: 'monkey', line: circ(48, 46, 28) + circ(16, 48, 9) + circ(80, 48, 9) + 'M34 52Q34 42 42 44Q48 48 54 44Q62 42 62 52Q62 72 48 74Q34 72 34 52Z', detail: 'M40 66Q48 71 56 66', dots: circ(40, 38, 2.5) + circ(56, 38, 2.5) + circ(45, 58, 1.6) + circ(51, 58, 1.6) },
+  lion: { label: 'lion', line: scallop(48, 48, 38, 12, 9) + 'M32 42Q32 30 48 30Q64 30 64 42V58Q64 74 48 78Q32 74 32 58Z', detail: 'M48 62V68M40 70Q48 75 56 70M42 53H54', dots: circ(41, 44, 2.5) + circ(55, 44, 2.5) + 'M43 54H53L48 60Z' },
+  tiger: { label: 'tiger', line: 'M24 56Q24 32 48 32Q72 32 72 56Q72 78 48 80Q24 78 24 56Z' + circ(28, 30, 9) + circ(68, 30, 9), detail: 'M48 32V42M38 34L40 43M58 34L56 43M26 52H35M26 60H35M70 52H61M70 60H61M48 64V68M42 71Q48 75 54 71', dots: circ(38, 48, 2.5) + circ(58, 48, 2.5) + 'M44 57H52L48 62Z' },
+  elephant: { label: 'elephant', line: circ(48, 38, 20) + circ(15, 40, 13) + circ(81, 40, 13) + 'M42 54Q40 72 44 86Q50 90 54 82Q54 72 54 54M38 56Q30 64 34 72M58 56Q66 64 62 72', detail: '', dots: circ(41, 34, 2.5) + circ(55, 34, 2.5) },
+  bird: { label: 'bird', line: circ(48, 54, 28) + 'M43 52L48 66L53 52ZM44 28Q46 14 50 12Q52 16 52 28M20 58Q10 62 12 72Q20 70 24 64M76 58Q86 62 84 72Q76 70 72 64', detail: '', dots: circ(38, 46, 2.8) + circ(58, 46, 2.8) },
+  duck: { label: 'duck', line: circ(38, 50, 26) + 'M60 44Q86 40 90 50Q86 62 60 58', detail: 'M72 48H80', dots: circ(40, 42, 3) },
+  fish: { label: 'fish', line: 'M10 48Q30 22 62 34Q76 40 80 48Q76 56 62 62Q30 74 10 48ZM80 48L92 36V60Z', detail: 'M52 38Q58 48 52 58M34 60Q42 66 50 62', dots: circ(26, 44, 2.5) },
+  frog: { label: 'frog', line: 'M20 70Q20 48 48 48Q76 48 76 70Q76 84 48 84Q20 84 20 70Z' + circ(36, 42, 8) + circ(60, 42, 8) + 'M20 76L10 88H26M76 76L86 88H70', detail: 'M34 68Q48 76 62 68', dots: circ(36, 42, 2.5) + circ(60, 42, 2.5) },
+  dancing: personPic('dancing', null, 'dancing'),
+  hopping: personPic('hopping', null, 'hopping'),
+  waving: personPic('waving', null, 'waving'),
+  catching: personPic('catching', null, 'catching'),
   // doing (a neutral figure mid-action, with a small item where the action needs one)
   jumping: personPic('jumping', null, 'jumping'),
   running: personPic('running', null, 'running'),
@@ -167,6 +198,43 @@ export const PICTURES = {
   plate: { label: 'plate', line: circ(44, 56, 32) + circ(44, 56, 20), detail: '', dots: circ(78, 18, 6) + circ(90, 32, 3.5) + circ(68, 8, 3) },
   teeth: { label: 'teeth', line: 'M8 38Q48 80 88 38Q48 50 8 38Z', detail: 'M24 43V56M36 47V62M48 49V64M60 47V62M72 43V56' },
   hair: { label: 'hair', line: 'M24 14Q48 4 72 14M30 16Q10 50 24 86M48 14Q36 50 46 86M66 16Q54 50 72 86', detail: 'M20 24h56' },
+  // v2 objects (what)
+  orange: { label: 'orange', line: circ(48, 54, 30) + 'M46 24Q50 10 68 12Q64 28 46 24Z', detail: 'M36 46q4-6 10-6', dots: circ(48, 62, 2.5) },
+  pear: { label: 'pear', line: 'M48 14C56 14 58 24 56 32C70 40 78 56 76 68C74 82 62 88 48 88C34 88 22 82 20 68C18 56 26 40 40 32C38 24 40 14 48 14Z', detail: 'M48 14L50 6M52 12Q62 8 68 14' },
+  biscuit: { label: 'biscuit', line: circ(48, 48, 34), detail: '', dots: circ(36, 36, 3.5) + circ(58, 38, 3.5) + circ(44, 56, 3.5) + circ(62, 58, 3.5) + circ(30, 54, 3) },
+  pizza: { label: 'pizza', line: 'M10 26Q48 8 86 26L48 88Z', detail: 'M16 36Q48 20 80 36', dots: circ(40, 46, 5) + circ(58, 42, 5) + circ(48, 64, 5) },
+  icecream: { label: 'ice cream', line: 'M30 50L48 90L66 50M26 50C22 34 32 22 48 22C64 22 74 34 70 50Z', detail: 'M38 58L56 76M58 58L40 76', dots: circ(48, 12, 5) },
+  cheese: { label: 'cheese', line: 'M8 58L84 28V80H8Z', detail: 'M8 58H84', dots: circ(30, 70, 5) + circ(58, 64, 5) + circ(70, 48, 4) },
+  toast: { label: 'toast', line: 'M16 84V46C6 42 8 16 30 16H66C88 16 90 42 80 46V84Z', detail: 'M28 74V50C20 44 22 30 34 28H62' },
+  pasta: { label: 'pasta', line: 'M10 52H86Q84 82 48 84Q12 82 10 52Z', detail: 'M22 52Q26 30 40 40T58 34T76 44M32 50Q38 24 54 32T76 38' },
+  grapes: { label: 'grapes', line: circ(32, 38, 9) + circ(52, 38, 9) + circ(72, 38, 9) + circ(42, 58, 9) + circ(62, 58, 9) + circ(52, 78, 9), detail: 'M52 29V14Q62 10 70 16' },
+  soup: { label: 'soup', line: 'M10 52H86Q84 82 48 84Q12 82 10 52Z', detail: 'M32 42q-6-8 0-14M48 42q-6-8 0-14M64 42q-6-8 0-14' },
+  tea: { label: 'tea', line: 'M16 38H64L60 76Q58 84 48 84H32Q22 84 20 76ZM64 46H72Q84 46 84 56Q84 66 70 66H62M10 88H70', detail: 'M30 30q-5-7 0-12M46 30q-5-7 0-12' },
+  lemonade: { label: 'lemonade', line: 'M40 8H56V22Q70 30 70 44V88H26V44Q26 30 40 22Z', detail: 'M26 54H70V74H26ZM38 62H58', dots: circ(48, 40, 4) },
+  comic: { label: 'comic', line: 'M12 14H84V82H12Z', detail: 'M20 22H54V44H46L40 52V44H20ZM60 30H76M60 38H76M20 58H76V74H20Z' },
+  map: { label: 'map', line: 'M8 24L32 14L64 24L88 14V72L64 82L32 72L8 82Z', detail: 'M32 14V72M64 24V82M44 42l10 10M54 42l-10 10' },
+  magazine: { label: 'magazine', line: 'M20 10H76V86H20Z', detail: 'M28 20H68M28 30H46M52 30H68V52H52ZM28 42H46M28 52H46M28 64H68M28 74H68' },
+  letter: { label: 'letter', line: 'M10 24H86V72H10Z', detail: 'M10 24L48 54L86 24' },
+  trike: { label: 'trike', line: circ(68, 66, 18) + circ(20, 78, 9) + circ(38, 78, 9) + 'M68 66L58 36M48 36H70M20 78H38M38 78L52 48H60', detail: '' },
+  skateboard: { label: 'skateboard', line: 'M6 40Q10 52 20 52H76Q86 52 90 40M26 62V52M70 62V52' + circ(26, 70, 8) + circ(70, 70, 8), detail: '' },
+  bus: { label: 'bus', line: 'M8 22H78Q88 22 88 34V70H8Z' + circ(28, 72, 9) + circ(68, 72, 9), detail: 'M14 30H32V46H14ZM38 30H58V46H38ZM64 30H82V46H64Z' },
+  train: { label: 'train', line: 'M8 40H60V76H8ZM60 52H88V76H60ZM14 40V26H38V40ZM20 26V14H32V26' + circ(24, 82, 6) + circ(48, 82, 6) + circ(74, 82, 6), detail: 'M20 48H38V62H20Z' },
+  stone: { label: 'stone', line: 'M12 72L20 44L44 28L72 36L86 58L76 76Z', detail: 'M44 28L48 52L20 44M48 52L76 76' },
+  box: { label: 'box', line: 'M12 34L48 20L84 34V74L48 88L12 74Z', detail: 'M12 34L48 48L84 34M48 48V88' },
+  frisbee: { label: 'frisbee', line: 'M8 52Q8 36 48 36Q88 36 88 52Q88 66 48 66Q8 66 8 52Z', detail: 'M20 52Q48 62 76 52' },
+  stick: { label: 'stick', line: 'M14 82L82 14', detail: 'M46 50L30 44M62 34L74 42M30 66L20 56' },
+  snowball: { label: 'snowball', line: circ(48, 56, 30), detail: 'M70 18v10M65 23h10M22 22v8M18 26h8M84 44v6M81 47h6' },
+  trolley: { label: 'trolley', line: 'M6 14H22L28 64H76M20 26H86L78 56H28' + circ(34, 78, 6) + circ(70, 78, 6), detail: 'M38 26L40 56M52 26V56M68 26L66 56' },
+  wheelbarrow: { label: 'wheelbarrow', line: 'M28 28H80L68 60H40ZM80 28L92 20' + circ(20, 72, 12) + 'M68 60L74 86M40 60L38 86', detail: 'M40 28L46 60M58 28V60' },
+  door: { label: 'door', line: 'M26 88V12H70V88ZM8 88H88', detail: 'M34 22H62V44H34ZM34 54H62V78H34Z', dots: circ(60, 52, 3.5) },
+  buggy: { label: 'buggy', line: 'M26 34Q26 56 48 56H72V30M26 34Q48 8 72 30M72 56L86 22H94M32 56L24 84M70 56L74 84' + circ(24, 86, 5) + circ(74, 86, 5), detail: '' },
+  wall: { label: 'wall', line: 'M8 20H88V80H8Z', detail: 'M8 40H88M8 60H88M28 20V40M58 20V40M18 40V60M48 40V60M78 40V60M28 60V80M58 60V80' },
+  fence: { label: 'fence', line: 'M14 30L22 20L30 30V84H14ZM38 30L46 20L54 30V84H38ZM62 30L70 20L78 30V84H62Z', detail: 'M8 46H88M8 66H88' },
+  flower: { label: 'flower', line: 'M48 50V90M48 74Q34 70 30 58Q44 58 48 74' + circ(48, 34, 6) + circ(48, 16, 8) + circ(64, 26, 8) + circ(58, 46, 8) + circ(38, 46, 8) + circ(32, 26, 8), detail: '' },
+  rainbow: { label: 'rainbow', line: 'M8 80A40 40 0 0 1 88 80M20 80A28 28 0 0 1 76 80M32 80A16 16 0 0 1 64 80', detail: 'M4 88h22M70 88h22' },
+  cup: { label: 'cup', line: 'M22 28H68L64 76Q62 84 52 84H38Q28 84 26 76ZM68 36H76Q86 36 86 46Q86 56 74 58', detail: 'M26 40H66' },
+  bowl: { label: 'bowl', line: 'M12 40H84Q82 80 48 82Q14 80 12 40Z', detail: 'M20 54H76' },
+  window: { label: 'window', line: 'M14 14H82V82H14ZM6 86H90', detail: 'M48 14V82M14 48H82' },
   // where
   park: { label: 'park', line: 'M48 90V56 M48 12a26 26 0 1 0 0 52a26 26 0 1 0 0-52Z', detail: 'M20 90H76 M48 56L36 44 M48 56L60 40' },
   garden: { label: 'garden', line: 'M8 90H88M8 62H88M8 76H88M18 90V54M42 90V54M66 90V54M86 90V54M30 56V24M70 52V34', detail: '', dots: circ(30, 16, 7) + circ(70, 28, 6) },
@@ -177,11 +245,31 @@ export const PICTURES = {
   shop: { label: 'shop', line: 'M10 86V38H86V86ZM6 38L14 20H82L90 38ZM38 86V58H58V86', detail: 'M6 38q8 8 16 0t16 0t16 0t16 0t16 0M30 28H66' },
   kitchen: { label: 'kitchen', line: 'M12 90V46H84V90ZM28 46V30H64V46M22 62H74V84H22Z', detail: 'M38 24q-4-6 0-12M54 24q-4-6 0-12', dots: circ(20, 52, 3) + circ(76, 52, 3) },
   bed: { label: 'bed', line: 'M8 84V30M8 62H88V84M14 50Q14 42 24 42H36Q44 42 44 50V62H14Z', detail: 'M50 62V54Q70 48 88 54' },
+  // v2 places (where)
+  farm: { label: 'farm', line: 'M14 88V48L48 24L82 48V88ZM36 88V60H60V88ZM36 60L60 88M60 60L36 88', detail: 'M40 40H56' },
+  forest: { label: 'forest', line: 'M26 26L8 56H44ZM26 56L6 76H46ZM26 76V90M68 12L48 46H88ZM68 46L46 72H90ZM68 72V90', detail: '' },
+  hill: { label: 'hill', line: 'M4 88Q30 28 56 52T92 88Z' + circ(74, 24, 9), detail: 'M74 8v5M88 14l-4 4M92 26h-5M60 14l4 4' },
+  sea: { label: 'sea', line: 'M22 62H74L64 76H32ZM48 62V12L72 54H48', detail: 'M6 86q9-8 18 0t18 0t18 0t18 0t18 0' },
+  bath: { label: 'bath', line: 'M8 50H88V64Q88 80 70 80H26Q8 80 8 64ZM22 80V88M74 80V88M16 50V30Q16 22 24 22H32', detail: '', dots: circ(48, 38, 6) + circ(62, 30, 5) + circ(70, 42, 4) },
+  bedroom: { label: 'bedroom', line: 'M52 10H90V46H52ZM6 86V58M6 74H62V86M12 66Q12 60 20 60H28Q34 60 34 66V74', detail: 'M71 10V46M52 28H90' },
+  playground: { label: 'playground', line: 'M16 90V20H40V90M40 28L82 84H94', detail: 'M16 40H40M16 56H40M16 72H40' },
+  castle: { label: 'castle', line: 'M10 88V30H24V38H34V30H46V38H54V30H66V38H76V30H88V88ZM40 88V64Q48 52 56 64V88', detail: 'M48 30V12L62 18L48 24' },
+  street: { label: 'street', line: 'M8 86V52H36V86M6 52L22 36L38 52M54 86V46H88V86M52 46L70 30L90 46M4 90H92', detail: 'M16 62H28V74H16ZM62 56H80V70H62Z' },
+  cave: { label: 'cave', line: 'M4 88L32 32L48 52L68 20L94 88ZM36 88Q36 64 50 62Q64 64 64 88', detail: 'M44 40l6 6' },
   // describe
   big: { label: 'big', line: 'M8 18H60V70H8Z', detail: 'M70 56H88V74H70Z' },
   small: { label: 'small', line: 'M70 56H88V74H70Z', detail: 'M8 18H60V70H8Z' },
   happy: { label: 'happy', line: circ(48, 48, 34), detail: 'M30 54Q48 76 66 54', dots: circ(36, 38, 3.5) + circ(60, 38, 3.5) },
   sad: { label: 'sad', line: circ(48, 48, 34), detail: 'M32 68Q48 52 64 68', dots: circ(36, 38, 3.5) + circ(60, 38, 3.5) + 'M72 50q-5 9 0 14q5-5 0-14Z' },
+  // v2 describing pairs
+  hot: { label: 'hot', line: 'M48 10C60 28 78 40 76 62C74 80 62 88 48 88C34 88 22 80 20 62C18 48 30 40 34 28C40 36 44 30 48 10Z', detail: 'M48 52C54 62 60 68 58 76C56 82 40 82 38 74C38 66 46 62 48 52Z' },
+  cold: { label: 'cold', line: 'M48 8V88M14 28L82 68M14 68L82 28', detail: 'M38 18L48 28L58 18M38 78L48 68L58 78' },
+  wet: { label: 'wet', line: 'M48 10C48 10 22 42 22 62A26 26 0 0 0 74 62C74 42 48 10 48 10Z', detail: 'M36 62A12 12 0 0 0 46 74' },
+  dry: { label: 'dry', line: 'M6 66H90' + circ(48, 34, 12), detail: 'M48 10v8M72 16l-6 6M24 16l6 6M86 34h-8M10 34h8M18 66L26 76L18 82L26 90M46 66L38 74L48 80L40 90M72 66L80 74L70 82L78 90' },
+  loud: { label: 'loud', line: 'M8 36H26L46 18V78L26 60H8Z', detail: 'M58 36Q68 48 58 60M66 26Q84 48 66 70M74 16Q94 48 74 80' },
+  quiet: { label: 'quiet', line: 'M8 36H26L46 18V78L26 60H8Z', detail: 'M58 42Q64 48 58 54M68 20h12l-12 12h12M76 40h8l-8 8h8' },
+  tall: { label: 'tall', line: 'M38 6H58V90H38Z', detail: 'M68 62H80V90H68Z' },
+  short: { label: 'short', line: 'M68 62H80V90H68Z', detail: 'M38 6H58V90H38Z' },
 };
 // END_PICTURES
 

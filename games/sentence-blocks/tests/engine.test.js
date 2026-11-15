@@ -12,7 +12,7 @@ const many = (n, fn) => { for (let i = 0; i < n; i++) fn(i); };
 // Seeded randomness: a failure names its seed and can be replayed exactly.
 const rng = (seed) => () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let x = Math.imul(seed ^ (seed >>> 15), 1 | seed); x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x; return ((x ^ (x >>> 14)) >>> 0) / 4294967296; };
 const t = (slot, id) => tileOf(DATA, slot, id);
-const SENTENCE = /^[A-Z][a-z]*( [a-z]+)* (is|are) [a-z]+( (a|an) [a-z]+| [a-z]+)?( (in|on|at) (the )?[a-z]+)?\.$/;
+const SENTENCE = /^[A-Z][a-z]*( [a-z]+)* (is|are) [a-z]+( (a|an) [a-z]+( [a-z]+)?| [a-z]+)?( (in|on|at) (the |a )?[a-z]+)?\.$/;
 
 describe('the data', () => {
   it('has no problems', () => assert.deepEqual(validateData(DATA, SCENES), []));
@@ -20,7 +20,7 @@ describe('the data', () => {
     const bad = { ...DATA, what: [...DATA.what, { id: 'egg', det: 'a', noun: 'egg', tags: ['food'], pic: 'egg' }, { id: 'pear', det: 'a', noun: 'pear', tags: ['food'] }] };
     const probs = validateData(bad, [{ id: 'x', stage: 2, who: 'dog', doing: 'riding', what: 'apple', picture: {} }]);
     assert.ok(probs.some((p) => p.includes('what:egg') && p.includes('"an"')));
-    assert.ok(probs.some((p) => p.includes('what:pear has no picture')));
+    assert.ok(!probs.some((p) => p.includes('what:pear')), 'an undrawn tile is allowed now');
     assert.ok(probs.some((p) => p.includes('cannot be riding')));
     assert.ok(probs.some((p) => p.includes('does not take apple')));
   });
@@ -209,7 +209,7 @@ describe('saved data', () => {
   });
   it('keeps good values', () => {
     const s = normaliseSave({ mode: 'silly', stage: 2, done: { 1: 6, 2: 1, 3: 0 }, recent: ['a'] });
-    assert.deepEqual(s, { v: 1, mode: 'silly', stage: 2, done: { 1: 6, 2: 1, 3: 0 }, recent: ['a'] });
+    assert.deepEqual(s, { v: 1, mode: 'silly', stage: 2, help: 'pictures', storyLength: 5, done: { 1: 6, 2: 1, 3: 0 }, recent: ['a'] });
   });
   it('stages unlock in order after UNLOCK_AT finished sentences', () => {
     const at = (a, b, c) => unlockedStage(normaliseSave({ done: { 1: a, 2: b, 3: c } }));
