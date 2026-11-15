@@ -28,7 +28,7 @@ const { chromium } = await import(process.env.PLAYWRIGHT_CORE || 'playwright-cor
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const URL = process.env.PAGE || pathToFileURL(path.join(ROOT, 'docs', 'sentence-blocks.html')).href;
 const HUB = process.env.HUB || pathToFileURL(path.join(ROOT, 'docs', 'index.html')).href;
-const SENTENCE = /^[A-Z][a-z]*( [a-z]+)* (is|are) [a-z]+( (a|an) [a-z]+| [a-z]+)?( (in|on|at) (the )?[a-z]+)?\.$/;
+const SENTENCE = /^[A-Z][a-z]*( [a-z]+)* (is|are) [a-z]+( (a|an) [a-z]+( [a-z]+)?| [a-z]+)?( (in|on|at) (the |a )?[a-z]+)?\.$/;
 const failures = [];
 const fail = (m) => { if (failures.length < 80) failures.push(m); };
 const check = (cond, m) => { if (!cond) fail(m); };
@@ -69,6 +69,16 @@ const startStage = async (page, stage, mode = 'scene') => {
   await page.click('#sb-play-btn');
   await page.waitForSelector('#sb-tray .sb-tile');
 };
+const startWith = async (page, { mode, stage = 1, help = 'pictures', length }) => {
+  await page.click('#sb-mode-row [data-mode="' + mode + '"]');
+  await page.click('#sb-stage-row [data-stage="' + stage + '"]');
+  await page.click('#sb-help-row [data-help="' + help + '"]');
+  if (length) await page.click('#sb-length-row [data-length="' + length + '"]');
+  await page.click('#sb-play-btn');
+  await page.waitForSelector('#sb-tray .sb-tile');
+};
+const headingText = (page) => page.evaluate(() => { const e = document.getElementById('sb-heading'); return e.hidden ? null : e.textContent; });
+const bookLines = (page) => page.evaluate(() => [...document.querySelectorAll('#sb-book .sb-book__line')].map((p) => p.textContent.replace(/\s+/g, ' ').trim()));
 const forceScene = (page, id) => page.evaluate((id) => { session.scenes = [SCENES.find((s) => s.id === id)]; session.index = 0; nextRound(); }, id);
 const tile = (page, slot, id) => page.locator('#sb-tray [data-slot="' + slot + '"][data-id="' + id + '"]');
 const slotEl = (page, slot) => page.locator('#sb-slots [data-slot="' + slot + '"]');
@@ -334,6 +344,133 @@ for (const viewport of [{ width: 360, height: 640 }, { width: 390, height: 844 }
   await page.waitForSelector('.mark');
   const after = await page.evaluate(() => document.querySelectorAll('.mark[data-game="sentence-blocks"] .kg-squares i.on').length);
   check(after === before + 1, 'the hub tile should gain one painted square (was ' + before + ', now ' + after + ')');
+  await ctx.close();
+}
+
+// ---------- 11. settings: Help, story length, remembered ----------
+{
+  const { page, ctx } = await open({ saves: { Mia: OPEN } });
+  check(await page.locator('#sb-length-set').isHidden(), 'story length should be hidden until Story is chosen');
+  check(await page.locator('#sb-help-row [data-help]').count() === 3, 'the Help row should have three options');
+  check(await page.evaluate(() => document.querySelector('#sb-help-row [aria-pressed="true"]').dataset.help) === 'pictures', 'a new player should start on Pictures + colours');
+  await page.click('#sb-mode-row [data-mode="story"]');
+  check(await page.locator('#sb-length-set').isVisible(), 'story length should show when Story is chosen');
+  check(await page.locator('#sb-length-row [data-length]').count() === 3, 'story length should offer 3, 5 and 10');
+  await page.click('#sb-help-row [data-help="words"]');
+  await page.click('#sb-length-row [data-length="10"]');
+  await page.reload();
+  await page.waitForSelector('#sb-play-btn');
+  const s = await saveOf(page);
+  check(s.help === 'words' && s.storyLength === 10 && s.mode === 'story', 'Help, length and mode were not remembered: ' + JSON.stringify(s));
+  await page.click('#sb-mode-row [data-mode="silly"]');
+  check(await page.locator('#sb-length-set').isHidden(), 'story length should hide again for Silly');
+  await ctx.close();
+}
+
+// ---------- 12. Help levels ----------
+for (const help of ['pictures', 'colours', 'words']) {
+  for (const mode of ['scene', 'silly']) {
+    const { page, ctx } = await open({ saves: { Mia: OPEN } });
+    await startWith(page, { mode, stage: 3, help });
+    const tag = help + ' ' + mode;
+    const m = await page.evaluate(() => {
+      const tiles = [...document.querySelectorAll('#sb-tray .sb-tile')];
+      const strips = new Set(tiles.map((t) => getComputedStyle(t).backgroundImage));
+      return {
+        drawn: document.querySelectorAll('#sb-tray .sb-tile__pic svg').length,
+        strips: strips.size,
+        badge: getComputedStyle(document.querySelector('#sb-tray .sb-tile__badge')).display,
+        stripShown: !document.getElementById('sb-picture').hidden, sceneDrawn: document.querySelectorAll('#sb-picture svg').length > 0,
+        slotGlyphs: document.querySelectorAll('#sb-slots .sb-slot__glyph svg').length, slotLabels: document.querySelectorAll('#sb-slots .sb-slot__label').length, slots: document.querySelectorAll('#sb-slots .sb-slot').length,
+      };
+    });
+    check(help === 'pictures' ? m.drawn > 0 : m.drawn === 0, tag + ': tile drawings ' + m.drawn);
+    check(help === 'words' ? m.strips === 1 && m.badge === 'none' : m.strips > 1, tag + ': colour cue wrong (strips ' + m.strips + ', badge ' + m.badge + ')');
+    if (mode === 'scene') check(m.stripShown && m.sceneDrawn, tag + ': the scene drawing should show at every level');
+    else check(m.stripShown === (help === 'pictures'), tag + ': the picture strip should show only at the easy level (shown: ' + m.stripShown + ')');
+    check(m.slotGlyphs === m.slots && m.slotLabels === m.slots, tag + ': every slot keeps its glyph and label');
+    // a finished sentence is the same words at every level
+    await finishRound(page);
+    check(SENTENCE.test((await sentenceText(page)) || ''), tag + ': bad sentence ' + (await sentenceText(page)));
+    await ctx.close();
+  }
+}
+
+// ---------- 13. story ----------
+{
+  const { page, ctx } = await open({ saves: { Mia: { ...OPEN, mode: 'story' } } });
+  const progressBefore = await progressOf(page);
+  for (const [length, stage, help] of [[3, 1, 'pictures'], [3, 3, 'words'], [5, 2, 'colours'], [10, 1, 'words']]) {
+    await startWith(page, { mode: 'story', stage, help, length });
+    const tag = 'story ' + length + ' stage ' + stage + ' ' + help;
+    const heads = [], shown = [];
+    for (let i = 0; i < length; i++) {
+      heads.push(await headingText(page));
+      await finishRound(page);
+      shown.push(await sentenceText(page));
+      check(await page.locator('#sb-progress i.on').count() === i + 1, tag + ': progress dots after sentence ' + (i + 1));
+      await page.click('#sb-next');
+    }
+    check(heads[0] === 'Once upon a time…', tag + ': first heading ' + heads[0]);
+    check(heads[length - 1] === (length === 3 ? 'In the end…' : 'The end…'), tag + ': last heading ' + heads[length - 1]);
+    check(await page.evaluate(() => !document.getElementById('sb-story').hidden), tag + ': the book page did not show');
+    const lines = await bookLines(page);
+    check(lines.length === length, tag + ': book has ' + lines.length + ' lines');
+    check(JSON.stringify(lines) === JSON.stringify(shown), tag + ': the book does not match what was built: ' + JSON.stringify(lines.slice(0, 2)));
+    check(lines.every((l) => SENTENCE.test(l)), tag + ': a book line is not a sentence');
+    await page.click('#sb-story-choose');
+  }
+  check(await progressOf(page) === progressBefore + 4, 'each finished story should paint one square');
+  check((await saveOf(page)).done[1] === 5 && (await saveOf(page)).done[2] === 5, 'stories must not change stage progress');
+  // swapping a tile after finishing: the book keeps the swapped sentence
+  await startWith(page, { mode: 'story', stage: 1, help: 'pictures', length: 3 });
+  await finishRound(page);
+  const swapped = await page.evaluate(() => {
+    const k = round.slots[0], other = [...document.querySelectorAll('#sb-tray [data-slot="' + k + '"]')].find((b) => b.dataset.id !== round.placed[k]);
+    other.click(); document.querySelector('#sb-slots [data-slot="' + k + '"]').click();
+    return document.getElementById('sb-sentence').textContent.replace(/\s+/g, ' ').trim();
+  });
+  await page.click('#sb-next');
+  await finishRound(page); await page.click('#sb-next');
+  await finishRound(page); await page.click('#sb-next');
+  check((await bookLines(page))[0] === swapped, 'the book kept the sentence from before the swap');
+  await page.click('#sb-story-choose');
+  // The end, early: from the third finished sentence of a ten-sentence story
+  {
+    const sq = await progressOf(page);
+    await startWith(page, { mode: 'story', stage: 1, help: 'pictures', length: 10 });
+    for (let i = 0; i < 4; i++) {
+      await finishRound(page);
+      const shownEnd = await page.locator('#sb-end').isVisible();
+      check(shownEnd === (i + 1 >= 3), 'The end button after sentence ' + (i + 1) + ' should be ' + (i + 1 >= 3) + ', was ' + shownEnd);
+      if (i < 3) await page.click('#sb-next');
+    }
+    await page.click('#sb-end');
+    check((await bookLines(page)).length === 4, 'ending early should keep the 4 sentences built');
+    check(await progressOf(page) === sq + 1, 'an early-ended story should paint one square');
+    await page.click('#sb-story-choose');
+    await startWith(page, { mode: 'story', stage: 1, help: 'pictures', length: 3 });
+    for (let i = 0; i < 3; i++) { await finishRound(page); check(!(await page.locator('#sb-end').isVisible()), 'a 3-sentence story should never offer The end'); await page.click('#sb-next'); }
+    await page.click('#sb-story-choose');
+  }
+  // Stop mid-story: no square, nothing saved
+  const before = await progressOf(page);
+  await startWith(page, { mode: 'story', stage: 1, help: 'pictures', length: 5 });
+  await finishRound(page); await page.click('#sb-next');
+  await page.click('#sb-stop');
+  check(await progressOf(page) === before, 'Stop mid-story painted a square');
+  await ctx.close();
+}
+
+// ---------- 13b. layout: a ten-sentence story on the smallest phone ----------
+for (const theme of ['colourful-light', 'colourful-dark']) {
+  const { page, ctx } = await open({ viewport: { width: 360, height: 640 }, saves: { Mia: OPEN }, theme });
+  await startWith(page, { mode: 'story', stage: 3, help: 'words', length: 10 });
+  const m = await page.evaluate(() => ({ h: document.scrollingElement.scrollWidth > innerWidth + 1, dots: document.querySelectorAll('#sb-progress i').length }));
+  check(!m.h, 'story 10 at 360px: horizontal scroll (' + theme + ')');
+  check(m.dots === 10, 'story 10 should show 10 dots, got ' + m.dots);
+  for (let i = 0; i < 10; i++) { await finishRound(page); await page.click('#sb-next'); }
+  check(!(await page.evaluate(() => document.scrollingElement.scrollWidth > innerWidth + 1)), 'the book page scrolls sideways at 360px (' + theme + ')');
   await ctx.close();
 }
 
