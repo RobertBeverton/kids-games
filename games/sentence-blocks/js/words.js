@@ -1,6 +1,6 @@
 // words.js — the tiles. SEED SET for the plan's tests; the full reviewed set replaces it in the word batches.
 // Look-alikes: never offered as each other's wrong tile (see engine.js distractorsOf).
-const V2_GROUP = { lion: 'cat', tiger: 'cat', mouse: 'small', pig: 'dog', monkey: 'dog' };
+const V2_GROUP = { tiger: 'cat' };
 const ALL = ['animal', 'child', 'adult'];
 const ANY_PLACE = ['indoor', 'outdoor'];
 
@@ -8,17 +8,17 @@ export const WHO = [
   { id: 'girl', det: 'the', noun: 'girl', kind: 'child', pic: 'girl' },
   { id: 'boy', det: 'the', noun: 'boy', kind: 'child', pic: 'boy' },
   { id: 'baby', det: 'the', noun: 'baby', kind: 'baby', pic: 'baby' },
-  { id: 'dog', group: 'dog', det: 'the', noun: 'dog', kind: 'animal', pic: 'dog' },
+  { id: 'dog', det: 'the', noun: 'dog', kind: 'animal', pic: 'dog' },
   { id: 'cat', group: 'cat', det: 'the', noun: 'cat', kind: 'animal', pic: 'cat' },
   { id: 'horse', det: 'the', noun: 'horse', kind: 'animal', pic: 'horse' },
-  { id: 'rabbit', group: 'small', det: 'the', noun: 'rabbit', kind: 'animal', pic: 'rabbit' },
+  { id: 'rabbit', det: 'the', noun: 'rabbit', kind: 'animal', pic: 'rabbit' },
   { id: 'mum', text: 'Mum', named: true, kind: 'adult', pic: 'mum' },
   { id: 'dad', text: 'Dad', named: true, kind: 'adult', pic: 'dad' },
   { id: 'boys', det: 'the', noun: 'boys', plural: true, kind: 'child', pic: 'boy' },
   { id: 'girls', det: 'the', noun: 'girls', plural: true, kind: 'child', pic: 'girl' },
   { id: 'cats', det: 'the', noun: 'cats', plural: true, kind: 'animal', pic: 'cat' },
   { id: 'rabbits', det: 'the', noun: 'rabbits', plural: true, kind: 'animal', pic: 'rabbit' },
-  { id: 'dogs', group: 'dog', det: 'the', noun: 'dogs', plural: true, kind: 'animal', pic: 'dog' },
+  { id: 'dogs', det: 'the', noun: 'dogs', plural: true, kind: 'animal', pic: 'dog' },
   // v2, undrawn. Animals:
   ...['bird', 'duck', 'fish', 'pig', 'cow', 'sheep', 'mouse', 'frog', 'monkey', 'lion', 'elephant', 'tiger']
     .map((n) => ({ id: n, pic: n, det: 'the', noun: n, kind: 'animal', ...(V2_GROUP[n] ? { group: V2_GROUP[n] } : {}) })),

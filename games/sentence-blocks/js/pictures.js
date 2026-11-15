@@ -9,6 +9,16 @@ const r1 = (n) => Math.round(n * 10) / 10;
 const pt = (x, y) => r1(x) + ' ' + r1(y);
 const circ = (cx, cy, r) => 'M' + pt(cx - r, cy) + 'a' + r + ' ' + r + ' 0 1 0 ' + r1(2 * r) + ' 0a' + r + ' ' + r + ' 0 1 0 ' + r1(-2 * r) + ' 0';
 
+// A ring of n round bumps around (cx, cy): a mane.
+function scallop(cx, cy, r, n, bump) {
+  let d = '';
+  for (let i = 0; i <= n; i++) {
+    const a = (i / n) * Math.PI * 2 - Math.PI / 2, x = cx + r * Math.cos(a), y = cy + r * Math.sin(a);
+    d += i === 0 ? 'M' + pt(x, y) : 'A' + bump + ' ' + bump + ' 0 0 1 ' + pt(x, y);
+  }
+  return d + 'Z';
+}
+
 // head [x, y]; torso [shoulder x, y, hip x, y]; arms: path; legs: [knee x, knee y, foot x, foot y] each, drawn from the hip (or the
 // hem of a dress); item: where the centre of a held item goes (beside the face, never on it); extra: thin marks (sleep Zs).
 // prop: bold (held or ridden things); propD: thin (backdrops: ladder, water); propDots: filled (tears).
@@ -155,12 +165,12 @@ export const PICTURES = {
   mum: personPic('standing', 'mum', 'Mum'),
   dad: personPic('standing', 'dad', 'Dad'),
   // v2 animals and poses
-  pig: animalPic('pig', 'standing', 'pig'),
+  pig: { label: 'pig', line: circ(48, 52, 30) + 'M24 30L16 12L38 22M72 30L80 12L58 22M34 62Q34 48 48 48Q62 48 62 62Q62 76 48 76Q34 76 34 62Z', detail: '', dots: circ(43, 62, 2.5) + circ(53, 62, 2.5) + circ(36, 40, 2.5) + circ(60, 40, 2.5) },
   cow: animalPic('cow', 'standing', 'cow'),
   sheep: animalPic('sheep', 'standing', 'sheep'),
-  mouse: animalPic('mouse', 'standing', 'mouse'),
-  monkey: animalPic('monkey', 'standing', 'monkey'),
-  lion: animalPic('lion', 'standing', 'lion'),
+  mouse: { label: 'mouse', line: circ(22, 28, 13) + circ(74, 28, 13) + 'M26 48Q26 30 48 30Q70 30 70 48Q70 74 48 80Q26 74 26 48Z', detail: 'M36 66H12M36 71L14 79M60 66H84M60 71L82 79', dots: circ(48, 62, 3.5) + circ(39, 46, 2.5) + circ(57, 46, 2.5) },
+  monkey: { label: 'monkey', line: circ(48, 46, 28) + circ(16, 48, 9) + circ(80, 48, 9) + 'M34 52Q34 42 42 44Q48 48 54 44Q62 42 62 52Q62 72 48 74Q34 72 34 52Z', detail: 'M40 66Q48 71 56 66', dots: circ(40, 38, 2.5) + circ(56, 38, 2.5) + circ(45, 58, 1.6) + circ(51, 58, 1.6) },
+  lion: { label: 'lion', line: scallop(48, 48, 38, 12, 9) + 'M32 42Q32 30 48 30Q64 30 64 42V58Q64 74 48 78Q32 74 32 58Z', detail: 'M48 62V68M40 70Q48 75 56 70M42 53H54', dots: circ(41, 44, 2.5) + circ(55, 44, 2.5) + 'M43 54H53L48 60Z' },
   tiger: animalPic('tiger', 'standing', 'tiger'),
   elephant: animalPic('elephant', 'standing', 'elephant'),
   bird: { label: 'bird', line: 'M18 54Q22 34 46 36Q64 38 68 54Q66 72 42 74Q20 72 18 54ZM78 32' + circ(68, 32, 10) + 'M78 30L92 34L78 38M18 54L6 44M18 54L8 62M44 74V86M54 74V86', detail: 'M32 52Q44 44 56 54', dots: circ(70, 30, 2) },
