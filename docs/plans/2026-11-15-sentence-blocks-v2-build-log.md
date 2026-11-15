@@ -16,3 +16,13 @@ Written during the build of `2026-11-15-sentence-blocks-v2.md`. The user asked t
 - The Task 2 test for `freeOnly` called `buildStoryRound` (Task 3). It uses `buildSillyRound`, which is the same free-choice behaviour.
 - Task 4's markup insertion consumed the closing div of the done screen, nesting the story screen inside it (the book page rendered blank). Found by screenshot; fixed in the Task 6/7 commit.
 - Tasks 6 and 7 were built and committed together because both depend on session.target.
+
+## Outcome (2026-11-15)
+
+Tasks 1 to 13 are built. Task 14 (play-test with the children) is for the user.
+
+- **Unit tests:** `node --test games/*/tests/*.test.js` gives 177 tests, 177 pass (57 of them Sentence Blocks, up from 37).
+- **Browser test:** `play-test.mjs` for Sentence Blocks passes against the built page in Edge, including the new Help-level, story, "The end" and 10-sentence 360px layout sections. The other games' browser tests were **not** run locally; CI runs them.
+- **Words added (all in js/words.js):** Who +24 (12 animals drawn), Describe +16 (8 drawn), Doing +21 (4 drawn), What +36 (all drawn), Where +13 (10 drawn).
+- **Drawings:** 70 new pictures in five batches, checked on a sheet at 96px and 40px. Redrawn after review: toast, comic, lemonade (was a beer mug), stone, cave, dry. Weakest remaining: pig, monkey and lion (grouped away from the dog and cat so they are never wrong tiles beside them).
+- **Not proven:** keyboard-only play of the new controls beyond what the existing keyboard section covers; Dusk theme screenshots of the new screens; the settings screen on a real phone.
