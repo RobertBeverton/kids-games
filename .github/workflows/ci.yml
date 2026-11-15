@@ -1,8 +1,14 @@
 name: CI
 
-# On every pull request: unit tests, rebuild docs/, play every game in a real browser.
+# On every pull request: unit tests, rebuild docs/, and play the games that could have changed in a real browser.
 # If the rebuilt docs/ differ from what the branch committed, the bot commits them to the PR branch,
 # so merging a PR is enough to publish (GitHub Pages serves master:/docs).
+#
+# The browser step is the slow part, so:
+#  - it runs one parallel job per game, so the wait is the slowest game, not the sum of all four;
+#  - on a pull request it only runs the games whose own folder changed, unless something every game shares changed
+#    (shared/, hub.html, build.sh, tools/, .github/), in which case it runs all four;
+#  - on a push to master it always runs all four, and Maths samples 350 questions per combination instead of the 60 used on a pull request.
 on:
   pull_request:
     branches: [master]
@@ -17,6 +23,7 @@ permissions:
   contents: write
 
 jobs:
+  # Unit tests, then rebuild docs/ and (pull requests only) commit it back.
   test:
     runs-on: ubuntu-latest
     steps:
@@ -35,21 +42,6 @@ jobs:
       - name: Build docs
         run: bash build.sh
 
-      - name: Install Playwright (not a repo dependency)
-        run: |
-          mkdir "$RUNNER_TEMP/pw" && cd "$RUNNER_TEMP/pw"
-          npm init -y >/dev/null && npm i playwright-core@1.52.0
-          echo "PLAYWRIGHT_CORE=file://$RUNNER_TEMP/pw/node_modules/playwright-core/index.mjs" >> "$GITHUB_ENV"
-          echo "BROWSER_CHANNEL=chrome" >> "$GITHUB_ENV"
-
-      - name: Play every game in a browser
-        run: |
-          for game in opposites maths memory-match sentence-blocks; do
-            echo "::group::$game"
-            node games/$game/tests/play-test.mjs
-            echo "::endgroup::"
-          done
-
       - name: Commit rebuilt docs (PR only)
         if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         run: |
@@ -63,3 +55,72 @@ jobs:
           else
             echo "docs/ already up to date"
           fi
+
+  # Which games need a browser run? Output: a JSON list such as ["maths","sentence-blocks"].
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      games: ${{ steps.pick.outputs.games }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: pick
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          games="opposites maths memory-match sentence-blocks"
+          to_json() { printf '%s\n' "$@" | grep -v '^$' | awk 'BEGIN{printf "["} {printf "%s\"%s\"", (NR>1?",":""), $0} END{printf "]"}'; }
+          if [ "$EVENT" != "pull_request" ]; then
+            echo "not a pull request: testing every game"
+            echo "games=$(to_json $games)" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          files=$(git diff --name-only "$BASE" "$HEAD")
+          echo "changed files:"; echo "$files"
+          if echo "$files" | grep -qE '^(shared/|hub\.html$|build\.sh$|tools/|\.github/)'; then
+            echo "a shared file changed: testing every game"
+            echo "games=$(to_json $games)" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          picked=""
+          for g in $games; do
+            if echo "$files" | grep -q "^games/$g/"; then picked="$picked $g"; fi
+          done
+          echo "testing:${picked:- nothing}"
+          echo "games=$(to_json $picked)" >> "$GITHUB_OUTPUT"
+
+  # Play one game in real Chrome against the built page. One job per game, in parallel.
+  browser:
+    needs: changes
+    if: needs.changes.outputs.games != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        game: ${{ fromJSON(needs.changes.outputs.games) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build docs
+        run: bash build.sh
+
+      - name: Install Playwright (not a repo dependency)
+        run: |
+          mkdir "$RUNNER_TEMP/pw" && cd "$RUNNER_TEMP/pw"
+          npm init -y >/dev/null && npm i playwright-core@1.52.0
+          echo "PLAYWRIGHT_CORE=file://$RUNNER_TEMP/pw/node_modules/playwright-core/index.mjs" >> "$GITHUB_ENV"
+          echo "BROWSER_CHANNEL=chrome" >> "$GITHUB_ENV"
+
+      - name: Play ${{ matrix.game }} in a browser
+        env:
+          # Maths checks hundreds of random questions per combination (PER). A pull request samples fewer
+          # (about half the time); a push to master runs the full 350. The other games ignore PER.
+          PER: ${{ github.event_name == 'pull_request' && '60' || '350' }}
+        run: node games/${{ matrix.game }}/tests/play-test.mjs
