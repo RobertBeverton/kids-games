@@ -27,12 +27,23 @@
         <div class="kg-seg" id="sb-mode-row" role="group" aria-label="How to play">
           <button type="button" class="kg-seg__opt sb-opt" data-mode="scene" aria-pressed="true"><span class="sb-opt__name">Describe the picture</span><small>Build the sentence for a picture</small></button>
           <button type="button" class="kg-seg__opt sb-opt" data-mode="silly" aria-pressed="false"><span class="sb-opt__name">Silly sentences</span><small>Mix any blocks you like</small></button>
+          <button type="button" class="kg-seg__opt sb-opt" data-mode="story" aria-pressed="false"><span class="sb-opt__name">Make a story</span><small>Build sentences, then read your story</small></button>
         </div>
       </fieldset>
 
       <fieldset class="sb-fieldset">
         <legend class="kg-label">Stage</legend>
         <div class="kg-seg" id="sb-stage-row" role="group" aria-label="Stage"><!-- filled by main.js --></div>
+      </fieldset>
+
+      <fieldset class="sb-fieldset">
+        <legend class="kg-label">Help</legend>
+        <div class="kg-seg" id="sb-help-row" role="group" aria-label="Help"><!-- filled by main.js --></div>
+      </fieldset>
+
+      <fieldset class="sb-fieldset" id="sb-length-set" hidden>
+        <legend class="kg-label">Story length</legend>
+        <div class="kg-seg" id="sb-length-row" role="group" aria-label="Story length"><!-- filled by main.js --></div>
       </fieldset>
     </div>
 
@@ -49,12 +60,14 @@
     </div>
     <div class="sb-picture" id="sb-picture"></div>
     <div class="sb-sticky">
+      <p class="sb-heading" id="sb-heading" hidden></p>
       <ol class="sb-slots" id="sb-slots"></ol>
       <p class="sb-sentence" id="sb-sentence" hidden></p>
     </div>
     <div class="sb-tray" id="sb-tray" role="group" aria-label="Word tiles"></div>
     <div class="sb-nextdock">
       <button type="button" class="kg-btn" id="sb-next" hidden><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg><span id="sb-next-label">Next</span></button>
+      <button type="button" class="kg-btn kg-btn--ghost" id="sb-end" hidden><span>The end</span></button>
     </div>
   </div>
 
@@ -69,7 +82,19 @@
         <button type="button" class="kg-btn kg-btn--ghost" id="sb-choose"><span>Choose again</span></button>
       </div>
     </div>
+    <!-- SCREEN 4: the finished story -->
+  <div id="sb-story" class="kg-screen sb-screen" hidden>
+    <div class="kg-wrap" style="align-items:center;text-align:center">
+      <h2 class="kg-title" id="sb-story-title">Your story</h2>
+      <div class="sb-book" id="sb-book"></div>
+      <div class="sb-done-actions">
+        <button type="button" class="kg-btn" id="sb-story-again"><svg class="ic" aria-hidden="true"><use href="#i-replay"/></svg><span>New story</span></button>
+        <button type="button" class="kg-btn kg-btn--ghost" id="sb-story-choose"><span>Choose again</span></button>
+      </div>
+    </div>
   </div>
+
+</div>
 
 </div>
 
