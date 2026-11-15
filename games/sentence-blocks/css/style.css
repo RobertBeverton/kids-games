@@ -114,7 +114,7 @@
 #sb-mode-row .sb-opt { flex: 1 1 200px; }
 .sb-help { flex: 1 1 200px; }
 .sb-length { flex: 1 1 120px; min-height: 72px; }
-.sb-mini { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 2px; width: 72px; height: 72px; padding: 14px 4px 4px;
+.sb-mini { color: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 2px; width: 72px; height: 72px; padding: 14px 4px 4px;
   --slot: var(--paint-orange); background: linear-gradient(var(--slot) 0 10px, var(--chalk) 10px); border: 2px solid var(--line); border-radius: var(--r-1); }
 .sb-mini--plain { --slot: var(--chalk); }
 .sb-mini__pic { display: block; width: 32px; height: 32px; }
@@ -137,3 +137,17 @@
 
 .sb-picture[hidden] { display: none; }
 .sb-tile__pic:empty, .sb-slot__pic:empty { display: none; }
+
+/* Compact settings on phones: the three rows must not make the screen a long scroll (the Play dock stays pinned). */
+@media (max-width: 560px) {
+  #sb-mode-row .sb-opt, .sb-stage, .sb-help, .sb-length { min-height: 0; padding-block: var(--s2); }
+  .sb-help { flex-direction: row; justify-content: flex-start; text-align: left; flex-wrap: wrap; gap: var(--s3); }
+  .sb-help .sb-mini { width: 48px; height: 48px; padding: 10px 2px 2px; flex: none; }
+  .sb-help .sb-mini__pic { width: 22px; height: 22px; }
+  .sb-help .sb-mini__word { font-size: 10px; }
+  .sb-length { flex: 1 1 0; min-width: 0; }
+  .sb-length .sb-opt__name { font-size: var(--t-lead); }
+  .sb-help .sb-opt__name { font-size: var(--t-body); }
+  .sb-length small { display: none; }
+  .sb-stage .sb-pills { display: none; }
+}

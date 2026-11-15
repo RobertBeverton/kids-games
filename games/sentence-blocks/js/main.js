@@ -1,13 +1,19 @@
 // main.js — Sentence Blocks entry point: screens, input, saved data and sound.
 // State lives in top-level bindings on purpose: the built page is one classic script, and the Playwright test reads them.
-import { SLOT_ORDER, TARGET_SENTENCES, UNLOCK_AT, STAGES, normaliseSave, unlockedStage, clampStage, recordSentence, pickScenes,
-  buildSceneRound, buildSillyRound, tryPlace, helpTile, roundSentence, sentenceParts, tileOf, tileText } from './engine.js';
+import { SLOT_ORDER, TARGET_SENTENCES, UNLOCK_AT, STAGES, HELP_LEVELS, STORY_LENGTHS, normaliseSave, unlockedStage, clampStage, recordSentence, pickScenes,
+  buildSceneRound, buildSillyRound, buildStoryRound, bankFor, canEndEarly, tryPlace, helpTile, roundSentence, sentenceParts, tileOf, tileText } from './engine.js';
 import { DATA } from './words.js';
 import { SCENES } from './scenes.js';
 import { pictureSvg, sceneSvg } from './pictures.js';
 
 const GAME_ID = 'sentence-blocks';
 const SLOT_LABEL = { describe: 'Describe', who: 'Who?', doing: 'What doing?', what: 'What?', where: 'Where?' };
+const HELP_TEXT = {
+  pictures: ['Pictures + colours', 'Drawings and colours help'],
+  colours: ['Colours only', 'Colours help, no drawings'],
+  words: ['Words only', 'Just the words'],
+};
+const LENGTH_TEXT = { 3: 'Beginning, middle, end', 5: 'A short story', 10: 'A long story' };
 const $ = (id) => document.getElementById(id);
 const sfx = (n) => { if (window.KidsGames) window.KidsGames.sfx(n); };
 const say = (t) => { if (window.KidsGames) window.KidsGames.say(t); };
@@ -50,6 +56,16 @@ function renderSettings() {
       (locked ? ' aria-disabled="true"' : '') + '><span class="sb-opt__name">Stage ' + st.id + (locked ? ICON_LOCK : '') + '</span>' +
       '<small>' + st.name + '</small><span class="sb-pills">' + pills + '</span>' + prog + '</button>';
   }).join('');
+  $('sb-help-row').innerHTML = HELP_LEVELS.map((h) => {
+    const pic = h === 'pictures' ? '<span class="sb-mini__pic">' + pictureSvg('dog') + '</span>' : '';
+    const mini = '<span class="sb-mini' + (h === 'words' ? ' sb-mini--plain' : '') + '" aria-hidden="true">' + pic + '<span class="sb-mini__word">The dog</span></span>';
+    return '<button type="button" class="kg-seg__opt sb-opt sb-help" data-help="' + h + '" aria-pressed="' + String(h === save.help) + '">' + mini +
+      '<span class="sb-opt__name">' + HELP_TEXT[h][0] + '</span><small>' + HELP_TEXT[h][1] + '</small></button>';
+  }).join('');
+  $('sb-length-set').hidden = save.mode !== 'story';
+  $('sb-length-row').innerHTML = STORY_LENGTHS.map((n) =>
+    '<button type="button" class="kg-seg__opt sb-opt sb-length" data-length="' + n + '" aria-label="' + n + ' sentences, ' + LENGTH_TEXT[n] + '" aria-pressed="' + String(n === save.storyLength) + '">' +
+    '<span class="sb-opt__name">' + n + '</span><small>sentences: ' + LENGTH_TEXT[n] + '</small></button>').join('');
 }
 
 // ===== A SESSION: five sentences =====
@@ -252,6 +268,24 @@ $('sb-stage-row').addEventListener('click', (e) => {
   sfx('tap');
   renderSettings();
   $('sb-stage-row').querySelector('[data-stage="' + save.stage + '"]').focus();
+});
+$('sb-help-row').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-help]');
+  if (!b) return;
+  save.help = b.dataset.help;
+  persist();
+  sfx('tap');
+  renderSettings();
+  $('sb-help-row').querySelector('[data-help="' + save.help + '"]').focus();
+});
+$('sb-length-row').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-length]');
+  if (!b) return;
+  save.storyLength = Number(b.dataset.length);
+  persist();
+  sfx('tap');
+  renderSettings();
+  $('sb-length-row').querySelector('[data-length="' + save.storyLength + '"]').focus();
 });
 
 // ===== START =====
