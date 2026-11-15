@@ -1,11 +1,14 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  HELP_LEVELS, STORY_LENGTHS, SLOT_ORDER, bankFor, lookOf, hasPic, buildSceneRound, buildSillyRound, normaliseSave, validateData, tileOf,
+  HELP_LEVELS, STORY_LENGTHS, STAGES, SILLY_CHOICES, SLOT_ORDER, bankFor, lookOf, hasPic, storyHeading, canEndEarly, buildStoryRound,
+  buildSceneRound, buildSillyRound, normaliseSave, recordSentence, tryPlace, roundSentence, poolFor, validateData, tileOf,
 } from '../js/engine.js';
 import { DATA } from '../js/words.js';
 import { SCENES } from '../js/scenes.js';
 
+// Same shape as engine.test.js, widened to allow a two-word "what" (ice cream) and more place words.
+const SENTENCE = /^[A-Z][a-z]*( [a-z]+)* (is|are) [a-z]+( (a|an) [a-z]+( [a-z]+)?| [a-z]+)?( (in|on|at) (the |a )?[a-z]+)?.$/;
 const many = (n, fn) => { for (let i = 0; i < n; i++) fn(i); };
 const rng = (seed) => () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let x = Math.imul(seed ^ (seed >>> 15), 1 | seed); x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x; return ((x ^ (x >>> 14)) >>> 0) / 4294967296; };
 
@@ -88,5 +91,65 @@ describe('words without a drawing', () => {
     const data = { ...DATA, where: [...DATA.where, { id: 'playground', phrase: 'in the playground', tags: ['outdoor'], group: 'green' }] };
     const scene = SCENES.find((s) => s.where === 'park');
     many(80, (i) => assert.ok(!buildSceneRound(bankFor(data, 'words', 'scene'), scene, rng(i)).tray.some((x) => x.slot === 'where' && (x.id === 'garden' || x.id === 'playground'))));
+  });
+});
+
+describe('story rounds', () => {
+  it('headings: first, last, and the middle alternate', () => {
+    assert.deepEqual([0, 1, 2].map((i) => storyHeading(i, 3)), ['Once upon a time…', 'Then…', 'In the end…']);
+    assert.deepEqual([0, 1, 2, 3, 4].map((i) => storyHeading(i, 5)), ['Once upon a time…', 'Then…', 'Suddenly…', 'Then…', 'The end…']);
+    assert.equal(storyHeading(0, 10), 'Once upon a time…');
+    assert.equal(storyHeading(9, 10), 'The end…');
+    assert.equal(new Set([1, 2, 3, 4, 5, 6, 7, 8].map((i) => storyHeading(i, 10))).size, 2);
+  });
+  it('a story round is a free-choice round with a heading and no answer', () => {
+    const r = buildStoryRound(DATA, 2, 1, 5, rng(1));
+    assert.equal(r.mode, 'story'); assert.equal(r.answer, null); assert.equal(r.heading, 'Then…');
+    assert.equal(r.index, 1); assert.equal(r.length, 5);
+  });
+  it('every stage and Help level, many rounds: any choice gives a grammatical sentence', () => {
+    for (const help of HELP_LEVELS) for (const stage of STAGES) many(150, (i) => {
+      const seed = i + stage.id * 1000 + HELP_LEVELS.indexOf(help) * 100000, rnd = rng(seed);
+      const bank = bankFor(withUndrawn, help, 'story');
+      const r = buildStoryRound(bank, stage.id, i % 5, 5, rnd);
+      for (const k of r.slots) {
+        const choices = r.tray.filter((x) => x.slot === k);
+        assert.equal(choices.length, Math.min(SILLY_CHOICES, poolFor(bank, r.frame, k).length));
+        assert.equal(tryPlace(r, choices[Math.floor(rnd() * choices.length)], k), 'ok');
+      }
+      assert.equal(r.complete, true);
+      const s = roundSentence(withUndrawn, r);
+      assert.match(s, SENTENCE, help + ' stage ' + stage.id + ' seed ' + seed + ': ' + s);
+    });
+  });
+  it('even at the easy level a story can offer words with no drawing', () => {
+    let seen = false;
+    many(200, (i) => { if (buildStoryRound(bankFor(withUndrawn, 'pictures', 'story'), 1, 0, 3, rng(i)).tray.some((x) => !hasPic(tileOf(withUndrawn, x.slot, x.id)))) seen = true; });
+    assert.ok(seen);
+  });
+  it('"The end" is offered from the third finished sentence until the last', () => {
+    assert.deepEqual([0, 1, 2, 3, 4, 5].map((d) => canEndEarly(d, 5)), [false, false, false, true, true, false]);
+    assert.deepEqual([3].map((d) => canEndEarly(d, 3)), [false], 'a 3-sentence story is finished by its last sentence');
+    assert.equal(canEndEarly(7, 10), true);
+    assert.equal(canEndEarly(10, 10), false);
+  });
+  it('each sentence is a fresh draw: ten rounds are not all the same tray', () => {
+    const trays = new Set();
+    many(10, (i) => trays.add(buildStoryRound(DATA, 1, i, 10, rng(i * 7 + 1)).tray.map((x) => x.id).sort().join()));
+    assert.ok(trays.size > 3, 'got ' + trays.size + ' different trays');
+  });
+  it('story sentences never count towards unlocking stages', () => {
+    const save = normaliseSave({});
+    const r = buildStoryRound(DATA, 1, 0, 3, rng(2));
+    for (const k of r.slots) tryPlace(r, r.tray.find((x) => x.slot === k), k);
+    assert.deepEqual(recordSentence(save, r), save);
+  });
+  it('a child can swap a tile after finishing the sentence', () => {
+    const r = buildStoryRound(DATA, 1, 0, 3, rng(3));
+    for (const k of r.slots) tryPlace(r, r.tray.find((x) => x.slot === k), k);
+    const before = roundSentence(DATA, r);
+    const other = r.tray.filter((x) => x.slot === 'who').find((x) => x.id !== r.placed.who);
+    assert.equal(tryPlace(r, other, 'who'), 'ok');
+    assert.notEqual(roundSentence(DATA, r), before);
   });
 });

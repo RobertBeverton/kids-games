@@ -223,6 +223,21 @@ export function buildSillyRound(data, stageId, rnd = Math.random) {
   return { mode: 'silly', stage: stageId, slots: frame.slots.slice(), frame, answer: null, tray: shuffle(tray, rnd), placed: {}, misses: {}, complete: false };
 }
 
+// "Story": a free-choice round (like Silly) with a heading for where it sits in the story. The heading is decoration only.
+const STORY_MIDDLE = ['Then…', 'Suddenly…'];
+export function storyHeading(index, length) {
+  if (index === 0) return 'Once upon a time…';
+  if (index === length - 1) return length === 3 ? 'In the end…' : 'The end…';
+  return STORY_MIDDLE[(index - 1) % STORY_MIDDLE.length];
+}
+// A story can be finished early from this many finished sentences (and never when it is already at its length).
+export const STORY_EARLY_END = 3;
+export const canEndEarly = (done, length) => done >= STORY_EARLY_END && done < length;
+// Every call is a fresh random draw (buildSillyRound picks new tiles each time), so two stories rarely match.
+export function buildStoryRound(data, stageId, index, length, rnd = Math.random) {
+  return { ...buildSillyRound(data, stageId, rnd), mode: 'story', heading: storyHeading(index, length), index, length };
+}
+
 // Try a tile in a slot. Returns 'ok' | 'wrong-slot' | 'wrong-tile'. A wrong tile never stays.
 export function tryPlace(round, tile, slot) {
   if (!round.slots.includes(slot)) return 'wrong-slot';
