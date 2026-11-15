@@ -8,7 +8,7 @@ name: CI
 #  - it runs one parallel job per game, so the wait is the slowest game, not the sum of all four;
 #  - on a pull request it only runs the games whose own folder changed, unless something every game shares changed
 #    (shared/, hub.html, build.sh, tools/, .github/), in which case it runs all four;
-#  - on a push to master it always runs all four.
+#  - on a push to master it always runs all four, and Maths samples 350 questions per combination instead of the 60 used on a pull request.
 on:
   pull_request:
     branches: [master]
@@ -119,4 +119,8 @@ jobs:
           echo "BROWSER_CHANNEL=chrome" >> "$GITHUB_ENV"
 
       - name: Play ${{ matrix.game }} in a browser
+        env:
+          # Maths checks hundreds of random questions per combination (PER). A pull request samples fewer
+          # (about half the time); a push to master runs the full 350. The other games ignore PER.
+          PER: ${{ github.event_name == 'pull_request' && '60' || '350' }}
         run: node games/${{ matrix.game }}/tests/play-test.mjs
