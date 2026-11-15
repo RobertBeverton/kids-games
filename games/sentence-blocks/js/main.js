@@ -35,7 +35,7 @@ function loadSaved() {
   renderSettings();
 }
 function persist() { if (window.KidsGames) window.KidsGames.saveGameData(GAME_ID, save); }
-function showScreen(id) { for (const s of ['sb-settings', 'sb-board', 'sb-done']) $(s).hidden = s !== id; }
+function showScreen(id) { for (const s of ['sb-settings', 'sb-board', 'sb-done', 'sb-story']) $(s).hidden = s !== id; }
 
 // ===== SETTINGS =====
 function squaresHtml(on, total) {
@@ -73,20 +73,31 @@ function startSession() {
   save.stage = clampStage(save);
   const scenes = save.mode === 'scene' ? pickScenes(SCENES, save.stage, TARGET_SENTENCES, save.recent) : [];
   if (save.mode === 'scene' && !scenes.length) { say('There are no pictures for this stage yet.'); return; }
-  session = { mode: save.mode, stage: save.stage, scenes, index: 0, done: 0, startUnlocked: unlockedStage(save) };
+  const story = save.mode === 'story';
+  session = { mode: save.mode, stage: save.stage, help: save.help, scenes, index: 0, done: 0, target: story ? save.storyLength : TARGET_SENTENCES, sentences: [], startUnlocked: unlockedStage(save) };
+  $('sb-app').dataset.help = session.help;
   showScreen('sb-board');
   nextRound();
 }
 function nextRound() {
-  round = session.mode === 'scene' ? buildSceneRound(DATA, session.scenes[session.index]) : buildSillyRound(DATA, session.stage);
+  const bank = bankFor(DATA, session.help, session.mode);
+  round = session.mode === 'scene' ? buildSceneRound(bank, session.scenes[session.index])
+    : session.mode === 'story' ? buildStoryRound(bank, session.stage, session.index, session.target)
+    : buildSillyRound(bank, session.stage);
   held = null;
   shownScene = null;
   renderBoard();
   const first = $('sb-tray').querySelector('.sb-tile');
   if (first) first.focus();
 }
+function renderStory() {
+  $('sb-book').innerHTML = session.sentences.map((parts) =>
+    '<p class="sb-book__line">' + parts.map((p) => '<span class="sb-w sb-w--' + (p.slot || 'join') + '">' + p.text + '</span>').join(' ') + '</p>').join('');
+  say(session.sentences.map((parts) => parts.map((p) => p.text).join(' ')).join(' '));
+}
 function finishSession() {
   if (window.KidsGames) window.KidsGames.recordSession(GAME_ID);
+  if (session.mode === 'story') { renderStory(); showScreen('sb-story'); $('sb-story-again').focus(); return; }
   $('sb-done-title').textContent = 'You built ' + session.done + ' sentences!';
   $('sb-done-squares').innerHTML = squaresHtml(session.done, session.done);
   $('sb-done-squares').setAttribute('aria-label', session.done + ' sentences built');
@@ -99,7 +110,7 @@ function finishSession() {
 }
 
 // ===== THE BOARD =====
-const picsOf = (tile) => pictureSvg(tile.pic) + (tile.plural ? pictureSvg(tile.pic) : '');
+const picsOf = (tile) => (session && session.help !== 'pictures') || !tile.pic ? '' : pictureSvg(tile.pic) + (tile.plural ? pictureSvg(tile.pic) : '');
 const slotButton = (k) => $('sb-slots').querySelector('[data-slot="' + k + '"]');
 const picks = () => Object.fromEntries(round.slots.map((k) => [k, tileOf(DATA, k, round.placed[k])]));
 
@@ -115,14 +126,19 @@ function tileHtml(t) {
     '<span class="sb-tile__word">' + tileText(t.slot, tile) + '</span><span class="sb-tile__cross" aria-hidden="true">' + ICON_CROSS + '</span></button>';
 }
 function renderBoard() {
-  $('sb-progress').innerHTML = squaresHtml(session.done, TARGET_SENTENCES);
-  $('sb-progress').setAttribute('aria-label', session.done + ' of ' + TARGET_SENTENCES + ' sentences built');
+  $('sb-progress').innerHTML = squaresHtml(session.done, session.target);
+  $('sb-progress').setAttribute('aria-label', session.done + ' of ' + session.target + ' sentences built');
   $('sb-slots').style.setProperty('--n', round.slots.length);
   $('sb-slots').innerHTML = round.slots.map(slotHtml).join('');
   $('sb-tray').innerHTML = round.tray.map(tileHtml).join('');
   $('sb-sentence').hidden = true;
   $('sb-sentence').innerHTML = '';
   $('sb-next').hidden = true;
+  $('sb-end').hidden = true;
+  const h = $('sb-heading');
+  h.hidden = round.mode !== 'story';
+  h.textContent = round.mode === 'story' ? round.heading : '';
+  if (round.mode === 'story') say(round.heading);
   syncBoard();
 }
 function renderPicture() {
@@ -134,14 +150,18 @@ function renderPicture() {
       el.setAttribute('aria-label', 'A picture to describe');
       shownScene = round.scene.id;
     }
+    el.hidden = false;
     return;
   }
+  el.hidden = session.help !== 'pictures';
   shownScene = null;
   el.removeAttribute('role');
   el.removeAttribute('aria-label');
   el.setAttribute('aria-hidden', 'true');
   el.innerHTML = round.slots.map((k) => round.placed[k]
-    ? '<span class="sb-scene__pic">' + picsOf(tileOf(DATA, k, round.placed[k])) + '</span>' : '<span class="sb-scene__gap"></span>').join('');
+    ? (picsOf(tileOf(DATA, k, round.placed[k])) ? '<span class="sb-scene__pic">' + picsOf(tileOf(DATA, k, round.placed[k])) + '</span>'
+      : '<span class="sb-scene__word">' + tileText(k, tileOf(DATA, k, round.placed[k])) + '</span>')
+    : '<span class="sb-scene__gap"></span>').join('');
 }
 // Redraw everything that depends on what is placed or held.
 function syncBoard() {
@@ -202,7 +222,7 @@ function drop(slot) {
   sfx('mismatch');
   bounce(tile);
   syncBoard();
-  say(result === 'wrong-slot' ? 'That one goes in a different colour.' : 'Not that one. Try another.');
+  say(result === 'wrong-slot' ? (session.help === 'words' ? 'That one goes in a different slot.' : 'That one goes in a different colour.') : 'Not that one. Try another.');
   const back = $('sb-tray').querySelector('[data-slot="' + tile.slot + '"][data-id="' + tile.id + '"]');
   if (back && !back.disabled) back.focus();
 }
@@ -218,11 +238,12 @@ function afterPlace() {
     save = recordSentence(save, round);
     session.done++;
     persist();
-    $('sb-progress').innerHTML = squaresHtml(session.done, TARGET_SENTENCES);
-    $('sb-progress').setAttribute('aria-label', session.done + ' of ' + TARGET_SENTENCES + ' sentences built');
+    $('sb-progress').innerHTML = squaresHtml(session.done, session.target);
+    $('sb-progress').setAttribute('aria-label', session.done + ' of ' + session.target + ' sentences built');
   }
   $('sb-next').hidden = false;
-  $('sb-next-label').textContent = session.done >= TARGET_SENTENCES ? 'Finish' : 'Next';
+  $('sb-next-label').textContent = session.done >= session.target ? 'Finish' : 'Next';
+  $('sb-end').hidden = !(session.mode === 'story' && canEndEarly(session.done, session.target));
   if (document.activeElement === document.body || !document.activeElement.closest('#sb-tray')) $('sb-next').focus();
 }
 
@@ -242,10 +263,18 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && held && !$('sb-board').hidden) { held = null; say('Put down.'); syncBoard(); }
 });
 $('sb-next').addEventListener('click', () => {
-  if (session.done >= TARGET_SENTENCES) { finishSession(); return; }
+  if (session.mode === 'story') session.sentences[session.index] = sentenceParts(picks());
+  if (session.done >= session.target) { finishSession(); return; }
   session.index++;
   nextRound();
 });
+$('sb-end').addEventListener('click', () => {
+  session.sentences[session.index] = sentenceParts(picks());
+  session.sentences.length = session.index + 1;   // only the sentences built so far
+  finishSession();
+});
+$('sb-story-again').addEventListener('click', startSession);
+$('sb-story-choose').addEventListener('click', () => { renderSettings(); showScreen('sb-settings'); $('sb-play-btn').focus(); });
 $('sb-stop').addEventListener('click', () => { renderSettings(); showScreen('sb-settings'); $('sb-play-btn').focus(); });
 $('sb-play-btn').addEventListener('click', startSession);
 $('sb-again').addEventListener('click', startSession);
