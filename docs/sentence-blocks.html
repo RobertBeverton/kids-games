@@ -642,6 +642,48 @@ button { font: inherit; color: inherit; }
 .sb-unlock { display: flex; align-items: center; gap: var(--s2); margin: 0; padding: var(--s2) var(--s4); background: var(--chalk); border: var(--line-w) solid var(--line); border-radius: var(--r-pill); font-size: var(--t-lead); font-weight: 700; }
 .sb-unlock[hidden] { display: none; }
 .sb-done-actions { display: flex; flex-wrap: wrap; gap: var(--s3); justify-content: center; }
+
+/* ===== v2: mode cards, Help row, story length, heading, book ===== */
+#sb-mode-row .sb-opt { flex: 1 1 200px; }
+.sb-help { flex: 1 1 200px; }
+.sb-length { flex: 1 1 120px; min-height: 72px; }
+.sb-mini { color: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 2px; width: 72px; height: 72px; padding: 14px 4px 4px;
+  --slot: var(--paint-orange); background: linear-gradient(var(--slot) 0 10px, var(--chalk) 10px); border: 2px solid var(--line); border-radius: var(--r-1); }
+.sb-mini--plain { --slot: var(--chalk); }
+.sb-mini__pic { display: block; width: 32px; height: 32px; }
+.sb-mini__word { font-size: 13px; font-weight: 700; line-height: 1; }
+
+.sb-nextdock { gap: var(--s3); flex-wrap: wrap; }
+.sb-nextdock .kg-btn[hidden] { display: none; }
+.sb-scene__word { padding: var(--s2) var(--s3); background: var(--chalk); border: var(--line-w) solid var(--line); border-radius: var(--r-1); font-weight: 700; }
+.sb-nextdock { gap: var(--s3); flex-wrap: wrap; }
+.sb-scene__word { padding: var(--s2) var(--s3); background: var(--chalk); border: var(--line-w) solid var(--line); border-radius: var(--r-1); font-weight: 700; }
+.sb-heading { margin: 0; text-align: center; font-size: var(--t-lead); font-weight: 700; font-style: italic; }
+.sb-heading[hidden] { display: none; }
+
+.sb-book { display: flex; flex-direction: column; gap: var(--s3); max-width: 720px; padding: var(--s4); background: var(--chalk); border: var(--line-w) solid var(--line); border-radius: var(--r-2); text-align: left; }
+.sb-book__line { margin: 0; display: flex; flex-wrap: wrap; gap: var(--s1) var(--s2); }
+
+/* ===== Help levels. The class is on #sb-app. Colours only: no drawings (main.js leaves them out). Words only: no colour either. ===== */
+#sb-app[data-help="words"] :is(.sb-slot, .sb-tile, .sb-w) { --slot: var(--chalk); --on-slot: var(--ink); }
+#sb-app[data-help="words"] .sb-tile__badge { display: none; }
+
+.sb-picture[hidden] { display: none; }
+.sb-tile__pic:empty, .sb-slot__pic:empty { display: none; }
+
+/* Compact settings on phones: the three rows must not make the screen a long scroll (the Play dock stays pinned). */
+@media (max-width: 560px) {
+  #sb-mode-row .sb-opt, .sb-stage, .sb-help, .sb-length { min-height: 0; padding-block: var(--s2); }
+  .sb-help { flex-direction: row; justify-content: flex-start; text-align: left; flex-wrap: wrap; gap: var(--s3); }
+  .sb-help .sb-mini { width: 48px; height: 48px; padding: 10px 2px 2px; flex: none; }
+  .sb-help .sb-mini__pic { width: 22px; height: 22px; }
+  .sb-help .sb-mini__word { font-size: 10px; }
+  .sb-length { flex: 1 1 0; min-width: 0; }
+  .sb-length .sb-opt__name { font-size: var(--t-lead); }
+  .sb-help .sb-opt__name { font-size: var(--t-body); }
+  .sb-length small { display: none; }
+  .sb-stage .sb-pills { display: none; }
+}
   </style>
 </head>
 <body data-page="sentence-blocks" data-page-title="Sentence Blocks" data-paint="purple">
@@ -832,7 +874,7 @@ button { font: inherit; color: inherit; }
         Feedback or bug? Raise it on GitHub
         <svg class="ic ic--sm"><use href="#i-link"/></svg>
       </a>
-      <p>Version 3d3b35b 13 Nov 08:20</p>
+      <p>Version 103761f 15 Nov 11:25</p>
     </section>
   </div>
 </div>
@@ -870,12 +912,23 @@ button { font: inherit; color: inherit; }
         <div class="kg-seg" id="sb-mode-row" role="group" aria-label="How to play">
           <button type="button" class="kg-seg__opt sb-opt" data-mode="scene" aria-pressed="true"><span class="sb-opt__name">Describe the picture</span><small>Build the sentence for a picture</small></button>
           <button type="button" class="kg-seg__opt sb-opt" data-mode="silly" aria-pressed="false"><span class="sb-opt__name">Silly sentences</span><small>Mix any blocks you like</small></button>
+          <button type="button" class="kg-seg__opt sb-opt" data-mode="story" aria-pressed="false"><span class="sb-opt__name">Make a story</span><small>Build sentences, then read your story</small></button>
         </div>
       </fieldset>
 
       <fieldset class="sb-fieldset">
         <legend class="kg-label">Stage</legend>
         <div class="kg-seg" id="sb-stage-row" role="group" aria-label="Stage"><!-- filled by main.js --></div>
+      </fieldset>
+
+      <fieldset class="sb-fieldset">
+        <legend class="kg-label">Help</legend>
+        <div class="kg-seg" id="sb-help-row" role="group" aria-label="Help"><!-- filled by main.js --></div>
+      </fieldset>
+
+      <fieldset class="sb-fieldset" id="sb-length-set" hidden>
+        <legend class="kg-label">Story length</legend>
+        <div class="kg-seg" id="sb-length-row" role="group" aria-label="Story length"><!-- filled by main.js --></div>
       </fieldset>
     </div>
 
@@ -892,12 +945,14 @@ button { font: inherit; color: inherit; }
     </div>
     <div class="sb-picture" id="sb-picture"></div>
     <div class="sb-sticky">
+      <p class="sb-heading" id="sb-heading" hidden></p>
       <ol class="sb-slots" id="sb-slots"></ol>
       <p class="sb-sentence" id="sb-sentence" hidden></p>
     </div>
     <div class="sb-tray" id="sb-tray" role="group" aria-label="Word tiles"></div>
     <div class="sb-nextdock">
       <button type="button" class="kg-btn" id="sb-next" hidden><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg><span id="sb-next-label">Next</span></button>
+      <button type="button" class="kg-btn kg-btn--ghost" id="sb-end" hidden><span>The end</span></button>
     </div>
   </div>
 
@@ -910,6 +965,18 @@ button { font: inherit; color: inherit; }
       <div class="sb-done-actions">
         <button type="button" class="kg-btn" id="sb-again"><svg class="ic" aria-hidden="true"><use href="#i-replay"/></svg><span>Play again</span></button>
         <button type="button" class="kg-btn kg-btn--ghost" id="sb-choose"><span>Choose again</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 4: the finished story -->
+  <div id="sb-story" class="kg-screen sb-screen" hidden>
+    <div class="kg-wrap" style="align-items:center;text-align:center">
+      <h2 class="kg-title" id="sb-story-title">Your story</h2>
+      <div class="sb-book" id="sb-book"></div>
+      <div class="sb-done-actions">
+        <button type="button" class="kg-btn" id="sb-story-again"><svg class="ic" aria-hidden="true"><use href="#i-replay"/></svg><span>New story</span></button>
+        <button type="button" class="kg-btn kg-btn--ghost" id="sb-story-choose"><span>Choose again</span></button>
       </div>
     </div>
   </div>
@@ -1734,6 +1801,9 @@ const UNLOCK_AT = 5;         // finished describe-the-picture sentences that ope
 const SAVE_VERSION = 1;
 const RECENT_KEEP = TARGET_SENTENCES; // scenes remembered, so the next session avoids the ones just played (must stay below the scenes per stage)
 const KINDS = ['animal', 'child', 'baby', 'adult'];
+const HELP_LEVELS = ['pictures', 'colours', 'words'];  // how much the tiles help, easiest first
+const STORY_LENGTHS = [3, 5, 10];
+const DEFAULT_STORY_LENGTH = 5;
 
 // A frame is the set of colour slots one sentence uses. `transitive` says whether its doing word takes a "what".
 const STAGES = [
@@ -1796,7 +1866,8 @@ function validateData(data, scenes) {
     for (const t of data[slot] || []) {
       if (seen.has(t.id)) say(slot + ': duplicate id ' + t.id);
       seen.add(t.id);
-      if (!t.pic) say(slot + ':' + t.id + ' has no picture');
+      if (t.pic !== undefined && (typeof t.pic !== 'string' || !t.pic)) say(slot + ':' + t.id + ' has a bad pic');
+
     }
     if (!(data[slot] || []).length) say(slot + ': no tiles');
   }
@@ -1818,12 +1889,18 @@ function validateData(data, scenes) {
     const o = tileOf(data, 'describe', d.opposite);
     if (!o) say('describe:' + d.id + ' has no valid opposite');
     else if (o.opposite !== d.id) say('describe:' + d.id + ' and ' + o.id + ' are not opposites of each other');
+    if (o && d.pic && !o.pic) say('describe:' + d.id + ' is drawn but its opposite ' + o.id + ' is not');
+    if (o && !d.pic && o.pic) say('describe:' + o.id + ' is drawn but its opposite ' + d.id + ' is not');
   }
   for (const d of data.doing) {
     if (!/ing$/.test(d.ing || '')) say('doing:' + d.id + ' must be an -ing word');
     if (!d.actors || !d.actors.length) say('doing:' + d.id + ' lists no actors');
     else if (d.actors.some((a) => !KINDS.includes(a))) say('doing:' + d.id + ' lists an unknown actor kind');
     if (!d.wheres || !d.wheres.length) say('doing:' + d.id + ' lists no places');
+  }
+  for (const st of STAGES) for (const f of st.frames) for (const k of f.slots) {
+    const n = poolFor(data, f, k).length;
+    if (n < SILLY_CHOICES) say('stage ' + st.id + ': too few ' + k + ' tiles (' + n + ', need ' + SILLY_CHOICES + ')');
   }
   for (const s of scenes || []) {
     const tag = 'scene ' + s.id;
@@ -1848,7 +1925,13 @@ function validateData(data, scenes) {
     if (frame) {
       for (const k of slots) {
         const right = tileOf(data, k, s[k]);
-        if (right && distractorsOf(data, frame, k, right, distractorsFor(s.stage), () => 0.5).length < Math.min(distractorsFor(s.stage), k === 'describe' ? 1 : 99)) say(tag + ': not enough wrong tiles for ' + k);
+        if (!right) continue;
+        if (!right.pic) say(tag + ': ' + k + ' tile ' + right.id + ' has no drawing');
+        if (right.freeOnly) say(tag + ': ' + k + ' tile ' + right.id + ' is freeOnly, so it cannot be a scene answer');
+        const want = Math.min(distractorsFor(s.stage), k === 'describe' ? 1 : 99);
+        for (const help of HELP_LEVELS) {
+          if (distractorsOf(bankFor(data, help, 'scene'), frame, k, right, distractorsFor(s.stage), () => 0.5).length < want) say(tag + ': not enough wrong tiles for ' + k + ' at help ' + help);
+        }
       }
     }
     try {
@@ -1863,8 +1946,18 @@ function validateData(data, scenes) {
 // ---------- rounds ----------
 const shuffle = (a, rnd) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const pickN = (a, n, rnd) => shuffle(a, rnd).slice(0, n);
+const hasPic = (t) => !!t.pic;
 // What a tile looks like in the tray: plural people are drawn twice, so "dog" and "dogs" look different but two "dog"s do not.
-const lookOf = (t) => t.pic + (t.plural ? '*2' : '');
+// A word with no drawing looks like only itself, so two undrawn words never count as look-alikes.
+const lookOf = (t) => (t.pic || 'word:' + t.id) + (t.plural ? '*2' : '');
+
+// The tiles on offer. Describe the picture at the easy level offers only words that have a drawing: the right tile is always
+// drawn, so an undrawn wrong tile would give it away. Everywhere else (Silly, Story, the harder levels) every word is offered,
+// and a word with no drawing is a coloured word tile.
+function bankFor(data, help, mode) {
+  if (help !== 'pictures' || mode !== 'scene') return data;
+  return Object.fromEntries(Object.entries(data).map(([slot, tiles]) => [slot, tiles.filter(hasPic)]));
+}
 // n tiles that all look different from each other (and from anything in `avoid`).
 function pickDistinct(a, n, avoid, rnd) {
   const seen = new Set(avoid.map(lookOf)), out = [];
@@ -1894,7 +1987,7 @@ const distractorsFor = (stageId) => (stageId >= 3 ? 1 : 2);
 //  - tiles in the same `group` look alike (park / garden / field), so a group-mate of the right tile is never offered.
 function distractorsOf(data, frame, slot, right, n, rnd = Math.random) {
   if (slot === 'describe') { const o = tileOf(data, 'describe', right.opposite); return o ? [o] : []; }
-  const pool = poolFor(data, frame, slot).filter((t) => !(right.group && t.group === right.group));
+  const pool = poolFor(data, frame, slot).filter((t) => !(right.group && t.group === right.group) && !t.freeOnly);
   return pickDistinct(pool, n, [right], rnd);
 }
 
@@ -1921,6 +2014,21 @@ function buildSillyRound(data, stageId, rnd = Math.random) {
   const tray = [];
   for (const slot of frame.slots) for (const t of pickN(poolFor(data, frame, slot), SILLY_CHOICES, rnd)) tray.push({ slot, id: t.id });
   return { mode: 'silly', stage: stageId, slots: frame.slots.slice(), frame, answer: null, tray: shuffle(tray, rnd), placed: {}, misses: {}, complete: false };
+}
+
+// "Story": a free-choice round (like Silly) with a heading for where it sits in the story. The heading is decoration only.
+const STORY_MIDDLE = ['Then…', 'Suddenly…'];
+function storyHeading(index, length) {
+  if (index === 0) return 'Once upon a time…';
+  if (index === length - 1) return length === 3 ? 'In the end…' : 'The end…';
+  return STORY_MIDDLE[(index - 1) % STORY_MIDDLE.length];
+}
+// A story can be finished early from this many finished sentences (and never when it is already at its length).
+const STORY_EARLY_END = 3;
+const canEndEarly = (done, length) => done >= STORY_EARLY_END && done < length;
+// Every call is a fresh random draw (buildSillyRound picks new tiles each time), so two stories rarely match.
+function buildStoryRound(data, stageId, index, length, rnd = Math.random) {
+  return { ...buildSillyRound(data, stageId, rnd), mode: 'story', heading: storyHeading(index, length), index, length };
 }
 
 // Try a tile in a slot. Returns 'ok' | 'wrong-slot' | 'wrong-tile'. A wrong tile never stays.
@@ -1965,8 +2073,10 @@ function normaliseSave(raw) {
   const done = r.done && typeof r.done === 'object' ? r.done : {};
   return {
     v: SAVE_VERSION,
-    mode: r.mode === 'silly' ? 'silly' : 'scene',
+    mode: r.mode === 'silly' || r.mode === 'story' ? r.mode : 'scene',
     stage: [1, 2, 3].includes(r.stage) ? r.stage : 1,
+    help: HELP_LEVELS.includes(r.help) ? r.help : 'pictures',
+    storyLength: STORY_LENGTHS.includes(r.storyLength) ? r.storyLength : DEFAULT_STORY_LENGTH,
     done: { 1: count(done[1]), 2: count(done[2]), 3: count(done[3]) },
     recent: Array.isArray(r.recent) ? r.recent.filter((x) => typeof x === 'string').slice(-RECENT_KEEP) : [],
   };
@@ -1990,6 +2100,8 @@ const clampStage = (save) => Math.min(save.stage, unlockedStage(save));
 
 // --- words.js ---
 // words.js — the tiles. SEED SET for the plan's tests; the full reviewed set replaces it in the word batches.
+// Look-alikes: never offered as each other's wrong tile (see engine.js distractorsOf).
+const V2_GROUP = { lion: 'cat', tiger: 'cat', mouse: 'small', pig: 'dog', monkey: 'dog' };
 const ALL = ['animal', 'child', 'adult'];
 const ANY_PLACE = ['indoor', 'outdoor'];
 
@@ -1997,17 +2109,28 @@ const WHO = [
   { id: 'girl', det: 'the', noun: 'girl', kind: 'child', pic: 'girl' },
   { id: 'boy', det: 'the', noun: 'boy', kind: 'child', pic: 'boy' },
   { id: 'baby', det: 'the', noun: 'baby', kind: 'baby', pic: 'baby' },
-  { id: 'dog', det: 'the', noun: 'dog', kind: 'animal', pic: 'dog' },
-  { id: 'cat', det: 'the', noun: 'cat', kind: 'animal', pic: 'cat' },
+  { id: 'dog', group: 'dog', det: 'the', noun: 'dog', kind: 'animal', pic: 'dog' },
+  { id: 'cat', group: 'cat', det: 'the', noun: 'cat', kind: 'animal', pic: 'cat' },
   { id: 'horse', det: 'the', noun: 'horse', kind: 'animal', pic: 'horse' },
-  { id: 'rabbit', det: 'the', noun: 'rabbit', kind: 'animal', pic: 'rabbit' },
+  { id: 'rabbit', group: 'small', det: 'the', noun: 'rabbit', kind: 'animal', pic: 'rabbit' },
   { id: 'mum', text: 'Mum', named: true, kind: 'adult', pic: 'mum' },
   { id: 'dad', text: 'Dad', named: true, kind: 'adult', pic: 'dad' },
   { id: 'boys', det: 'the', noun: 'boys', plural: true, kind: 'child', pic: 'boy' },
   { id: 'girls', det: 'the', noun: 'girls', plural: true, kind: 'child', pic: 'girl' },
   { id: 'cats', det: 'the', noun: 'cats', plural: true, kind: 'animal', pic: 'cat' },
   { id: 'rabbits', det: 'the', noun: 'rabbits', plural: true, kind: 'animal', pic: 'rabbit' },
-  { id: 'dogs', det: 'the', noun: 'dogs', plural: true, kind: 'animal', pic: 'dog' },
+  { id: 'dogs', group: 'dog', det: 'the', noun: 'dogs', plural: true, kind: 'animal', pic: 'dog' },
+  // v2, undrawn. Animals:
+  ...['bird', 'duck', 'fish', 'pig', 'cow', 'sheep', 'mouse', 'frog', 'monkey', 'lion', 'elephant', 'tiger']
+    .map((n) => ({ id: n, pic: n, det: 'the', noun: n, kind: 'animal', ...(V2_GROUP[n] ? { group: V2_GROUP[n] } : {}) })),
+  ...['dinosaur', 'dragon'].map((n) => ({ id: n, det: 'the', noun: n, kind: 'animal', freeOnly: true })),
+  // People and characters:
+  // freeOnly: could also be true of a picture (a princess for a girl, Grandma for Mum), so never a wrong tile in a scene.
+  ...['teacher', 'nurse', 'king', 'queen', 'pirate', 'wizard', 'robot']
+    .map((n) => ({ id: n, det: 'the', noun: n, kind: 'adult', freeOnly: true })),
+  { id: 'princess', det: 'the', noun: 'princess', irregularS: true, kind: 'adult', freeOnly: true },   // ends in s but is singular
+  { id: 'grandma', text: 'Grandma', named: true, kind: 'adult', freeOnly: true },
+  { id: 'grandad', text: 'Grandad', named: true, kind: 'adult', freeOnly: true },
 ];
 // Where-tags: indoor, outdoor, water (pool, beach). A doing word lists the tags of the places it can happen.
 const WITH_BABY = ['animal', 'child', 'baby', 'adult'];
@@ -2015,10 +2138,10 @@ const NOT_BABY = ['animal', 'child', 'adult'];
 const PEOPLE = ['child', 'adult'];
 const DOING = [
   // Batch B: intransitive (no "what").
-  { id: 'jumping', ing: 'jumping', takes: [], actors: NOT_BABY, wheres: ANY_PLACE, pic: 'jumping' },
-  { id: 'sleeping', ing: 'sleeping', takes: [], actors: WITH_BABY, wheres: ['indoor'], pic: 'sleeping' },
+  { id: 'jumping', group: 'jump', ing: 'jumping', takes: [], actors: NOT_BABY, wheres: ANY_PLACE, pic: 'jumping' },
+  { id: 'sleeping', group: 'sleep', ing: 'sleeping', takes: [], actors: WITH_BABY, wheres: ['indoor'], pic: 'sleeping' },
   { id: 'running', ing: 'running', takes: [], actors: NOT_BABY, wheres: ['outdoor'], pic: 'running' },
-  { id: 'swimming', ing: 'swimming', takes: [], actors: NOT_BABY, wheres: ['water'], pic: 'swimming' },
+  { id: 'swimming', group: 'swim', ing: 'swimming', takes: [], actors: NOT_BABY, wheres: ['water'], pic: 'swimming' },
   { id: 'crying', ing: 'crying', takes: [], actors: ['child', 'baby', 'adult'], wheres: ANY_PLACE, pic: 'crying' },
   { id: 'climbing', ing: 'climbing', takes: [], actors: NOT_BABY, wheres: ['outdoor'], pic: 'climbing' },
   { id: 'sitting', ing: 'sitting', takes: [], actors: WITH_BABY, wheres: ANY_PLACE, pic: 'sitting' },
@@ -2030,11 +2153,30 @@ const DOING = [
   { id: 'reading', ing: 'reading', takes: ['readable'], actors: PEOPLE, wheres: ['indoor'], pic: 'reading' },
   { id: 'riding', ing: 'riding', takes: ['rideable'], actors: PEOPLE, wheres: ['outdoor'], pic: 'riding' },
   { id: 'kicking', ing: 'kicking', takes: ['kickable'], actors: PEOPLE, wheres: ['outdoor'], pic: 'kicking' },
-  { id: 'throwing', ing: 'throwing', takes: ['throwable'], actors: PEOPLE, wheres: ['outdoor'], pic: 'throwing' },
-  { id: 'pushing', ing: 'pushing', takes: ['pushable'], actors: PEOPLE, wheres: ['outdoor'], pic: 'pushing' },
-  { id: 'painting', ing: 'painting', takes: ['paintable'], actors: PEOPLE, wheres: ['indoor'], pic: 'painting' },
-  { id: 'washing', ing: 'washing', takes: ['washable'], actors: PEOPLE, wheres: ['indoor'], pic: 'washing' },
+  { id: 'throwing', group: 'throw', ing: 'throwing', takes: ['throwable'], actors: PEOPLE, wheres: ['outdoor'], pic: 'throwing' },
+  { id: 'pushing', group: 'move', ing: 'pushing', takes: ['pushable'], actors: PEOPLE, wheres: ['outdoor'], pic: 'pushing' },
+  { id: 'painting', group: 'draw', ing: 'painting', takes: ['paintable'], actors: PEOPLE, wheres: ['indoor'], pic: 'painting' },
+  { id: 'washing', group: 'clean', ing: 'washing', takes: ['washable'], actors: PEOPLE, wheres: ['indoor'], pic: 'washing' },
   { id: 'brushing', ing: 'brushing', takes: ['brushable'], actors: PEOPLE, wheres: ['indoor'], pic: 'brushing' },
+  // v2, undrawn. `group` = could also be true of a picture of the same action, so never offered together (as with places).
+  // Intransitive (no "what"):
+  ...['singing', 'hiding', 'spinning'].map((w) => ({ id: w, ing: w, takes: [], actors: NOT_BABY, wheres: ANY_PLACE })),
+  ...['dancing', 'hopping'].map((w) => ({ id: w, ing: w, takes: [], actors: NOT_BABY, wheres: ANY_PLACE, group: 'jump', pic: w })),
+  { id: 'waving', ing: 'waving', takes: [], actors: NOT_BABY, wheres: ANY_PLACE, pic: 'waving' },
+  ...['laughing', 'giggling'].map((w) => ({ id: w, ing: w, takes: [], actors: NOT_BABY, wheres: ANY_PLACE, group: 'laugh' })),
+  { id: 'yawning', ing: 'yawning', takes: [], actors: NOT_BABY, wheres: ANY_PLACE, group: 'sleep' },
+  { id: 'playing', ing: 'playing', takes: [], actors: NOT_BABY, wheres: ANY_PLACE, freeOnly: true },   // too general to be wrong of any picture
+  { id: 'flying', ing: 'flying', takes: [], actors: NOT_BABY, wheres: ['outdoor'] },
+  { id: 'skipping', ing: 'skipping', takes: [], actors: PEOPLE, wheres: ['outdoor'], group: 'jump' },
+  { id: 'splashing', ing: 'splashing', takes: [], actors: NOT_BABY, wheres: ['water'], group: 'swim' },
+  // Transitive (each takes a "what" carrying one of its tags):
+  { id: 'catching', pic: 'catching', ing: 'catching', takes: ['throwable'], actors: PEOPLE, wheres: ['outdoor'], group: 'throw' },
+  { id: 'baking', ing: 'baking', takes: ['food'], actors: PEOPLE, wheres: ['indoor'], group: 'cook' },
+  { id: 'cooking', ing: 'cooking', takes: ['food'], actors: PEOPLE, wheres: ['indoor'], group: 'cook' },
+  { id: 'cleaning', ing: 'cleaning', takes: ['washable'], actors: PEOPLE, wheres: ['indoor'], group: 'clean' },
+  { id: 'drawing', ing: 'drawing', takes: ['paintable'], actors: PEOPLE, wheres: ['indoor'], group: 'draw' },
+  { id: 'carrying', ing: 'carrying', takes: ['pushable', 'throwable'], actors: PEOPLE, wheres: ANY_PLACE, group: 'move' },
+  { id: 'tasting', ing: 'tasting', takes: ['food', 'drink'], actors: WITH_BABY, wheres: ANY_PLACE, freeOnly: true },   // true of any eating or drinking picture
 ];
 const WHAT = [
   { id: 'apple', det: 'an', noun: 'apple', tags: ['food'], pic: 'apple' },
@@ -2043,19 +2185,41 @@ const WHAT = [
   { id: 'sandwich', det: 'a', noun: 'sandwich', tags: ['food'], pic: 'sandwich' },
   { id: 'cake', det: 'a', noun: 'cake', tags: ['food'], pic: 'cake' },
   { id: 'milk', det: '', mass: true, noun: 'milk', tags: ['drink'], pic: 'milk' },
-  { id: 'juice', det: '', mass: true, noun: 'juice', tags: ['drink'], pic: 'juice' },
+  { id: 'juice', group: 'juice', det: '', mass: true, noun: 'juice', tags: ['drink'], pic: 'juice' },
   { id: 'water', det: '', mass: true, noun: 'water', tags: ['drink'], pic: 'water' },
-  { id: 'book', det: 'a', noun: 'book', tags: ['readable'], pic: 'book' },
-  { id: 'bike', det: 'a', noun: 'bike', tags: ['rideable'], pic: 'bike' },
+  { id: 'book', group: 'reading', det: 'a', noun: 'book', tags: ['readable'], pic: 'book' },
+  { id: 'bike', group: 'wheels', det: 'a', noun: 'bike', tags: ['rideable'], pic: 'bike' },
   { id: 'scooter', det: 'a', noun: 'scooter', tags: ['rideable'], pic: 'scooter' },
-  { id: 'ball', det: 'a', noun: 'ball', tags: ['kickable', 'throwable'], pic: 'ball' },
-  { id: 'pram', det: 'a', noun: 'pram', tags: ['pushable'], pic: 'pram' },
+  { id: 'ball', group: 'ball', det: 'a', noun: 'ball', tags: ['kickable', 'throwable'], pic: 'ball' },
+  { id: 'pram', group: 'pushchair', det: 'a', noun: 'pram', tags: ['pushable'], pic: 'pram' },
   { id: 'swing', det: 'a', noun: 'swing', tags: ['pushable'], pic: 'swing' },
   { id: 'picture', det: 'a', noun: 'picture', tags: ['paintable'], pic: 'picture' },
   { id: 'car', det: 'a', noun: 'car', tags: ['washable'], pic: 'car' },
   { id: 'plate', det: 'a', noun: 'plate', tags: ['washable'], pic: 'plate' },
   { id: 'teeth', det: '', mass: true, noun: 'teeth', tags: ['brushable'], pic: 'teeth' },
   { id: 'hair', det: '', mass: true, noun: 'hair', tags: ['brushable'], pic: 'hair' },
+  // v2, undrawn. a/an and mass nouns are checked by the validator.
+  { id: 'orange', pic: 'orange', det: 'an', noun: 'orange', tags: ['food'] }, { id: 'pear', pic: 'pear', det: 'a', noun: 'pear', tags: ['food'] },
+  { id: 'biscuit', pic: 'biscuit', det: 'a', noun: 'biscuit', tags: ['food'] }, { id: 'pizza', pic: 'pizza', det: 'a', noun: 'pizza', tags: ['food'] },
+  { id: 'icecream', pic: 'icecream', det: 'an', noun: 'ice cream', tags: ['food'] },
+  { id: 'cheese', pic: 'cheese', det: '', mass: true, noun: 'cheese', tags: ['food'] }, { id: 'toast', pic: 'toast', det: '', mass: true, noun: 'toast', tags: ['food'] },
+  { id: 'pasta', pic: 'pasta', det: '', mass: true, noun: 'pasta', tags: ['food'] }, { id: 'grapes', pic: 'grapes', det: '', mass: true, noun: 'grapes', tags: ['food'] },
+  { id: 'soup', pic: 'soup', det: '', mass: true, noun: 'soup', tags: ['food'] },
+  { id: 'tea', pic: 'tea', group: 'cup', det: '', mass: true, noun: 'tea', tags: ['drink'] }, { id: 'lemonade', pic: 'lemonade', det: '', mass: true, noun: 'lemonade', group: 'juice', tags: ['drink'] },
+  { id: 'comic', pic: 'comic', det: 'a', noun: 'comic', group: 'reading', tags: ['readable'] }, { id: 'map', pic: 'map', det: 'a', noun: 'map', tags: ['readable'] },
+  { id: 'magazine', pic: 'magazine', det: 'a', noun: 'magazine', group: 'reading', tags: ['readable'] }, { id: 'letter', pic: 'letter', det: 'a', noun: 'letter', tags: ['readable'] },
+  { id: 'trike', pic: 'trike', group: 'wheels', det: 'a', noun: 'trike', tags: ['rideable'] }, { id: 'skateboard', pic: 'skateboard', det: 'a', noun: 'skateboard', tags: ['rideable'] },
+  { id: 'bus', pic: 'bus', det: 'a', noun: 'bus', tags: ['rideable'] }, { id: 'train', pic: 'train', det: 'a', noun: 'train', tags: ['rideable'] },
+  { id: 'stone', pic: 'stone', det: 'a', noun: 'stone', tags: ['kickable', 'throwable'] }, { id: 'box', pic: 'box', det: 'a', noun: 'box', tags: ['kickable', 'pushable'] },
+  { id: 'frisbee', pic: 'frisbee', det: 'a', noun: 'frisbee', tags: ['throwable'] }, { id: 'stick', pic: 'stick', det: 'a', noun: 'stick', tags: ['throwable'] },
+  { id: 'snowball', pic: 'snowball', group: 'ball', det: 'a', noun: 'snowball', tags: ['throwable'] },
+  { id: 'trolley', pic: 'trolley', det: 'a', noun: 'trolley', tags: ['pushable'] }, { id: 'wheelbarrow', pic: 'wheelbarrow', det: 'a', noun: 'wheelbarrow', tags: ['pushable'] },
+  { id: 'door', pic: 'door', det: 'a', noun: 'door', tags: ['pushable', 'paintable'] },
+  { id: 'buggy', pic: 'buggy', det: 'a', noun: 'buggy', group: 'pushchair', tags: ['pushable'] },
+  { id: 'wall', pic: 'wall', det: 'a', noun: 'wall', tags: ['paintable'] }, { id: 'fence', pic: 'fence', det: 'a', noun: 'fence', tags: ['paintable'] },
+  { id: 'flower', pic: 'flower', det: 'a', noun: 'flower', tags: ['paintable'] }, { id: 'rainbow', pic: 'rainbow', det: 'a', noun: 'rainbow', tags: ['paintable'] },
+  { id: 'cup', pic: 'cup', group: 'cup', det: 'a', noun: 'cup', tags: ['washable'] }, { id: 'bowl', pic: 'bowl', det: 'a', noun: 'bowl', tags: ['washable'] },
+  { id: 'window', pic: 'window', det: 'a', noun: 'window', tags: ['washable'] },
 ];
 // Batch D. `group` marks tiles that look alike, so they are never offered as each other's wrong answer.
 const WHERE = [
@@ -2068,12 +2232,35 @@ const WHERE = [
   { id: 'shop', phrase: 'at the shop', tags: ['indoor'], group: 'building', pic: 'shop' },
   { id: 'kitchen', phrase: 'in the kitchen', tags: ['indoor'], group: 'room', pic: 'kitchen' },
   { id: 'bed', phrase: 'on the bed', tags: ['indoor'], group: 'room', pic: 'bed' },
+  // v2, undrawn. `group` = could also be true of a scene, so never offered as its wrong tile.
+  { id: 'playground', pic: 'playground', phrase: 'in the playground', tags: ['outdoor'], group: 'green' },
+  { id: 'forest', pic: 'forest', phrase: 'in the forest', tags: ['outdoor'], group: 'green' },
+  { id: 'farm', pic: 'farm', phrase: 'on the farm', tags: ['outdoor'], group: 'green' },
+  { id: 'hill', pic: 'hill', phrase: 'on the hill', tags: ['outdoor'], group: 'green' },
+  { id: 'zoo', phrase: 'at the zoo', tags: ['outdoor'] },
+  { id: 'street', pic: 'street', phrase: 'in the street', tags: ['outdoor'] },
+  { id: 'castle', pic: 'castle', phrase: 'at the castle', tags: ['outdoor'] },
+  { id: 'cave', pic: 'cave', phrase: 'in the cave', tags: ['outdoor'] },
+  { id: 'sea', pic: 'sea', phrase: 'in the sea', tags: ['water'], group: 'water' },
+  { id: 'bath', pic: 'bath', phrase: 'in the bath', tags: ['water', 'indoor'], group: 'water' },
+  { id: 'bedroom', pic: 'bedroom', phrase: 'in the bedroom', tags: ['indoor'], group: 'room' },
+  { id: 'space', phrase: 'in space', tags: ['outdoor'], group: 'space' },
+  { id: 'moon', phrase: 'on the moon', tags: ['outdoor'], group: 'space' },
 ];
 const DESCRIBE = [
   { id: 'big', word: 'big', opposite: 'small', pic: 'big' },
   { id: 'small', word: 'small', opposite: 'big', pic: 'small' },
   { id: 'happy', word: 'happy', opposite: 'sad', pic: 'happy' },
   { id: 'sad', word: 'sad', opposite: 'happy', pic: 'sad' },
+  // v2, undrawn pairs:
+  { id: 'fast', word: 'fast', opposite: 'slow' }, { id: 'slow', word: 'slow', opposite: 'fast' },
+  { id: 'hot', pic: 'hot', word: 'hot', opposite: 'cold' }, { id: 'cold', pic: 'cold', word: 'cold', opposite: 'hot' },
+  { id: 'tall', pic: 'tall', word: 'tall', opposite: 'short' }, { id: 'short', pic: 'short', word: 'short', opposite: 'tall' },
+  { id: 'loud', pic: 'loud', word: 'loud', opposite: 'quiet' }, { id: 'quiet', pic: 'quiet', word: 'quiet', opposite: 'loud' },
+  { id: 'wet', pic: 'wet', word: 'wet', opposite: 'dry' }, { id: 'dry', pic: 'dry', word: 'dry', opposite: 'wet' },
+  { id: 'giant', word: 'giant', opposite: 'tiny' }, { id: 'tiny', word: 'tiny', opposite: 'giant' },
+  { id: 'brave', word: 'brave', opposite: 'scared' }, { id: 'scared', word: 'scared', opposite: 'brave' },
+  { id: 'clean', word: 'clean', opposite: 'dirty' }, { id: 'dirty', word: 'dirty', opposite: 'clean' },
 ];
 const DATA = { who: WHO, doing: DOING, what: WHAT, where: WHERE, describe: DESCRIBE };
 
@@ -2164,6 +2351,10 @@ Object.assign(PERSON_POSES, {
   pushing: { head: [40, 22], torso: [42, 34, 28, 60], arms: 'M42 40L64 54', legs: [[36, 72, 44, 88], [22, 74, 12, 88]], side: true, prop: 'M64 46H90V84H64Z' },
   painting: { head: [36, 18], torso: [36, 30, 36, 58], arms: 'M36 36L52 40L62 34', legs: [[31, 74, 28, 88], [41, 74, 46, 88]], prop: 'M56 18H92V54H56ZM64 54L58 88M84 54L90 88', propD: 'M64 30q6-8 12 0t10 0' },
   washing: { head: [34, 18], torso: [34, 30, 34, 58], arms: 'M34 36L50 46L66 56', legs: [[29, 74, 26, 88], [39, 74, 44, 88]], prop: 'M56 56H90L86 86H60Z' + circ(62, 44, 5) + circ(76, 40, 4) },
+  dancing: { head: [48, 16], torso: [48, 28, 48, 56], arms: 'M48 34L26 22M48 34L70 44', legs: [[36, 70, 28, 84], [58, 66, 70, 76]] },
+  hopping: { head: [48, 16], torso: [48, 28, 48, 54], arms: 'M48 34L32 46M48 34L64 46', legs: [[44, 70, 46, 86], [62, 62, 76, 70]] },
+  waving: { head: [48, 18], torso: [48, 30, 48, 58], arms: 'M48 36L34 52M48 36L66 24L72 12', legs: STD_LEGS },
+  catching: { head: [44, 20], torso: [44, 32, 44, 58], arms: 'M44 38L64 28L72 22M44 38L62 44', legs: STD_LEGS, prop: circ(82, 20, 6) },
   brushing: { head: [48, 18], torso: [48, 30, 48, 58], arms: 'M48 36L60 38L62 22M48 36L34 52', legs: STD_LEGS, prop: 'M54 20H80', propD: 'M72 14v6M76 14v6M80 14v6', propDots: circ(70, 30, 2.5) + circ(80, 28, 2) },
 });
 
@@ -2239,6 +2430,29 @@ function animalPic(species, pose, label) {
     line += 'M' + pt(hx + 6, hy - 3) + 'H' + r1(hx + 16) + 'Q' + pt(hx + 20, hy + 5) + ' ' + pt(hx + 15, hy + 12) + 'H' + r1(hx + 5) + 'M' + pt(hx - 3, hy - 8) + 'L' + pt(hx - 1, hy - 18) + 'L' + pt(hx + 5, hy - 9);
     detail += 'M' + pt(hx - 7, hy - 5) + 'Q' + pt(hx - 14, hy + 6) + ' ' + pt(hx - 9, hy + 16) + 'M' + pt(hx - 3, hy - 8) + 'Q' + pt(hx - 8, hy + 4) + ' ' + pt(hx - 4, hy + 14);
     dots += circ(hx + 15, hy + 3, 2);
+  } else if (species === 'pig') {
+    line += circ(hx + 12, hy + 2, 5) + 'M' + pt(hx - 7, hy - 6) + 'L' + pt(hx - 11, hy - 15) + 'L' + pt(hx - 1, hy - 9);
+    dots += circ(hx + 11, hy + 2, 1.2) + circ(hx + 14, hy + 2, 1.2);
+  } else if (species === 'cow') {
+    line += 'M' + pt(hx - 6, hy - 8) + 'Q' + pt(hx - 10, hy - 16) + ' ' + pt(hx - 6, hy - 18) + 'M' + pt(hx + 4, hy - 8) + 'Q' + pt(hx + 8, hy - 16) + ' ' + pt(hx + 4, hy - 18) + 'M' + pt(hx + 6, hy) + 'H' + r1(hx + 16) + 'V' + r1(hy + 9) + 'H' + r1(hx + 6);
+    if (pose === 'standing') dots += circ(36, 46, 5) + circ(52, 50, 4);
+  } else if (species === 'sheep') {
+    line += circ(34, 42, 10) + circ(48, 38, 10) + circ(60, 44, 9) + 'M' + pt(hx - 8, hy - 2) + 'Q' + pt(hx - 14, hy + 4) + ' ' + pt(hx - 8, hy + 8);
+  } else if (species === 'mouse') {
+    line += circ(hx - 4, hy - 11, 6) + circ(hx + 6, hy - 11, 6);
+    detail += 'M' + pt(hx + 9, hy + 3) + 'h9M' + pt(hx + 9, hy + 6) + 'l8 3';
+    dots += circ(hx + 9, hy + 2, 2);
+  } else if (species === 'monkey') {
+    line += circ(hx - 10, hy, 5) + circ(hx + 8, hy + 4, 5);
+    detail += 'M26 44Q8 44 10 26Q14 16 24 22';
+  } else if (species === 'lion') {
+    line += circ(hx, hy, 15);
+    dots += circ(14, 28, 3);
+  } else if (species === 'tiger') {
+    line += 'M' + pt(hx - 8, hy - 4) + 'L' + pt(hx - 8, hy - 17) + 'L' + pt(hx - 1, hy - 8) + 'M' + pt(hx + 1, hy - 8) + 'L' + pt(hx + 8, hy - 17) + 'L' + pt(hx + 8, hy - 4);
+    if (pose === 'standing') detail += 'M36 36V46M44 34V48M52 34V48M60 36V46';
+  } else if (species === 'elephant') {
+    line += circ(hx - 8, hy + 2, 11) + 'M' + pt(hx + 8, hy + 2) + 'Q' + pt(hx + 22, hy + 2) + ' ' + pt(hx + 18, hy + 22);
   }
   if (!D.closed) dots += circ(hx + 2, hy - 2, 1.8);
   return { label: label || species + ' ' + pose, line, detail, dots };
@@ -2256,6 +2470,23 @@ const PICTURES = {
   rabbit: animalPic('rabbit', 'standing', 'rabbit'),
   mum: personPic('standing', 'mum', 'Mum'),
   dad: personPic('standing', 'dad', 'Dad'),
+  // v2 animals and poses
+  pig: animalPic('pig', 'standing', 'pig'),
+  cow: animalPic('cow', 'standing', 'cow'),
+  sheep: animalPic('sheep', 'standing', 'sheep'),
+  mouse: animalPic('mouse', 'standing', 'mouse'),
+  monkey: animalPic('monkey', 'standing', 'monkey'),
+  lion: animalPic('lion', 'standing', 'lion'),
+  tiger: animalPic('tiger', 'standing', 'tiger'),
+  elephant: animalPic('elephant', 'standing', 'elephant'),
+  bird: { label: 'bird', line: 'M18 54Q22 34 46 36Q64 38 68 54Q66 72 42 74Q20 72 18 54ZM78 32' + circ(68, 32, 10) + 'M78 30L92 34L78 38M18 54L6 44M18 54L8 62M44 74V86M54 74V86', detail: 'M32 52Q44 44 56 54', dots: circ(70, 30, 2) },
+  duck: { label: 'duck', line: 'M12 52Q16 42 38 42Q56 42 64 54Q76 56 74 66Q70 80 42 80Q14 80 12 62ZM76 34' + circ(66, 34, 10) + 'M62 44V54M74 34Q90 32 90 40Q82 42 74 40', detail: 'M26 62Q40 56 54 64', dots: circ(68, 31, 2) },
+  fish: { label: 'fish', line: 'M10 48Q30 22 62 34Q76 40 80 48Q76 56 62 62Q30 74 10 48ZM80 48L92 36V60Z', detail: 'M52 38Q58 48 52 58M34 60Q42 66 50 62', dots: circ(26, 44, 2.5) },
+  frog: { label: 'frog', line: 'M20 70Q20 48 48 48Q76 48 76 70Q76 84 48 84Q20 84 20 70Z' + circ(36, 42, 8) + circ(60, 42, 8) + 'M20 76L10 88H26M76 76L86 88H70', detail: 'M34 68Q48 76 62 68', dots: circ(36, 42, 2.5) + circ(60, 42, 2.5) },
+  dancing: personPic('dancing', null, 'dancing'),
+  hopping: personPic('hopping', null, 'hopping'),
+  waving: personPic('waving', null, 'waving'),
+  catching: personPic('catching', null, 'catching'),
   // doing (a neutral figure mid-action, with a small item where the action needs one)
   jumping: personPic('jumping', null, 'jumping'),
   running: personPic('running', null, 'running'),
@@ -2296,6 +2527,43 @@ const PICTURES = {
   plate: { label: 'plate', line: circ(44, 56, 32) + circ(44, 56, 20), detail: '', dots: circ(78, 18, 6) + circ(90, 32, 3.5) + circ(68, 8, 3) },
   teeth: { label: 'teeth', line: 'M8 38Q48 80 88 38Q48 50 8 38Z', detail: 'M24 43V56M36 47V62M48 49V64M60 47V62M72 43V56' },
   hair: { label: 'hair', line: 'M24 14Q48 4 72 14M30 16Q10 50 24 86M48 14Q36 50 46 86M66 16Q54 50 72 86', detail: 'M20 24h56' },
+  // v2 objects (what)
+  orange: { label: 'orange', line: circ(48, 54, 30) + 'M46 24Q50 10 68 12Q64 28 46 24Z', detail: 'M36 46q4-6 10-6', dots: circ(48, 62, 2.5) },
+  pear: { label: 'pear', line: 'M48 14C56 14 58 24 56 32C70 40 78 56 76 68C74 82 62 88 48 88C34 88 22 82 20 68C18 56 26 40 40 32C38 24 40 14 48 14Z', detail: 'M48 14L50 6M52 12Q62 8 68 14' },
+  biscuit: { label: 'biscuit', line: circ(48, 48, 34), detail: '', dots: circ(36, 36, 3.5) + circ(58, 38, 3.5) + circ(44, 56, 3.5) + circ(62, 58, 3.5) + circ(30, 54, 3) },
+  pizza: { label: 'pizza', line: 'M10 26Q48 8 86 26L48 88Z', detail: 'M16 36Q48 20 80 36', dots: circ(40, 46, 5) + circ(58, 42, 5) + circ(48, 64, 5) },
+  icecream: { label: 'ice cream', line: 'M30 50L48 90L66 50M26 50C22 34 32 22 48 22C64 22 74 34 70 50Z', detail: 'M38 58L56 76M58 58L40 76', dots: circ(48, 12, 5) },
+  cheese: { label: 'cheese', line: 'M8 58L84 28V80H8Z', detail: 'M8 58H84', dots: circ(30, 70, 5) + circ(58, 64, 5) + circ(70, 48, 4) },
+  toast: { label: 'toast', line: 'M16 84V46C6 42 8 16 30 16H66C88 16 90 42 80 46V84Z', detail: 'M28 74V50C20 44 22 30 34 28H62' },
+  pasta: { label: 'pasta', line: 'M10 52H86Q84 82 48 84Q12 82 10 52Z', detail: 'M22 52Q26 30 40 40T58 34T76 44M32 50Q38 24 54 32T76 38' },
+  grapes: { label: 'grapes', line: circ(32, 38, 9) + circ(52, 38, 9) + circ(72, 38, 9) + circ(42, 58, 9) + circ(62, 58, 9) + circ(52, 78, 9), detail: 'M52 29V14Q62 10 70 16' },
+  soup: { label: 'soup', line: 'M10 52H86Q84 82 48 84Q12 82 10 52Z', detail: 'M32 42q-6-8 0-14M48 42q-6-8 0-14M64 42q-6-8 0-14' },
+  tea: { label: 'tea', line: 'M16 38H64L60 76Q58 84 48 84H32Q22 84 20 76ZM64 46H72Q84 46 84 56Q84 66 70 66H62M10 88H70', detail: 'M30 30q-5-7 0-12M46 30q-5-7 0-12' },
+  lemonade: { label: 'lemonade', line: 'M40 8H56V22Q70 30 70 44V88H26V44Q26 30 40 22Z', detail: 'M26 54H70V74H26ZM38 62H58', dots: circ(48, 40, 4) },
+  comic: { label: 'comic', line: 'M12 14H84V82H12Z', detail: 'M20 22H54V44H46L40 52V44H20ZM60 30H76M60 38H76M20 58H76V74H20Z' },
+  map: { label: 'map', line: 'M8 24L32 14L64 24L88 14V72L64 82L32 72L8 82Z', detail: 'M32 14V72M64 24V82M44 42l10 10M54 42l-10 10' },
+  magazine: { label: 'magazine', line: 'M20 10H76V86H20Z', detail: 'M28 20H68M28 30H46M52 30H68V52H52ZM28 42H46M28 52H46M28 64H68M28 74H68' },
+  letter: { label: 'letter', line: 'M10 24H86V72H10Z', detail: 'M10 24L48 54L86 24' },
+  trike: { label: 'trike', line: circ(68, 66, 18) + circ(20, 78, 9) + circ(38, 78, 9) + 'M68 66L58 36M48 36H70M20 78H38M38 78L52 48H60', detail: '' },
+  skateboard: { label: 'skateboard', line: 'M6 40Q10 52 20 52H76Q86 52 90 40M26 62V52M70 62V52' + circ(26, 70, 8) + circ(70, 70, 8), detail: '' },
+  bus: { label: 'bus', line: 'M8 22H78Q88 22 88 34V70H8Z' + circ(28, 72, 9) + circ(68, 72, 9), detail: 'M14 30H32V46H14ZM38 30H58V46H38ZM64 30H82V46H64Z' },
+  train: { label: 'train', line: 'M8 40H60V76H8ZM60 52H88V76H60ZM14 40V26H38V40ZM20 26V14H32V26' + circ(24, 82, 6) + circ(48, 82, 6) + circ(74, 82, 6), detail: 'M20 48H38V62H20Z' },
+  stone: { label: 'stone', line: 'M12 72L20 44L44 28L72 36L86 58L76 76Z', detail: 'M44 28L48 52L20 44M48 52L76 76' },
+  box: { label: 'box', line: 'M12 34L48 20L84 34V74L48 88L12 74Z', detail: 'M12 34L48 48L84 34M48 48V88' },
+  frisbee: { label: 'frisbee', line: 'M8 52Q8 36 48 36Q88 36 88 52Q88 66 48 66Q8 66 8 52Z', detail: 'M20 52Q48 62 76 52' },
+  stick: { label: 'stick', line: 'M14 82L82 14', detail: 'M46 50L30 44M62 34L74 42M30 66L20 56' },
+  snowball: { label: 'snowball', line: circ(48, 56, 30), detail: 'M70 18v10M65 23h10M22 22v8M18 26h8M84 44v6M81 47h6' },
+  trolley: { label: 'trolley', line: 'M6 14H22L28 64H76M20 26H86L78 56H28' + circ(34, 78, 6) + circ(70, 78, 6), detail: 'M38 26L40 56M52 26V56M68 26L66 56' },
+  wheelbarrow: { label: 'wheelbarrow', line: 'M28 28H80L68 60H40ZM80 28L92 20' + circ(20, 72, 12) + 'M68 60L74 86M40 60L38 86', detail: 'M40 28L46 60M58 28V60' },
+  door: { label: 'door', line: 'M26 88V12H70V88ZM8 88H88', detail: 'M34 22H62V44H34ZM34 54H62V78H34Z', dots: circ(60, 52, 3.5) },
+  buggy: { label: 'buggy', line: 'M26 34Q26 56 48 56H72V30M26 34Q48 8 72 30M72 56L86 22H94M32 56L24 84M70 56L74 84' + circ(24, 86, 5) + circ(74, 86, 5), detail: '' },
+  wall: { label: 'wall', line: 'M8 20H88V80H8Z', detail: 'M8 40H88M8 60H88M28 20V40M58 20V40M18 40V60M48 40V60M78 40V60M28 60V80M58 60V80' },
+  fence: { label: 'fence', line: 'M14 30L22 20L30 30V84H14ZM38 30L46 20L54 30V84H38ZM62 30L70 20L78 30V84H62Z', detail: 'M8 46H88M8 66H88' },
+  flower: { label: 'flower', line: 'M48 50V90M48 74Q34 70 30 58Q44 58 48 74' + circ(48, 34, 6) + circ(48, 16, 8) + circ(64, 26, 8) + circ(58, 46, 8) + circ(38, 46, 8) + circ(32, 26, 8), detail: '' },
+  rainbow: { label: 'rainbow', line: 'M8 80A40 40 0 0 1 88 80M20 80A28 28 0 0 1 76 80M32 80A16 16 0 0 1 64 80', detail: 'M4 88h22M70 88h22' },
+  cup: { label: 'cup', line: 'M22 28H68L64 76Q62 84 52 84H38Q28 84 26 76ZM68 36H76Q86 36 86 46Q86 56 74 58', detail: 'M26 40H66' },
+  bowl: { label: 'bowl', line: 'M12 40H84Q82 80 48 82Q14 80 12 40Z', detail: 'M20 54H76' },
+  window: { label: 'window', line: 'M14 14H82V82H14ZM6 86H90', detail: 'M48 14V82M14 48H82' },
   // where
   park: { label: 'park', line: 'M48 90V56 M48 12a26 26 0 1 0 0 52a26 26 0 1 0 0-52Z', detail: 'M20 90H76 M48 56L36 44 M48 56L60 40' },
   garden: { label: 'garden', line: 'M8 90H88M8 62H88M8 76H88M18 90V54M42 90V54M66 90V54M86 90V54M30 56V24M70 52V34', detail: '', dots: circ(30, 16, 7) + circ(70, 28, 6) },
@@ -2306,11 +2574,31 @@ const PICTURES = {
   shop: { label: 'shop', line: 'M10 86V38H86V86ZM6 38L14 20H82L90 38ZM38 86V58H58V86', detail: 'M6 38q8 8 16 0t16 0t16 0t16 0t16 0M30 28H66' },
   kitchen: { label: 'kitchen', line: 'M12 90V46H84V90ZM28 46V30H64V46M22 62H74V84H22Z', detail: 'M38 24q-4-6 0-12M54 24q-4-6 0-12', dots: circ(20, 52, 3) + circ(76, 52, 3) },
   bed: { label: 'bed', line: 'M8 84V30M8 62H88V84M14 50Q14 42 24 42H36Q44 42 44 50V62H14Z', detail: 'M50 62V54Q70 48 88 54' },
+  // v2 places (where)
+  farm: { label: 'farm', line: 'M14 88V48L48 24L82 48V88ZM36 88V60H60V88ZM36 60L60 88M60 60L36 88', detail: 'M40 40H56' },
+  forest: { label: 'forest', line: 'M26 26L8 56H44ZM26 56L6 76H46ZM26 76V90M68 12L48 46H88ZM68 46L46 72H90ZM68 72V90', detail: '' },
+  hill: { label: 'hill', line: 'M4 88Q30 28 56 52T92 88Z' + circ(74, 24, 9), detail: 'M74 8v5M88 14l-4 4M92 26h-5M60 14l4 4' },
+  sea: { label: 'sea', line: 'M22 62H74L64 76H32ZM48 62V12L72 54H48', detail: 'M6 86q9-8 18 0t18 0t18 0t18 0t18 0' },
+  bath: { label: 'bath', line: 'M8 50H88V64Q88 80 70 80H26Q8 80 8 64ZM22 80V88M74 80V88M16 50V30Q16 22 24 22H32', detail: '', dots: circ(48, 38, 6) + circ(62, 30, 5) + circ(70, 42, 4) },
+  bedroom: { label: 'bedroom', line: 'M52 10H90V46H52ZM6 86V58M6 74H62V86M12 66Q12 60 20 60H28Q34 60 34 66V74', detail: 'M71 10V46M52 28H90' },
+  playground: { label: 'playground', line: 'M16 90V20H40V90M40 28L82 84H94', detail: 'M16 40H40M16 56H40M16 72H40' },
+  castle: { label: 'castle', line: 'M10 88V30H24V38H34V30H46V38H54V30H66V38H76V30H88V88ZM40 88V64Q48 52 56 64V88', detail: 'M48 30V12L62 18L48 24' },
+  street: { label: 'street', line: 'M8 86V52H36V86M6 52L22 36L38 52M54 86V46H88V86M52 46L70 30L90 46M4 90H92', detail: 'M16 62H28V74H16ZM62 56H80V70H62Z' },
+  cave: { label: 'cave', line: 'M4 88L32 32L48 52L68 20L94 88ZM36 88Q36 64 50 62Q64 64 64 88', detail: 'M44 40l6 6' },
   // describe
   big: { label: 'big', line: 'M8 18H60V70H8Z', detail: 'M70 56H88V74H70Z' },
   small: { label: 'small', line: 'M70 56H88V74H70Z', detail: 'M8 18H60V70H8Z' },
   happy: { label: 'happy', line: circ(48, 48, 34), detail: 'M30 54Q48 76 66 54', dots: circ(36, 38, 3.5) + circ(60, 38, 3.5) },
   sad: { label: 'sad', line: circ(48, 48, 34), detail: 'M32 68Q48 52 64 68', dots: circ(36, 38, 3.5) + circ(60, 38, 3.5) + 'M72 50q-5 9 0 14q5-5 0-14Z' },
+  // v2 describing pairs
+  hot: { label: 'hot', line: 'M48 10C60 28 78 40 76 62C74 80 62 88 48 88C34 88 22 80 20 62C18 48 30 40 34 28C40 36 44 30 48 10Z', detail: 'M48 52C54 62 60 68 58 76C56 82 40 82 38 74C38 66 46 62 48 52Z' },
+  cold: { label: 'cold', line: 'M48 8V88M14 28L82 68M14 68L82 28', detail: 'M38 18L48 28L58 18M38 78L48 68L58 78' },
+  wet: { label: 'wet', line: 'M48 10C48 10 22 42 22 62A26 26 0 0 0 74 62C74 42 48 10 48 10Z', detail: 'M36 62A12 12 0 0 0 46 74' },
+  dry: { label: 'dry', line: 'M6 66H90' + circ(48, 34, 12), detail: 'M48 10v8M72 16l-6 6M24 16l6 6M86 34h-8M10 34h8M18 66L26 76L18 82L26 90M46 66L38 74L48 80L40 90M72 66L80 74L70 82L78 90' },
+  loud: { label: 'loud', line: 'M8 36H26L46 18V78L26 60H8Z', detail: 'M58 36Q68 48 58 60M66 26Q84 48 66 70M74 16Q94 48 74 80' },
+  quiet: { label: 'quiet', line: 'M8 36H26L46 18V78L26 60H8Z', detail: 'M58 42Q64 48 58 54M68 20h12l-12 12h12M76 40h8l-8 8h8' },
+  tall: { label: 'tall', line: 'M38 6H58V90H38Z', detail: 'M68 62H80V90H68Z' },
+  short: { label: 'short', line: 'M68 62H80V90H68Z', detail: 'M38 6H58V90H38Z' },
 };
 // END_PICTURES
 
@@ -2407,6 +2695,12 @@ function sceneIsDrawn(scene) { return !!sceneArt(scene.picture || {}); }
 
 const GAME_ID = 'sentence-blocks';
 const SLOT_LABEL = { describe: 'Describe', who: 'Who?', doing: 'What doing?', what: 'What?', where: 'Where?' };
+const HELP_TEXT = {
+  pictures: ['Pictures + colours', 'Drawings and colours help'],
+  colours: ['Colours only', 'Colours help, no drawings'],
+  words: ['Words only', 'Just the words'],
+};
+const LENGTH_TEXT = { 3: 'Beginning, middle, end', 5: 'A short story', 10: 'A long story' };
 const $ = (id) => document.getElementById(id);
 const sfx = (n) => { if (window.KidsGames) window.KidsGames.sfx(n); };
 const say = (t) => { if (window.KidsGames) window.KidsGames.say(t); };
@@ -2428,7 +2722,7 @@ function loadSaved() {
   renderSettings();
 }
 function persist() { if (window.KidsGames) window.KidsGames.saveGameData(GAME_ID, save); }
-function showScreen(id) { for (const s of ['sb-settings', 'sb-board', 'sb-done']) $(s).hidden = s !== id; }
+function showScreen(id) { for (const s of ['sb-settings', 'sb-board', 'sb-done', 'sb-story']) $(s).hidden = s !== id; }
 
 // ===== SETTINGS =====
 function squaresHtml(on, total) {
@@ -2449,6 +2743,16 @@ function renderSettings() {
       (locked ? ' aria-disabled="true"' : '') + '><span class="sb-opt__name">Stage ' + st.id + (locked ? ICON_LOCK : '') + '</span>' +
       '<small>' + st.name + '</small><span class="sb-pills">' + pills + '</span>' + prog + '</button>';
   }).join('');
+  $('sb-help-row').innerHTML = HELP_LEVELS.map((h) => {
+    const pic = h === 'pictures' ? '<span class="sb-mini__pic">' + pictureSvg('dog') + '</span>' : '';
+    const mini = '<span class="sb-mini' + (h === 'words' ? ' sb-mini--plain' : '') + '" aria-hidden="true">' + pic + '<span class="sb-mini__word">The dog</span></span>';
+    return '<button type="button" class="kg-seg__opt sb-opt sb-help" data-help="' + h + '" aria-pressed="' + String(h === save.help) + '">' + mini +
+      '<span class="sb-opt__name">' + HELP_TEXT[h][0] + '</span><small>' + HELP_TEXT[h][1] + '</small></button>';
+  }).join('');
+  $('sb-length-set').hidden = save.mode !== 'story';
+  $('sb-length-row').innerHTML = STORY_LENGTHS.map((n) =>
+    '<button type="button" class="kg-seg__opt sb-opt sb-length" data-length="' + n + '" aria-label="' + n + ' sentences, ' + LENGTH_TEXT[n] + '" aria-pressed="' + String(n === save.storyLength) + '">' +
+    '<span class="sb-opt__name">' + n + '</span><small>sentences: ' + LENGTH_TEXT[n] + '</small></button>').join('');
 }
 
 // ===== A SESSION: five sentences =====
@@ -2456,20 +2760,31 @@ function startSession() {
   save.stage = clampStage(save);
   const scenes = save.mode === 'scene' ? pickScenes(SCENES, save.stage, TARGET_SENTENCES, save.recent) : [];
   if (save.mode === 'scene' && !scenes.length) { say('There are no pictures for this stage yet.'); return; }
-  session = { mode: save.mode, stage: save.stage, scenes, index: 0, done: 0, startUnlocked: unlockedStage(save) };
+  const story = save.mode === 'story';
+  session = { mode: save.mode, stage: save.stage, help: save.help, scenes, index: 0, done: 0, target: story ? save.storyLength : TARGET_SENTENCES, sentences: [], startUnlocked: unlockedStage(save) };
+  $('sb-app').dataset.help = session.help;
   showScreen('sb-board');
   nextRound();
 }
 function nextRound() {
-  round = session.mode === 'scene' ? buildSceneRound(DATA, session.scenes[session.index]) : buildSillyRound(DATA, session.stage);
+  const bank = bankFor(DATA, session.help, session.mode);
+  round = session.mode === 'scene' ? buildSceneRound(bank, session.scenes[session.index])
+    : session.mode === 'story' ? buildStoryRound(bank, session.stage, session.index, session.target)
+    : buildSillyRound(bank, session.stage);
   held = null;
   shownScene = null;
   renderBoard();
   const first = $('sb-tray').querySelector('.sb-tile');
   if (first) first.focus();
 }
+function renderStory() {
+  $('sb-book').innerHTML = session.sentences.map((parts) =>
+    '<p class="sb-book__line">' + parts.map((p) => '<span class="sb-w sb-w--' + (p.slot || 'join') + '">' + p.text + '</span>').join(' ') + '</p>').join('');
+  say(session.sentences.map((parts) => parts.map((p) => p.text).join(' ')).join(' '));
+}
 function finishSession() {
   if (window.KidsGames) window.KidsGames.recordSession(GAME_ID);
+  if (session.mode === 'story') { renderStory(); showScreen('sb-story'); $('sb-story-again').focus(); return; }
   $('sb-done-title').textContent = 'You built ' + session.done + ' sentences!';
   $('sb-done-squares').innerHTML = squaresHtml(session.done, session.done);
   $('sb-done-squares').setAttribute('aria-label', session.done + ' sentences built');
@@ -2482,7 +2797,7 @@ function finishSession() {
 }
 
 // ===== THE BOARD =====
-const picsOf = (tile) => pictureSvg(tile.pic) + (tile.plural ? pictureSvg(tile.pic) : '');
+const picsOf = (tile) => (session && session.help !== 'pictures') || !tile.pic ? '' : pictureSvg(tile.pic) + (tile.plural ? pictureSvg(tile.pic) : '');
 const slotButton = (k) => $('sb-slots').querySelector('[data-slot="' + k + '"]');
 const picks = () => Object.fromEntries(round.slots.map((k) => [k, tileOf(DATA, k, round.placed[k])]));
 
@@ -2498,14 +2813,19 @@ function tileHtml(t) {
     '<span class="sb-tile__word">' + tileText(t.slot, tile) + '</span><span class="sb-tile__cross" aria-hidden="true">' + ICON_CROSS + '</span></button>';
 }
 function renderBoard() {
-  $('sb-progress').innerHTML = squaresHtml(session.done, TARGET_SENTENCES);
-  $('sb-progress').setAttribute('aria-label', session.done + ' of ' + TARGET_SENTENCES + ' sentences built');
+  $('sb-progress').innerHTML = squaresHtml(session.done, session.target);
+  $('sb-progress').setAttribute('aria-label', session.done + ' of ' + session.target + ' sentences built');
   $('sb-slots').style.setProperty('--n', round.slots.length);
   $('sb-slots').innerHTML = round.slots.map(slotHtml).join('');
   $('sb-tray').innerHTML = round.tray.map(tileHtml).join('');
   $('sb-sentence').hidden = true;
   $('sb-sentence').innerHTML = '';
   $('sb-next').hidden = true;
+  $('sb-end').hidden = true;
+  const h = $('sb-heading');
+  h.hidden = round.mode !== 'story';
+  h.textContent = round.mode === 'story' ? round.heading : '';
+  if (round.mode === 'story') say(round.heading);
   syncBoard();
 }
 function renderPicture() {
@@ -2517,14 +2837,18 @@ function renderPicture() {
       el.setAttribute('aria-label', 'A picture to describe');
       shownScene = round.scene.id;
     }
+    el.hidden = false;
     return;
   }
+  el.hidden = session.help !== 'pictures';
   shownScene = null;
   el.removeAttribute('role');
   el.removeAttribute('aria-label');
   el.setAttribute('aria-hidden', 'true');
   el.innerHTML = round.slots.map((k) => round.placed[k]
-    ? '<span class="sb-scene__pic">' + picsOf(tileOf(DATA, k, round.placed[k])) + '</span>' : '<span class="sb-scene__gap"></span>').join('');
+    ? (picsOf(tileOf(DATA, k, round.placed[k])) ? '<span class="sb-scene__pic">' + picsOf(tileOf(DATA, k, round.placed[k])) + '</span>'
+      : '<span class="sb-scene__word">' + tileText(k, tileOf(DATA, k, round.placed[k])) + '</span>')
+    : '<span class="sb-scene__gap"></span>').join('');
 }
 // Redraw everything that depends on what is placed or held.
 function syncBoard() {
@@ -2585,7 +2909,7 @@ function drop(slot) {
   sfx('mismatch');
   bounce(tile);
   syncBoard();
-  say(result === 'wrong-slot' ? 'That one goes in a different colour.' : 'Not that one. Try another.');
+  say(result === 'wrong-slot' ? (session.help === 'words' ? 'That one goes in a different slot.' : 'That one goes in a different colour.') : 'Not that one. Try another.');
   const back = $('sb-tray').querySelector('[data-slot="' + tile.slot + '"][data-id="' + tile.id + '"]');
   if (back && !back.disabled) back.focus();
 }
@@ -2601,11 +2925,12 @@ function afterPlace() {
     save = recordSentence(save, round);
     session.done++;
     persist();
-    $('sb-progress').innerHTML = squaresHtml(session.done, TARGET_SENTENCES);
-    $('sb-progress').setAttribute('aria-label', session.done + ' of ' + TARGET_SENTENCES + ' sentences built');
+    $('sb-progress').innerHTML = squaresHtml(session.done, session.target);
+    $('sb-progress').setAttribute('aria-label', session.done + ' of ' + session.target + ' sentences built');
   }
   $('sb-next').hidden = false;
-  $('sb-next-label').textContent = session.done >= TARGET_SENTENCES ? 'Finish' : 'Next';
+  $('sb-next-label').textContent = session.done >= session.target ? 'Finish' : 'Next';
+  $('sb-end').hidden = !(session.mode === 'story' && canEndEarly(session.done, session.target));
   if (document.activeElement === document.body || !document.activeElement.closest('#sb-tray')) $('sb-next').focus();
 }
 
@@ -2625,10 +2950,18 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && held && !$('sb-board').hidden) { held = null; say('Put down.'); syncBoard(); }
 });
 $('sb-next').addEventListener('click', () => {
-  if (session.done >= TARGET_SENTENCES) { finishSession(); return; }
+  if (session.mode === 'story') session.sentences[session.index] = sentenceParts(picks());
+  if (session.done >= session.target) { finishSession(); return; }
   session.index++;
   nextRound();
 });
+$('sb-end').addEventListener('click', () => {
+  session.sentences[session.index] = sentenceParts(picks());
+  session.sentences.length = session.index + 1;   // only the sentences built so far
+  finishSession();
+});
+$('sb-story-again').addEventListener('click', startSession);
+$('sb-story-choose').addEventListener('click', () => { renderSettings(); showScreen('sb-settings'); $('sb-play-btn').focus(); });
 $('sb-stop').addEventListener('click', () => { renderSettings(); showScreen('sb-settings'); $('sb-play-btn').focus(); });
 $('sb-play-btn').addEventListener('click', startSession);
 $('sb-again').addEventListener('click', startSession);
@@ -2651,6 +2984,24 @@ $('sb-stage-row').addEventListener('click', (e) => {
   sfx('tap');
   renderSettings();
   $('sb-stage-row').querySelector('[data-stage="' + save.stage + '"]').focus();
+});
+$('sb-help-row').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-help]');
+  if (!b) return;
+  save.help = b.dataset.help;
+  persist();
+  sfx('tap');
+  renderSettings();
+  $('sb-help-row').querySelector('[data-help="' + save.help + '"]').focus();
+});
+$('sb-length-row').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-length]');
+  if (!b) return;
+  save.storyLength = Number(b.dataset.length);
+  persist();
+  sfx('tap');
+  renderSettings();
+  $('sb-length-row').querySelector('[data-length="' + save.storyLength + '"]').focus();
 });
 
 // ===== START =====
