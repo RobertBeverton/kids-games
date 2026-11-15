@@ -13,7 +13,7 @@ if (!out) { console.error('usage: contact-sheet.mjs <out.html> [<out.png>]'); pr
 const css = fs.readFileSync(new URL('../css/style.css', import.meta.url), 'utf8');
 const tokens = fs.readFileSync(new URL('../../../shared/tokens.css', import.meta.url), 'utf8').replace(/url\(fonts\/[^)]*\)/g, 'local(sans-serif)');
 const cell = (slot, t) => `<figure class="cs sb-tile--${slot}"><div class="cs-pic">${pictureSvg(t.pic)}</div><figcaption>${tileText(slot, t)}<br><small>${t.pic}</small></figcaption></figure>`;
-const sections = SLOT_ORDER.map((slot) => `<h2>${slot}</h2><div class="cs-row">${DATA[slot].map((t) => cell(slot, t)).join('')}</div>`).join('');
+const sections = SLOT_ORDER.map((slot) => `<h2>${slot}</h2><div class="cs-row">${DATA[slot].filter((t) => t.pic).map((t) => cell(slot, t)).join('')}</div>`).join('');
 const glyphs = Object.keys(SLOT_GLYPHS).map((k) => `<figure class="cs"><div class="cs-pic">${pictureSvg(k)}</div><figcaption>${k}</figcaption></figure>`).join('');
 // Scenes the figure system can draw, each beside the tray a child would see (only tiles that have a drawing, so a missing
 // picture cannot hide a problem). The right tile is marked RIGHT.
