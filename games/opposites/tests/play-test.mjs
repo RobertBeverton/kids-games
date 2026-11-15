@@ -1,3 +1,4 @@
+// (CI check: touching only this file should trigger only the Opposites browser job.)
 // Built-page proof for Opposites: plays the BUILT page (docs/opposites.html) in a real browser.
 //
 //   bash build.sh
