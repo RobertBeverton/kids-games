@@ -209,7 +209,7 @@ describe('saved data', () => {
   });
   it('keeps good values', () => {
     const s = normaliseSave({ mode: 'silly', stage: 2, done: { 1: 6, 2: 1, 3: 0 }, recent: ['a'] });
-    assert.deepEqual(s, { v: 1, mode: 'silly', stage: 2, done: { 1: 6, 2: 1, 3: 0 }, recent: ['a'] });
+    assert.deepEqual(s, { v: 1, mode: 'silly', stage: 2, help: 'pictures', storyLength: 5, done: { 1: 6, 2: 1, 3: 0 }, recent: ['a'] });
   });
   it('stages unlock in order after UNLOCK_AT finished sentences', () => {
     const at = (a, b, c) => unlockedStage(normaliseSave({ done: { 1: a, 2: b, 3: c } }));

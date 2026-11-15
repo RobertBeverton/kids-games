@@ -8,6 +8,9 @@ export const UNLOCK_AT = 5;         // finished describe-the-picture sentences t
 export const SAVE_VERSION = 1;
 export const RECENT_KEEP = TARGET_SENTENCES; // scenes remembered, so the next session avoids the ones just played (must stay below the scenes per stage)
 export const KINDS = ['animal', 'child', 'baby', 'adult'];
+export const HELP_LEVELS = ['pictures', 'colours', 'words'];  // how much the tiles help, easiest first
+export const STORY_LENGTHS = [3, 5, 10];
+export const DEFAULT_STORY_LENGTH = 5;
 
 // A frame is the set of colour slots one sentence uses. `transitive` says whether its doing word takes a "what".
 export const STAGES = [
@@ -239,8 +242,10 @@ export function normaliseSave(raw) {
   const done = r.done && typeof r.done === 'object' ? r.done : {};
   return {
     v: SAVE_VERSION,
-    mode: r.mode === 'silly' ? 'silly' : 'scene',
+    mode: r.mode === 'silly' || r.mode === 'story' ? r.mode : 'scene',
     stage: [1, 2, 3].includes(r.stage) ? r.stage : 1,
+    help: HELP_LEVELS.includes(r.help) ? r.help : 'pictures',
+    storyLength: STORY_LENGTHS.includes(r.storyLength) ? r.storyLength : DEFAULT_STORY_LENGTH,
     done: { 1: count(done[1]), 2: count(done[2]), 3: count(done[3]) },
     recent: Array.isArray(r.recent) ? r.recent.filter((x) => typeof x === 'string').slice(-RECENT_KEEP) : [],
   };
