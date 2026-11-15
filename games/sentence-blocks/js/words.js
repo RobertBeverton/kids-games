@@ -35,10 +35,10 @@ const NOT_BABY = ['animal', 'child', 'adult'];
 const PEOPLE = ['child', 'adult'];
 export const DOING = [
   // Batch B: intransitive (no "what").
-  { id: 'jumping', ing: 'jumping', takes: [], actors: NOT_BABY, wheres: ANY_PLACE, pic: 'jumping' },
-  { id: 'sleeping', ing: 'sleeping', takes: [], actors: WITH_BABY, wheres: ['indoor'], pic: 'sleeping' },
+  { id: 'jumping', group: 'jump', ing: 'jumping', takes: [], actors: NOT_BABY, wheres: ANY_PLACE, pic: 'jumping' },
+  { id: 'sleeping', group: 'sleep', ing: 'sleeping', takes: [], actors: WITH_BABY, wheres: ['indoor'], pic: 'sleeping' },
   { id: 'running', ing: 'running', takes: [], actors: NOT_BABY, wheres: ['outdoor'], pic: 'running' },
-  { id: 'swimming', ing: 'swimming', takes: [], actors: NOT_BABY, wheres: ['water'], pic: 'swimming' },
+  { id: 'swimming', group: 'swim', ing: 'swimming', takes: [], actors: NOT_BABY, wheres: ['water'], pic: 'swimming' },
   { id: 'crying', ing: 'crying', takes: [], actors: ['child', 'baby', 'adult'], wheres: ANY_PLACE, pic: 'crying' },
   { id: 'climbing', ing: 'climbing', takes: [], actors: NOT_BABY, wheres: ['outdoor'], pic: 'climbing' },
   { id: 'sitting', ing: 'sitting', takes: [], actors: WITH_BABY, wheres: ANY_PLACE, pic: 'sitting' },
@@ -50,11 +50,29 @@ export const DOING = [
   { id: 'reading', ing: 'reading', takes: ['readable'], actors: PEOPLE, wheres: ['indoor'], pic: 'reading' },
   { id: 'riding', ing: 'riding', takes: ['rideable'], actors: PEOPLE, wheres: ['outdoor'], pic: 'riding' },
   { id: 'kicking', ing: 'kicking', takes: ['kickable'], actors: PEOPLE, wheres: ['outdoor'], pic: 'kicking' },
-  { id: 'throwing', ing: 'throwing', takes: ['throwable'], actors: PEOPLE, wheres: ['outdoor'], pic: 'throwing' },
-  { id: 'pushing', ing: 'pushing', takes: ['pushable'], actors: PEOPLE, wheres: ['outdoor'], pic: 'pushing' },
-  { id: 'painting', ing: 'painting', takes: ['paintable'], actors: PEOPLE, wheres: ['indoor'], pic: 'painting' },
-  { id: 'washing', ing: 'washing', takes: ['washable'], actors: PEOPLE, wheres: ['indoor'], pic: 'washing' },
+  { id: 'throwing', group: 'throw', ing: 'throwing', takes: ['throwable'], actors: PEOPLE, wheres: ['outdoor'], pic: 'throwing' },
+  { id: 'pushing', group: 'move', ing: 'pushing', takes: ['pushable'], actors: PEOPLE, wheres: ['outdoor'], pic: 'pushing' },
+  { id: 'painting', group: 'draw', ing: 'painting', takes: ['paintable'], actors: PEOPLE, wheres: ['indoor'], pic: 'painting' },
+  { id: 'washing', group: 'clean', ing: 'washing', takes: ['washable'], actors: PEOPLE, wheres: ['indoor'], pic: 'washing' },
   { id: 'brushing', ing: 'brushing', takes: ['brushable'], actors: PEOPLE, wheres: ['indoor'], pic: 'brushing' },
+  // v2, undrawn. `group` = could also be true of a picture of the same action, so never offered together (as with places).
+  // Intransitive (no "what"):
+  ...['singing', 'waving', 'hiding', 'spinning'].map((w) => ({ id: w, ing: w, takes: [], actors: NOT_BABY, wheres: ANY_PLACE })),
+  ...['dancing', 'hopping'].map((w) => ({ id: w, ing: w, takes: [], actors: NOT_BABY, wheres: ANY_PLACE, group: 'jump' })),
+  ...['laughing', 'giggling'].map((w) => ({ id: w, ing: w, takes: [], actors: NOT_BABY, wheres: ANY_PLACE, group: 'laugh' })),
+  { id: 'yawning', ing: 'yawning', takes: [], actors: NOT_BABY, wheres: ANY_PLACE, group: 'sleep' },
+  { id: 'playing', ing: 'playing', takes: [], actors: NOT_BABY, wheres: ANY_PLACE, freeOnly: true },   // too general to be wrong of any picture
+  { id: 'flying', ing: 'flying', takes: [], actors: NOT_BABY, wheres: ['outdoor'] },
+  { id: 'skipping', ing: 'skipping', takes: [], actors: PEOPLE, wheres: ['outdoor'], group: 'jump' },
+  { id: 'splashing', ing: 'splashing', takes: [], actors: NOT_BABY, wheres: ['water'], group: 'swim' },
+  // Transitive (each takes a "what" carrying one of its tags):
+  { id: 'catching', ing: 'catching', takes: ['throwable'], actors: PEOPLE, wheres: ['outdoor'], group: 'throw' },
+  { id: 'baking', ing: 'baking', takes: ['food'], actors: PEOPLE, wheres: ['indoor'], group: 'cook' },
+  { id: 'cooking', ing: 'cooking', takes: ['food'], actors: PEOPLE, wheres: ['indoor'], group: 'cook' },
+  { id: 'cleaning', ing: 'cleaning', takes: ['washable'], actors: PEOPLE, wheres: ['indoor'], group: 'clean' },
+  { id: 'drawing', ing: 'drawing', takes: ['paintable'], actors: PEOPLE, wheres: ['indoor'], group: 'draw' },
+  { id: 'carrying', ing: 'carrying', takes: ['pushable', 'throwable'], actors: PEOPLE, wheres: ANY_PLACE, group: 'move' },
+  { id: 'tasting', ing: 'tasting', takes: ['food', 'drink'], actors: WITH_BABY, wheres: ANY_PLACE, freeOnly: true },   // true of any eating or drinking picture
 ];
 export const WHAT = [
   { id: 'apple', det: 'an', noun: 'apple', tags: ['food'], pic: 'apple' },
