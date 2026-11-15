@@ -1,4 +1,6 @@
 // words.js — the tiles. SEED SET for the plan's tests; the full reviewed set replaces it in the word batches.
+// Look-alikes: never offered as each other's wrong tile (see engine.js distractorsOf).
+const V2_GROUP = { lion: 'cat', tiger: 'cat', mouse: 'small', pig: 'dog', monkey: 'dog' };
 const ALL = ['animal', 'child', 'adult'];
 const ANY_PLACE = ['indoor', 'outdoor'];
 
@@ -6,20 +8,20 @@ export const WHO = [
   { id: 'girl', det: 'the', noun: 'girl', kind: 'child', pic: 'girl' },
   { id: 'boy', det: 'the', noun: 'boy', kind: 'child', pic: 'boy' },
   { id: 'baby', det: 'the', noun: 'baby', kind: 'baby', pic: 'baby' },
-  { id: 'dog', det: 'the', noun: 'dog', kind: 'animal', pic: 'dog' },
-  { id: 'cat', det: 'the', noun: 'cat', kind: 'animal', pic: 'cat' },
+  { id: 'dog', group: 'dog', det: 'the', noun: 'dog', kind: 'animal', pic: 'dog' },
+  { id: 'cat', group: 'cat', det: 'the', noun: 'cat', kind: 'animal', pic: 'cat' },
   { id: 'horse', det: 'the', noun: 'horse', kind: 'animal', pic: 'horse' },
-  { id: 'rabbit', det: 'the', noun: 'rabbit', kind: 'animal', pic: 'rabbit' },
+  { id: 'rabbit', group: 'small', det: 'the', noun: 'rabbit', kind: 'animal', pic: 'rabbit' },
   { id: 'mum', text: 'Mum', named: true, kind: 'adult', pic: 'mum' },
   { id: 'dad', text: 'Dad', named: true, kind: 'adult', pic: 'dad' },
   { id: 'boys', det: 'the', noun: 'boys', plural: true, kind: 'child', pic: 'boy' },
   { id: 'girls', det: 'the', noun: 'girls', plural: true, kind: 'child', pic: 'girl' },
   { id: 'cats', det: 'the', noun: 'cats', plural: true, kind: 'animal', pic: 'cat' },
   { id: 'rabbits', det: 'the', noun: 'rabbits', plural: true, kind: 'animal', pic: 'rabbit' },
-  { id: 'dogs', det: 'the', noun: 'dogs', plural: true, kind: 'animal', pic: 'dog' },
+  { id: 'dogs', group: 'dog', det: 'the', noun: 'dogs', plural: true, kind: 'animal', pic: 'dog' },
   // v2, undrawn. Animals:
   ...['bird', 'duck', 'fish', 'pig', 'cow', 'sheep', 'mouse', 'frog', 'monkey', 'lion', 'elephant', 'tiger']
-    .map((n) => ({ id: n, det: 'the', noun: n, kind: 'animal' })),
+    .map((n) => ({ id: n, pic: n, det: 'the', noun: n, kind: 'animal', ...(V2_GROUP[n] ? { group: V2_GROUP[n] } : {}) })),
   ...['dinosaur', 'dragon'].map((n) => ({ id: n, det: 'the', noun: n, kind: 'animal', freeOnly: true })),
   // People and characters:
   // freeOnly: could also be true of a picture (a princess for a girl, Grandma for Mum), so never a wrong tile in a scene.
@@ -57,8 +59,9 @@ export const DOING = [
   { id: 'brushing', ing: 'brushing', takes: ['brushable'], actors: PEOPLE, wheres: ['indoor'], pic: 'brushing' },
   // v2, undrawn. `group` = could also be true of a picture of the same action, so never offered together (as with places).
   // Intransitive (no "what"):
-  ...['singing', 'waving', 'hiding', 'spinning'].map((w) => ({ id: w, ing: w, takes: [], actors: NOT_BABY, wheres: ANY_PLACE })),
-  ...['dancing', 'hopping'].map((w) => ({ id: w, ing: w, takes: [], actors: NOT_BABY, wheres: ANY_PLACE, group: 'jump' })),
+  ...['singing', 'hiding', 'spinning'].map((w) => ({ id: w, ing: w, takes: [], actors: NOT_BABY, wheres: ANY_PLACE })),
+  ...['dancing', 'hopping'].map((w) => ({ id: w, ing: w, takes: [], actors: NOT_BABY, wheres: ANY_PLACE, group: 'jump', pic: w })),
+  { id: 'waving', ing: 'waving', takes: [], actors: NOT_BABY, wheres: ANY_PLACE, pic: 'waving' },
   ...['laughing', 'giggling'].map((w) => ({ id: w, ing: w, takes: [], actors: NOT_BABY, wheres: ANY_PLACE, group: 'laugh' })),
   { id: 'yawning', ing: 'yawning', takes: [], actors: NOT_BABY, wheres: ANY_PLACE, group: 'sleep' },
   { id: 'playing', ing: 'playing', takes: [], actors: NOT_BABY, wheres: ANY_PLACE, freeOnly: true },   // too general to be wrong of any picture
@@ -66,7 +69,7 @@ export const DOING = [
   { id: 'skipping', ing: 'skipping', takes: [], actors: PEOPLE, wheres: ['outdoor'], group: 'jump' },
   { id: 'splashing', ing: 'splashing', takes: [], actors: NOT_BABY, wheres: ['water'], group: 'swim' },
   // Transitive (each takes a "what" carrying one of its tags):
-  { id: 'catching', ing: 'catching', takes: ['throwable'], actors: PEOPLE, wheres: ['outdoor'], group: 'throw' },
+  { id: 'catching', pic: 'catching', ing: 'catching', takes: ['throwable'], actors: PEOPLE, wheres: ['outdoor'], group: 'throw' },
   { id: 'baking', ing: 'baking', takes: ['food'], actors: PEOPLE, wheres: ['indoor'], group: 'cook' },
   { id: 'cooking', ing: 'cooking', takes: ['food'], actors: PEOPLE, wheres: ['indoor'], group: 'cook' },
   { id: 'cleaning', ing: 'cleaning', takes: ['washable'], actors: PEOPLE, wheres: ['indoor'], group: 'clean' },
@@ -129,17 +132,17 @@ export const WHERE = [
   { id: 'kitchen', phrase: 'in the kitchen', tags: ['indoor'], group: 'room', pic: 'kitchen' },
   { id: 'bed', phrase: 'on the bed', tags: ['indoor'], group: 'room', pic: 'bed' },
   // v2, undrawn. `group` = could also be true of a scene, so never offered as its wrong tile.
-  { id: 'playground', phrase: 'in the playground', tags: ['outdoor'], group: 'green' },
-  { id: 'forest', phrase: 'in the forest', tags: ['outdoor'], group: 'green' },
-  { id: 'farm', phrase: 'on the farm', tags: ['outdoor'], group: 'green' },
-  { id: 'hill', phrase: 'on the hill', tags: ['outdoor'], group: 'green' },
+  { id: 'playground', pic: 'playground', phrase: 'in the playground', tags: ['outdoor'], group: 'green' },
+  { id: 'forest', pic: 'forest', phrase: 'in the forest', tags: ['outdoor'], group: 'green' },
+  { id: 'farm', pic: 'farm', phrase: 'on the farm', tags: ['outdoor'], group: 'green' },
+  { id: 'hill', pic: 'hill', phrase: 'on the hill', tags: ['outdoor'], group: 'green' },
   { id: 'zoo', phrase: 'at the zoo', tags: ['outdoor'] },
-  { id: 'street', phrase: 'in the street', tags: ['outdoor'] },
-  { id: 'castle', phrase: 'at the castle', tags: ['outdoor'] },
-  { id: 'cave', phrase: 'in the cave', tags: ['outdoor'] },
-  { id: 'sea', phrase: 'in the sea', tags: ['water'], group: 'water' },
-  { id: 'bath', phrase: 'in the bath', tags: ['water', 'indoor'], group: 'water' },
-  { id: 'bedroom', phrase: 'in the bedroom', tags: ['indoor'], group: 'room' },
+  { id: 'street', pic: 'street', phrase: 'in the street', tags: ['outdoor'] },
+  { id: 'castle', pic: 'castle', phrase: 'at the castle', tags: ['outdoor'] },
+  { id: 'cave', pic: 'cave', phrase: 'in the cave', tags: ['outdoor'] },
+  { id: 'sea', pic: 'sea', phrase: 'in the sea', tags: ['water'], group: 'water' },
+  { id: 'bath', pic: 'bath', phrase: 'in the bath', tags: ['water', 'indoor'], group: 'water' },
+  { id: 'bedroom', pic: 'bedroom', phrase: 'in the bedroom', tags: ['indoor'], group: 'room' },
   { id: 'space', phrase: 'in space', tags: ['outdoor'], group: 'space' },
   { id: 'moon', phrase: 'on the moon', tags: ['outdoor'], group: 'space' },
 ];
@@ -150,10 +153,10 @@ export const DESCRIBE = [
   { id: 'sad', word: 'sad', opposite: 'happy', pic: 'sad' },
   // v2, undrawn pairs:
   { id: 'fast', word: 'fast', opposite: 'slow' }, { id: 'slow', word: 'slow', opposite: 'fast' },
-  { id: 'hot', word: 'hot', opposite: 'cold' }, { id: 'cold', word: 'cold', opposite: 'hot' },
-  { id: 'tall', word: 'tall', opposite: 'short' }, { id: 'short', word: 'short', opposite: 'tall' },
-  { id: 'loud', word: 'loud', opposite: 'quiet' }, { id: 'quiet', word: 'quiet', opposite: 'loud' },
-  { id: 'wet', word: 'wet', opposite: 'dry' }, { id: 'dry', word: 'dry', opposite: 'wet' },
+  { id: 'hot', pic: 'hot', word: 'hot', opposite: 'cold' }, { id: 'cold', pic: 'cold', word: 'cold', opposite: 'hot' },
+  { id: 'tall', pic: 'tall', word: 'tall', opposite: 'short' }, { id: 'short', pic: 'short', word: 'short', opposite: 'tall' },
+  { id: 'loud', pic: 'loud', word: 'loud', opposite: 'quiet' }, { id: 'quiet', pic: 'quiet', word: 'quiet', opposite: 'loud' },
+  { id: 'wet', pic: 'wet', word: 'wet', opposite: 'dry' }, { id: 'dry', pic: 'dry', word: 'dry', opposite: 'wet' },
   { id: 'giant', word: 'giant', opposite: 'tiny' }, { id: 'tiny', word: 'tiny', opposite: 'giant' },
   { id: 'brave', word: 'brave', opposite: 'scared' }, { id: 'scared', word: 'scared', opposite: 'brave' },
   { id: 'clean', word: 'clean', opposite: 'dirty' }, { id: 'dirty', word: 'dirty', opposite: 'clean' },
