@@ -684,6 +684,33 @@ button { font: inherit; color: inherit; }
   .sb-length small { display: none; }
   .sb-stage .sb-pills { display: none; }
 }
+
+/* Tablets and short windows (a Samsung A9 in landscape is about 1340 x 650 of page): the settings must show all four
+   choices at once, Help included, without scrolling. Cards stay well over the 44 x 44 px touch minimum (64 px tall). */
+@media (max-height: 1100px) and (min-width: 561px) {
+  #sb-settings .kg-wrap { padding: var(--s3) var(--s4); }
+  #sb-settings .kg-title { font-size: var(--t-title); }
+  #sb-settings .kg-title .mk { width: 48px; height: 48px; }
+  #sb-mode-row .sb-opt, .sb-stage, .sb-help, .sb-length { min-height: 64px; padding-block: var(--s2); }
+  .sb-stage .sb-pills, .sb-stage .sb-prog { display: none; }
+  .sb-help { flex-direction: row; justify-content: flex-start; text-align: left; flex-wrap: nowrap; gap: var(--s3); }
+  .sb-help .sb-mini { width: 48px; height: 48px; padding: 10px 2px 2px; flex: none; }
+  .sb-help .sb-mini__pic { width: 22px; height: 22px; }
+  .sb-help .sb-mini__word { font-size: 10px; }
+  .sb-help .sb-opt__name { font-size: var(--t-body); line-height: 1.1; }
+  .sb-help small { display: none; }
+}
+@media (max-height: 820px) and (min-width: 760px) {
+  #sb-settings .kg-wrap { max-width: 1120px; width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3) var(--s5); align-items: start; }
+  #sb-settings .kg-title { grid-column: 1 / -1; }
+  #sb-mode-row .sb-opt, .sb-stage, .sb-help, .sb-length { flex-basis: 0; min-width: 0; }
+  #sb-mode-row small { display: none; }
+  .sb-help { gap: var(--s2); padding-inline: var(--s2); }
+  .sb-help .sb-mini { width: 40px; height: 40px; padding: 8px 2px 2px; }
+  .sb-help .sb-mini__pic { width: 18px; height: 18px; }
+  .sb-help .sb-mini__word { display: none; }
+  .sb-help .sb-opt__name { font-size: 1.125rem; }
+}
   </style>
 </head>
 <body data-page="sentence-blocks" data-page-title="Sentence Blocks" data-paint="purple">
@@ -874,7 +901,7 @@ button { font: inherit; color: inherit; }
         Feedback or bug? Raise it on GitHub
         <svg class="ic ic--sm"><use href="#i-link"/></svg>
       </a>
-      <p>Version 6da87f6 15 Nov 12:26</p>
+      <p>Version 8530474 16 Nov 09:46</p>
     </section>
   </div>
 </div>

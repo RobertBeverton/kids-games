@@ -474,6 +474,30 @@ for (const theme of ['colourful-light', 'colourful-dark']) {
   await ctx.close();
 }
 
+// ---------- 13c. settings on tablets: every choice visible without scrolling, every target at least 44 x 44 px ----------
+// A Samsung A9 is 800 x 1340 px; with the browser's own bars the page is shorter than that, in either direction.
+for (const viewport of [{ width: 1340, height: 620 }, { width: 1200, height: 560 }, { width: 800, height: 900 }, { width: 800, height: 1100 }]) {
+  for (const mode of ['scene', 'story']) {
+    const { page, ctx } = await open({ viewport, saves: { Mia: { ...OPEN, mode } }, theme: 'colourful-light' });
+    const m = await page.evaluate(() => {
+      const dock = document.querySelector('#sb-settings .kg-dock').getBoundingClientRect();
+      const btns = [...document.querySelectorAll('#sb-settings .kg-seg button, #sb-play-btn')].filter((b) => b.offsetParent);
+      return {
+        count: btns.length,
+        small: btns.filter((b) => { const r = b.getBoundingClientRect(); return r.width < 44 || r.height < 44; }).map((b) => b.textContent.trim().slice(0, 20)),
+        hidden: btns.filter((b) => b.id !== 'sb-play-btn' && b.getBoundingClientRect().bottom > dock.top + 1).map((b) => b.textContent.trim().slice(0, 20)),
+        sideways: document.scrollingElement.scrollWidth > innerWidth + 1,
+      };
+    });
+    const tag = ' (' + viewport.width + 'x' + viewport.height + ', ' + mode + ')';
+    check(m.count >= 10, 'settings should list its option buttons' + tag);
+    check(!m.small.length, 'touch targets under 44px: ' + m.small.join(', ') + tag);
+    check(!m.hidden.length, 'choices hidden behind the Play bar: ' + m.hidden.join(', ') + tag);
+    check(!m.sideways, 'settings scroll sideways' + tag);
+    await ctx.close();
+  }
+}
+
 // ---------- 9. console ----------
 const errs = allErrors.flat().filter((e) => !e.includes('KidsGames: corrupt data'));
 check(errs.length === 0, 'console/page errors: ' + errs.slice(0, 3).join(' | '));
