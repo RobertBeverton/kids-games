@@ -359,6 +359,37 @@ for (const style of ['answer', 'missing']) {
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
+// 5b. Settings on phones and tablets: every choice visible without scrolling, every target at least 44 x 44 px
+//     (a phone page is about 360 x 674 once the browser's bars are counted; a Samsung A9 is 800 x 1340 px)
+// ---------------------------------------------------------------------------------------------------------------------
+{
+  for (const viewport of [{ width: 360, height: 674 }, { width: 412, height: 780 }, { width: 800, height: 1100 }, { width: 1340, height: 620 }, { width: 1200, height: 560 }]) {
+    for (const age of [5, 7, 10]) {
+      const { ctx, page } = await open({ age, fast: false, viewport });
+      await page.waitForSelector(`#${P}-start-btn`);
+      const m = await page.evaluate((P) => {
+        const dock = document.getElementById(`${P}-start-btn`).closest('.kg-dock').getBoundingClientRect();
+        const btns = [...document.querySelectorAll(`#${P}-style-row button, #${P}-op-row button, #${P}-diff-row button, #${P}-mode-row button`)].filter((b) => b.offsetParent);
+        const rect = (b) => b.getBoundingClientRect();
+        return {
+          count: btns.length,
+          small: btns.filter((b) => rect(b).width < 44 || rect(b).height < 44).map((b) => b.textContent.trim().slice(0, 14) || b.getAttribute('aria-label')),
+          hidden: btns.filter((b) => rect(b).bottom > dock.top + 1).map((b) => b.textContent.trim().slice(0, 14) || b.getAttribute('aria-label')),
+          sideways: document.scrollingElement.scrollWidth > innerWidth + 1,
+        };
+      }, P);
+      const tag = ` (${viewport.width}x${viewport.height}, age ${age})`;
+      if (m.count !== 14) note(`settings should show 14 option buttons, found ${m.count}${tag}`);
+      if (m.small.length) note(`settings: touch targets under 44px: ${m.small.join(', ')}${tag}`);
+      if (m.hidden.length) note(`settings: choices hidden behind the Start bar: ${m.hidden.join(', ')}${tag}`);
+      if (m.sideways) note(`settings scroll sideways${tag}`);
+      await ctx.close();
+    }
+  }
+  out('   settings fit on phones and tablets');
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
 // 5. The hub at four screen shapes (four games: one lead and three others), Day and Dusk
 // ---------------------------------------------------------------------------------------------------------------------
 {
