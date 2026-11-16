@@ -474,9 +474,9 @@ for (const theme of ['colourful-light', 'colourful-dark']) {
   await ctx.close();
 }
 
-// ---------- 13c. settings on tablets: every choice visible without scrolling, every target at least 44 x 44 px ----------
-// A Samsung A9 is 800 x 1340 px; with the browser's own bars the page is shorter than that, in either direction.
-for (const viewport of [{ width: 1340, height: 620 }, { width: 1200, height: 560 }, { width: 800, height: 900 }, { width: 800, height: 1100 }]) {
+// ---------- 13c. settings on phones and tablets: every choice visible without scrolling, every target at least 44 x 44 px ----------
+// A Samsung A9 is 800 x 1340 px and a phone page is about 360 x 674 once the browser's own bars are counted.
+for (const viewport of [{ width: 360, height: 674 }, { width: 412, height: 780 }, { width: 1340, height: 620 }, { width: 1200, height: 560 }, { width: 800, height: 900 }, { width: 800, height: 1100 }]) {
   for (const mode of ['scene', 'story']) {
     const { page, ctx } = await open({ viewport, saves: { Mia: { ...OPEN, mode } }, theme: 'colourful-light' });
     const m = await page.evaluate(() => {
