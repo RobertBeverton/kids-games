@@ -1,7 +1,7 @@
 // main.js: Money screens, input, saved data and sound. State lives in top-level bindings on purpose: the built page is one
 // classic script, and the Playwright test reads (and, for the 3,000-square check, sets) them.
 import { AS_OF, ITEMS } from './items.js';
-import { ACTIVITIES, LEVEL_IDS, ROUND_LENGTH, defaultsFor, normaliseSave, recordMisses, buildSession, wallFor, wallLayout, priceTagText, formatPrice, gradeSortTap, sortMissesFor, gradeBuy } from './engine.js';
+import { ACTIVITIES, LEVEL_IDS, ROUND_LENGTH, defaultsFor, normaliseSave, recordMisses, buildSession, wallFor, wallLayout, priceTagText, formatPrice, gradeSortTap, sortMissesFor, gradeBuy, recordBest, MAX_POINTS } from './engine.js';
 import { pictureSvg } from './pictures.js';
 
 const GAME_ID = 'money';
@@ -17,7 +17,7 @@ const ACTIVITY_TEXT = {
 const LEVEL_TEXT = { easy: 'Easy', medium: 'Medium', hard: 'Hard' };
 // Activities that have a screen. Tapping a tile for one that is not here still chooses it (and saves the choice), but Play is
 // disabled with a short note instead of starting something unbuilt. Later tasks add their ids here.
-const IMPLEMENTED = new Set(['guess', 'sort', 'buy', 'howmany']);
+const IMPLEMENTED = new Set(['guess', 'sort', 'buy', 'howmany', 'price']);
 const ITEM_IDS = ITEMS.map((i) => i.id);
 
 const $ = (id) => document.getElementById(id);
@@ -91,14 +91,16 @@ const ICON_CROSS = '<svg class="ic" aria-hidden="true"><use href="#i-close"/></s
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 let mode = 'guess';   // the activity being played: guess, sort, buy, howmany or price
-let session = null;   // { questions, index }: guess { left, right, dearId }, sort { items, order }, buy { budget, shelf, buyIds }, howmany { item, options, correctCount }
+let session = null;   // { questions, index }: guess { left, right, dearId }, sort { items, order }, buy { budget, shelf, buyIds }, howmany { item, options, correctCount }, price { item, tiles, bestIndex, points }
 let phase = 'ask';    // 'ask' (nothing tapped), 'find' (tapped wrong: the right one must be tapped), 'done' (Next shows)
+let roundPoints = 0;  // What's the price?: points so far this round
 let shown = null;     // the Money Wall maths of the question on screen once it is revealed: { unit, items: [{ squares, dot }] }
 
 function startSession() {
   try {
     mode = save.activity;
-    session = { questions: buildSession(mode, save.level, ITEMS, Math.random, save), index: 0 };
+    session = { questions: buildSession(mode, save.level, ITEMS, Math.random, save), index: 0, level: save.level };
+    roundPoints = 0;
   } catch (e) {
     console.error(e);
     say('Sorry, that did not start. Try another level.');
@@ -123,7 +125,7 @@ function itemHtml(item) {
     (pic ? '<span class="mo-item__pic">' + pic + '</span>' : '') + '<span class="mo-item__name">' + esc(item.name) + '</span></button>' +
     '<div class="mo-reveal" hidden><div class="mo-slot" aria-hidden="true"></div><p class="mo-tag"></p></div></div>';
 }
-const PANES = { guess: 'mo-cards', sort: 'mo-sort', buy: 'mo-buy', howmany: 'mo-howmany' };
+const PANES = { guess: 'mo-cards', sort: 'mo-sort', buy: 'mo-buy', howmany: 'mo-howmany', price: 'mo-price' };
 function showQuestion() {
   const q = session.questions[session.index];
   phase = 'ask';
@@ -134,9 +136,12 @@ function showQuestion() {
   $('mo-caption').classList.add('is-off');
   $('mo-next').hidden = true;
   $('mo-done').hidden = true;
+  $('mo-points').hidden = mode !== 'price';
+  if (mode === 'price') showPoints();
   if (mode === 'sort') showSort(q);
   else if (mode === 'buy') showBuy(q);
   else if (mode === 'howmany') showHowMany(q);
+  else if (mode === 'price') showPrice(q);
   else {
     setPrompt('Which costs more?');
     $('mo-cards').innerHTML = itemHtml(q.left) + itemHtml(q.right);
@@ -407,7 +412,7 @@ $('mo-buy').addEventListener('click', (e) => {
 });
 $('mo-done').addEventListener('click', () => { sfx('tap'); buyDone(); });
 
-// ===== SHARED: the thing being asked about =====
+// ===== SHARED: the thing being asked about (How many coins? and What's the price?) =====
 // Its drawing and name; a plain name tile when there is no drawing yet. Nothing here carries a price.
 function subjectHtml(item) {
   const pic = pictureSvg(item.id);
@@ -475,6 +480,51 @@ function howManyTap(b) {
 $('mo-howmany').addEventListener('click', (e) => {
   const b = e.target.closest('.mo-count');
   if (b && !b.disabled) howManyTap(b);
+});
+
+// ===== WHAT'S THE PRICE? =====
+// Six tiles, rising. Nothing marks any of them before the tap. After it: points on every tile, a ring on the typical price, a keyline on the child's tile.
+const pointsWord = (n) => n + (n === 1 ? ' point' : ' points');
+const showPoints = () => { $('mo-points').textContent = 'Points: ' + roundPoints; };
+function showPrice(q) {
+  setPrompt('What is the price?');
+  $('mo-price').classList.remove('is-revealed');
+  $('mo-price').innerHTML = subjectHtml(q.item) +
+    '<div class="mo-ptiles">' + q.tiles.map((t, i) => '<button type="button" class="kg-tile mo-ptile" data-i="' + i + '"><span class="mo-ptile__price">' + esc(formatPrice(t)) + '</span><span class="mo-ptile__pts" hidden></span></button>').join('') + '</div>' +
+    '<div class="mo-walls" hidden></div><p class="mo-tag mo-ptag" hidden></p>';
+}
+function priceTap(b) {
+  const q = session.questions[session.index], i = Number(b.dataset.i), pts = q.points[i], chosen = q.tiles[i];
+  roundPoints += pts;
+  showPoints();
+  $('mo-price').querySelectorAll('.mo-ptile').forEach((t, k) => {
+    const n = q.points[k], pe = t.querySelector('.mo-ptile__pts');
+    t.disabled = true;
+    pe.innerHTML = '<span class="kg-squares" aria-hidden="true">' + squaresHtml(n, MAX_POINTS) + '</span><b>' + n + '</b>';
+    pe.hidden = false;
+    if (k === q.bestIndex) t.classList.add('is-best');
+    if (k === i) t.classList.add('is-chosen');
+    t.setAttribute('aria-label', formatPrice(q.tiles[k]) + ', ' + pointsWord(n) + (k === q.bestIndex ? ', the typical price' : '') + (k === i ? ', your pick' : ''));
+  });
+  sfx(pts >= 2 ? 'right' : 'wrong');
+  if (pts <= 1) { save = recordMisses(save, [q.item.id]); persist(); }   // a 0 or a 1 means this item comes back later
+  setPrompt(pointsWord(pts));
+  shown = wallFor([chosen, q.item.pence]);
+  $('mo-price').classList.add('is-revealed');
+  const walls = $('mo-price').querySelector('.mo-walls');
+  walls.innerHTML = wallsHtml(['Your pick', 'Typical price']);
+  walls.hidden = false;
+  const tag = $('mo-price').querySelector('.mo-ptag');
+  tag.textContent = q.item.name + ': typically ' + priceTagText(q.item.pence);
+  tag.hidden = false;
+  setCaption(shown.unit);
+  layoutWalls();
+  showNext();
+  say(pointsWord(pts) + '. ' + q.item.name + ', typical price ' + priceTagText(q.item.pence) + '.');
+}
+$('mo-price').addEventListener('click', (e) => {
+  const b = e.target.closest('.mo-ptile');
+  if (b && !b.disabled && phase === 'ask') priceTap(b);
 });
 
 // ---- results (kept simple until the full results task) ----

@@ -10,10 +10,13 @@
 //  3. Put in order and Can you buy it?, every level, ten questions each, right path and wrong path, worked out from the SOURCE items and the
 //     engine (not from page text): right taps accepted, wrong ones refused or marked, Next only when it should, no price or order number before
 //     the answer in Put in order, prices shown in Can you buy it?, results, Next/Done in view at 360x640.
-//  4. How many £1 coins?, every level, ten questions, right path and wrong path: counts checked against the SOURCE items, nothing hinted
-//     before the tap, the right count must be tapped after a wrong one, the wall and tag, no score in the results.
-//  5. No visible text or label anywhere contains afford/cheap/expensive/rich/poor/posh/dear.
-//  6. A clean console.
+//  4. How many £1 coins? and What's the price?, every level, ten questions each, right path and wrong path: counts and tiles checked against
+//     the SOURCE items and engine, nothing hinted before the tap, points and the ring after it, totals, the saved best, "New best!" only when
+//     an earlier best above 0 was beaten, no score anywhere in the other four activities' results.
+//  5. Progress and saving: one finished round is one hub square (KidsGames.progress.money), Stop adds none but keeps the misses already made,
+//     saves survive a reload and belong to the player, corrupt storage still lets the game start.
+//  6. No visible text or label anywhere contains afford/cheap/expensive/rich/poor/posh/dear.
+//  7. A clean console.
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -250,9 +253,11 @@ for (const level of LEVEL_IDS) {
 }
 await p2.click('#mo-change');
 
-// ---- How many £1 coins?, every level ----
+// ---- 5 and 6: How many £1 coins? and What's the price?, every level; results, progress and saving ----
 const itemByName = (n) => ITEMS.find((i) => i.name === n);
 const missTotal = async () => Object.values((await saved()).misses || {}).reduce((a, b) => a + b, 0);
+const parsePence = (t) => (t.endsWith('p') ? parseInt(t, 10) : Math.round(parseFloat(t.slice(1).replace(/,/g, '')) * 100));
+const pointsWord = (n) => n + (n === 1 ? ' point' : ' points');
 // Before the tap, the pane may carry only these attributes: no title, alt, data-* (bar data-i, the tile's own index) or aria-label with a hint.
 const attrLeaks = (sel) => p2.evaluate((sel) => {
   const root = document.querySelector(sel), out = [], ok = new Set(['class', 'type', 'data-i', 'hidden', 'aria-hidden', 'role', 'id', 'aria-label']);
@@ -330,6 +335,89 @@ for (const [id, wantUnit, wantSquares] of [['house', 10000, null], ['ice-cream',
   check(slotBox && slotBox.height >= 56, id + ': the wall slot is too small: ' + (slotBox && slotBox.height));
   check((await p2.locator('#mo-howmany .mo-tag').innerText()).startsWith('about £'), id + ': tag');
 }
+
+// ---- What's the price? ----
+// Plays one whole round. path: 'mixed' (right tile on even questions, the worst on odd), 'best' or 'worst'. Returns the expected total.
+const playPrice = async (level, path) => {
+  await startActivity('price', level);
+  let total = 0;
+  const seen = new Set();
+  for (let i = 0; i < ROUND_LENGTH; i++) {
+    const where = 'price ' + level + ' ' + path + ' q' + (i + 1);
+    const item = itemByName((await p2.locator('.mo-subject__name').innerText()).trim());
+    check(!!item, where + ': unknown item');
+    if (!item) continue;
+    check(!seen.has(item.id), where + ': ' + item.id + ' came up twice');
+    seen.add(item.id);
+    const texts = (await p2.locator('.mo-ptile .mo-ptile__price').allInnerTexts()).map((t) => t.trim()), pence = texts.map(parsePence);
+    const base = niceRound(item.pence);
+    check(texts.length === PRICE_TILES, where + ': expected six tiles, got ' + texts.length);
+    check(pence.every((v, k) => k === 0 || v > pence[k - 1]), where + ': tiles do not rise: ' + texts.join(' | '));
+    check(pence.includes(base), where + ': the typical price ' + base + ' (' + formatPrice(base) + ') is not among ' + texts.join(' | '));
+    check(pence.every((v) => v >= PRICE_MIN_TILE && v <= PRICE_MAX_TILE), where + ': a tile is outside 20p to £2,000,000: ' + texts.join(' | '));
+    check(texts.every((t, k) => t === formatPrice(pence[k])), where + ': a tile is not a formatPrice string: ' + texts.join(' | '));
+    const pts = pence.map((v) => pointsFor(item, v)), bestIdx = pence.indexOf(base);
+    check(pts.filter((x) => x === MAX_POINTS).length <= 3 && pts.some((x) => x <= 1), where + ': fairness: at most three full-points tiles, and one that earns 0 or 1');
+    check((await p2.locator('#mo-prompt').innerText()).trim() === 'What is the price?', where + ': prompt');
+    // nothing marks a tile before the tap
+    const leaks = await attrLeaks('#mo-price');
+    check(leaks.length === 0, where + ': leak before answering: ' + leaks.slice(0, 2).join(' | '));
+    check((await p2.locator('.mo-ptile__pts:visible').count()) === 0 && (await p2.locator('.mo-ptile.is-best, .mo-ptile.is-chosen').count()) === 0, where + ': points or a ring show before the tap');
+    check((await p2.locator('.mo-ptile[aria-label]').count()) === 0, where + ': a tile has an aria-label before the tap');
+    check((await p2.locator('#mo-price .mo-walls').isVisible()) === false && !(await p2.locator('#mo-next').isVisible()), where + ': a reveal or Next before the tap');
+    check((await p2.locator('#mo-points').innerText()) === 'Points: ' + total, where + ': running total shows "' + (await p2.locator('#mo-points').innerText()) + '", expected ' + total);
+    // six tiles in a grid: at 360 wide, three rows of two; every tile at least 48px tall, its text inside it
+    const geo = await p2.locator('.mo-ptile').evaluateAll((bs) => bs.map((b) => { const r = b.getBoundingClientRect(), t = b.querySelector('.mo-ptile__price').getBoundingClientRect(); return { x: Math.round(r.x), y: Math.round(r.y), h: r.height, textInside: t.left >= r.left - 0.5 && t.right <= r.right + 0.5 && t.width <= b.clientWidth }; }));
+    check(geo.every((g) => g.h >= 48 && g.textInside), where + ': a tile is under 48px tall or its text is clipped: ' + JSON.stringify(geo.find((g) => g.h < 48 || !g.textInside)));
+    check(new Set(geo.map((g) => g.y)).size === 3 && geo.filter((g) => g.y === geo[0].y).length === 2, where + ': at 360 wide the tiles should be three rows of two');
+    await bannedCheck(where);
+    const worst = pts.indexOf(Math.min(...pts)), pick = path === 'best' ? bestIdx : path === 'worst' ? worst : (i % 2 === 1 ? worst : bestIdx);
+    const missesBefore = await missTotal();
+    if (i === 0 && level === 'easy' && path === 'mixed') { await p2.locator('.mo-ptile').nth(pick).focus(); await p2.keyboard.press('Space'); }   // keyboard: Space works
+    else await p2.locator('.mo-ptile').nth(pick).click();
+    total += pts[pick];
+    // after the tap: points on every tile, ring on the typical price, keyline on the pick
+    const shownPts = await p2.locator('.mo-ptile__pts').evaluateAll((es) => es.map((e) => ({ digit: e.querySelector('b').textContent, on: e.querySelectorAll('i.on').length, all: e.querySelectorAll('i').length, vis: !e.hidden })));
+    check(shownPts.every((s, k) => s.vis && s.digit === String(pts[k]) && s.on === pts[k] && s.all === MAX_POINTS), where + ': the points on the tiles are not ' + pts.join() + ': ' + JSON.stringify(shownPts));
+    const ring = await p2.locator('.mo-ptile').evaluateAll((bs) => bs.map((b, k) => b.classList.contains('is-best') ? k : -1).filter((k) => k >= 0));
+    check(ring.length === 1 && ring[0] === bestIdx, where + ': the ring should be on tile ' + bestIdx + ' only, is on ' + ring.join());
+    check((await p2.locator('.mo-ptile.is-chosen').count()) === 1 && (await p2.locator('.mo-ptile').nth(pick).getAttribute('class')).includes('is-chosen'), where + ': the pick has no keyline');
+    check((await p2.locator('.mo-ptile:not(:disabled)').count()) === 0, where + ': tiles should be done after the tap');
+    check((await p2.locator('#mo-prompt').innerText()).trim() === pointsWord(pts[pick]), where + ': the line should say "' + pointsWord(pts[pick]) + '": ' + (await p2.locator('#mo-prompt').innerText()));
+    check((await p2.locator('#mo-points').innerText()) === 'Points: ' + total, where + ': running total after the tap');
+    check(await p2.locator('#mo-next').isVisible(), where + ': Next should show after every answer');
+    check((await p2.locator('#mo-price .mo-slot').count()) === 2 && await p2.locator('#mo-price .mo-slot').evaluateAll((ss) => ss.every((x) => x.clientWidth > 0 && x.clientHeight > 0 && x.getAttribute('aria-hidden') === 'true')), where + ': two sized, aria-hidden walls expected');
+    const tag = await p2.locator('#mo-price .mo-ptag').innerText();
+    check(tag.includes(priceTagText(item.pence)) && tag.startsWith(item.name), where + ': tag is "' + tag + '"');
+    check((await p2.locator('#mo-caption').innerText()) === 'each square = ' + formatPrice(wallFor([pence[pick], item.pence]).unit), where + ': caption');
+    const expectMiss = pts[pick] <= 1;
+    check((await missTotal()) === missesBefore + (expectMiss ? 1 : 0), where + ': ' + (expectMiss ? 'a 0 or 1 should be a miss' : 'a 2 or 3 should not be a miss'));
+    if (expectMiss) check((await saved()).misses[item.id] >= 1, where + ': miss for ' + item.id + ' not saved');
+    await inView('#mo-next', where);
+    await inView('#mo-price .mo-walls', where);
+    await noScroll(where);
+    await bannedCheck(where);
+    await p2.click('#mo-next');
+  }
+  return total;
+};
+for (const level of LEVEL_IDS) await playPrice(level, 'mixed');
+// a house (seven-digit tiles) and a £1 sweet at 360 x 640: six tiles of 48px or more, nothing clipped, points and walls in view
+await startActivity('price', 'hard');
+for (const id of ['house', 'sweets']) {
+  await p2.evaluate((id) => { const it = ITEMS.find((i) => i.id === id); session.questions[session.index] = { item: it, ...priceTiles(it, 'hard', Math.random) }; showQuestion(); }, id);
+  const geo = await p2.locator('.mo-ptile').evaluateAll((bs) => bs.map((b) => { const r = b.getBoundingClientRect(), t = b.querySelector('.mo-ptile__price').getBoundingClientRect(); return r.height >= 48 && t.left >= r.left && t.right <= r.right; }));
+  check(geo.length === 6 && geo.every(Boolean), id + ': tiles under 48px or clipped');
+  await p2.locator('.mo-ptile').nth(await p2.evaluate(() => session.questions[session.index].bestIndex)).click();
+  const boxes = await p2.locator('#mo-price .mo-walls, #mo-next, #mo-price .mo-ptag, #mo-caption').evaluateAll((es) => es.map((e) => { const r = e.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight; }));
+  check(boxes.every(Boolean), id + ': points, walls, tag or Next are not in view at 360x640');
+  await noScroll(id + ' reveal');
+}
+// the tiles on a wide screen: two rows of three
+await p2.setViewportSize({ width: 900, height: 700 });
+await p2.evaluate(() => showQuestion());
+check(await p2.locator('.mo-ptile').evaluateAll((bs) => new Set(bs.map((b) => Math.round(b.getBoundingClientRect().y))).size === 2), 'wide screen: six tiles should be two rows of three');
+await p2.setViewportSize({ width: 360, height: 640 });
 
 // The shell itself reports corrupt saved data with a console error (on purpose, shared code); that is expected in the corrupt-storage section.
 const realErrors = errors.filter((e) => !e.startsWith('KidsGames: corrupt data for key kidsgames_money_'));
