@@ -5,7 +5,6 @@ import { ITEMS } from '../js/items.js';
 
 // Item ids not drawn yet. Each drawing batch moves ids out of this list (and into PICTURES).
 const PENDING = [
-  'sofa', 'holiday', 'motorbike', 'car', 'tractor', 'house',
 ];
 
 const ELEMENTS = new Set(['path', 'circle', 'rect', 'ellipse', 'line', 'polyline', 'polygon', 'g']);
