@@ -369,3 +369,81 @@ export function priceTagText(pence) {
   const pounds = pence / 100;
   return 'about ' + p + ', which is ' + group3(pounds) + (pounds === 1 ? ' pound coin' : ' pound coins');
 }
+
+// ---- saved data, age defaults, and the one entry point ----
+export const ACTIVITIES = ['guess', 'sort', 'buy', 'howmany', 'price'];
+export const SAVE_VERSION = 1;
+export const RECENT_MAX = 12;
+export const BEST_MAX = 30;            // What's the price?: ten questions of up to 3 points
+
+const isObj = (x) => x !== null && typeof x === 'object' && !Array.isArray(x);
+const emptyBest = () => ({ easy: 0, medium: 0, hard: 0 });
+
+// Age drives the first-time defaults (same map and rule as Maths). `player.age` wins over the bracket. Nothing is locked.
+const BRACKET_AGE = { '4-5': 5, '6-8': 7, '9-12': 10, '13+': 14 };
+export function defaultsFor(player) {
+  if (!isObj(player)) return { activity: 'guess', level: 'easy' };
+  const age = Number.isFinite(player.age) ? player.age : (BRACKET_AGE[player.ageBracket] || 7);
+  if (age <= 6) return { activity: 'guess', level: 'easy' };
+  if (age <= 8) return { activity: 'sort', level: 'medium' };
+  return { activity: 'buy', level: 'hard' };
+}
+
+// Anything goes in, a clean save comes out. Unknown activities, levels and item ids are dropped. Never throws.
+export function normaliseSave(raw, validIds) {
+  const ids = new Set(Array.isArray(validIds) ? validIds : []);
+  const r = isObj(raw) ? raw : {}, d = defaultsFor(null);
+  const out = {
+    v: SAVE_VERSION,
+    activity: ACTIVITIES.includes(r.activity) ? r.activity : d.activity,
+    level: LEVEL_IDS.includes(r.level) ? r.level : d.level,
+    misses: {}, recent: [], best: emptyBest(),
+  };
+  if (isObj(r.misses)) {
+    for (const id of Object.keys(r.misses)) {
+      const n = r.misses[id];
+      if (ids.has(id) && Number.isInteger(n) && n >= 1) out.misses[id] = n;
+    }
+  }
+  if (Array.isArray(r.recent)) {
+    for (const id of r.recent) if (typeof id === 'string' && ids.has(id) && !out.recent.includes(id) && out.recent.length < RECENT_MAX) out.recent.push(id);
+  }
+  if (isObj(r.best)) {
+    for (const l of LEVEL_IDS) { const b = r.best[l]; if (Number.isFinite(b)) out.best[l] = Math.min(BEST_MAX, Math.max(0, Math.round(b))); }
+  }
+  return out;
+}
+
+// A new save with each missed id counted once more and moved to the front of `recent` (unique, newest first, at most RECENT_MAX).
+export function recordMisses(save, ids) {
+  const misses = { ...save.misses };
+  for (const id of ids) misses[id] = (misses[id] || 0) + 1;
+  const front = [...new Set(ids)].reverse();   // the last id missed is the newest
+  const recent = [...front, ...save.recent.filter((id) => !front.includes(id))].slice(0, RECENT_MAX);
+  return { ...save, misses, recent, best: { ...save.best } };
+}
+
+// Up to MAX_COME_BACK recently missed ids that still exist.
+export function comeBackIds(save, validIds) {
+  const ids = new Set(validIds);
+  return save.recent.filter((id) => ids.has(id)).slice(0, MAX_COME_BACK);
+}
+
+// A new save whose best for `level` is the larger of the old best and `total` (0 to BEST_MAX; nonsense counts as 0).
+export function recordBest(save, level, total) {
+  const best = { ...save.best };
+  if (LEVEL_IDS.includes(level)) {
+    const t = Number.isFinite(total) ? Math.min(BEST_MAX, Math.max(0, Math.round(total))) : 0;
+    best[level] = Math.max(best[level] || 0, t);
+  }
+  return { ...save, best };
+}
+
+const BUILDERS = { guess: buildGuessSession, sort: buildSortSession, buy: buildBuySession, howmany: buildHowManySession, price: buildPriceSession };
+// One entry point: build a round of any activity, with the child's missed items coming back.
+export function buildSession(activity, level, items, rng, save) {
+  const build = BUILDERS[activity];
+  if (!build) throw new Error('buildSession: unknown activity ' + activity);
+  const comeBack = save ? comeBackIds(save, items.map((i) => i.id)) : [];
+  return build(items, level, rng, comeBack);
+}
