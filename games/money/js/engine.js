@@ -138,3 +138,87 @@ export function buildPriceSession(items, level, rng, comeBack = []) {
   if (picked.length < ROUND_LENGTH) throw new Error('buildPriceSession: not enough items for ' + level);
   return shuffle(picked, rng).map((item) => ({ item, ...priceTiles(item, level, rng) }));
 }
+
+// ---- "Cheapest to dearest": put a set in order of price ----
+export const SORT = {
+  easy:   { n: 3, ratio: 10, maxTier: 1 },
+  medium: { n: 4, ratio: 3,  maxTier: 2 },
+  hard:   { n: 5, ratio: 2,  maxTier: 2 },
+};
+export const SORT_NOT_SIZE_MIN = 5;    // of 10 sets, at least this many cannot be put in order by size alone
+export const SORT_MAX_ITEM_USES = 3;
+
+// Size-sortable: size never decreases as price rises (so "smallest first" would win).
+const sizeSortable = (order) => order.every((it, i) => i === 0 || it.size >= order[i - 1].size);
+// Every valid chain of n items for a level, cheapest first: each neighbour clearly dearer (so every pair is), no shared group.
+// Cached per item list, so a round is just random picks from it.
+const chainCache = new WeakMap();
+export function sortChains(items, level) {
+  let byLevel = chainCache.get(items);
+  if (!byLevel) chainCache.set(items, (byLevel = {}));
+  if (byLevel[level]) return byLevel[level];
+  const { n, ratio, maxTier } = SORT[level];
+  const pool = items.filter((i) => i.tier <= maxTier), out = [];
+  const extend = (chain) => {
+    if (chain.length === n) { out.push(chain); return; }
+    const top = chain[chain.length - 1];
+    for (const c of pool) {
+      if (chain.some((x) => x.id === c.id || (c.group && c.group === x.group))) continue;
+      if (clearlyDearer(c, top, ratio)) extend([...chain, c]);
+    }
+  };
+  for (const p of pool) extend([p]);
+  return (byLevel[level] = out);
+}
+
+// A round of ROUND_LENGTH sets: { items: [shown order], order: [ids, cheapest first] }.
+export function buildSortSession(items, level, rng, comeBack = []) {
+  const chains = sortChains(items, level), keyOf = (chain) => chain.map((i) => i.id).sort().join('|');
+  // Greedy picking can paint itself into a corner (items used up); if so, start again with a fresh shuffle.
+  for (let attempt = 0; attempt < 60; attempt++) {
+    const all = shuffle(chains, rng), uses = new Map(), keys = new Set(), picked = [];
+    const ok = (chain) => !keys.has(keyOf(chain)) && chain.every((i) => (uses.get(i.id) || 0) < SORT_MAX_ITEM_USES);
+    const take = (chain) => { picked.push(chain); keys.add(keyOf(chain)); for (const i of chain) uses.set(i.id, (uses.get(i.id) || 0) + 1); };
+    // 1. missed items come back
+    for (const id of comeBack.slice(0, MAX_COME_BACK)) {
+      if (picked.some((c) => c.some((i) => i.id === id))) continue;
+      const c = all.find((q) => q.some((i) => i.id === id) && ok(q));
+      if (c) take(c);
+    }
+    // 2. enough sets that size alone does not put them in order
+    for (const c of all) {
+      if (picked.filter((q) => !sizeSortable(q)).length >= SORT_NOT_SIZE_MIN) break;
+      if (picked.length < ROUND_LENGTH && !sizeSortable(c) && ok(c)) take(c);
+    }
+    // 3. fill up
+    for (const c of all) { if (picked.length >= ROUND_LENGTH) break; if (ok(c)) take(c); }
+    if (picked.length < ROUND_LENGTH) continue;
+    return shuffle(picked, rng).map((chain) => {
+      let shown = shuffle(chain, rng);
+      while (shown.every((it, i) => it === chain[i])) shown = shuffle(chain, rng);
+      return { items: shown, order: chain.map((i) => i.id) };
+    });
+  }
+  throw new Error('buildSortSession: could not build ' + ROUND_LENGTH + ' sets for ' + level);
+}
+
+// The id to tap next, or null when the set is finished.
+export const nextSortId = (question, placedIds) => question.order[placedIds.length] || null;
+// Pure: a wrong tap changes nothing (the caller only adds tappedId to placedIds when correct).
+export function gradeSortTap(question, placedIds, tappedId) {
+  const expectedId = nextSortId(question, placedIds);
+  return { correct: tappedId === expectedId, expectedId };
+}
+// tapsLog: array of { position, tappedId } in tap order, INCLUDING wrong taps (position = how many were already placed).
+// For each position, only the FIRST tap there counts: if it was wrong, two ids are missed, once each for that position:
+// the item that should have gone there and the item tapped by mistake. Later taps at that position change nothing.
+export function sortMissesFor(question, tapsLog) {
+  const seen = new Set(), misses = [];
+  for (const { position, tappedId } of tapsLog) {
+    if (seen.has(position)) continue;
+    seen.add(position);
+    const expected = question.order[position];
+    if (tappedId !== expected) misses.push(expected, tappedId);
+  }
+  return misses;
+}
