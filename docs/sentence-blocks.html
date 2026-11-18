@@ -621,6 +621,9 @@ button { font: inherit; color: inherit; }
 .sb-tile__badge { position: absolute; top: 18px; left: 6px; width: 24px; height: 24px; }
 .sb-tile__pic { display: flex; justify-content: center; gap: 2px; width: 100%; height: calc(var(--hit) * 1.1); }
 .sb-tile__pic .sb-pic { width: auto; height: 100%; aspect-ratio: 1; }
+/* No drawings (Colours / Words help): the picture row and the tall minimum go, so tiles shrink to fit their words. */
+.sb-tile__pic:empty { display: none; }
+#sb-app:not([data-help="pictures"]) .sb-tile { min-height: calc(var(--hit) * 1.1); justify-content: center; }
 .sb-tile__word { font-size: var(--t-body); font-weight: 700; line-height: 1.1; text-align: center; overflow-wrap: break-word; }
 .sb-tile__cross { display: none; position: absolute; top: 18px; right: 6px; width: 32px; height: 32px; place-items: center; background: var(--chalk); border: 2px solid var(--line); border-radius: var(--r-pill); }
 .sb-tile__cross .ic { width: 20px; height: 20px; }
@@ -909,7 +912,7 @@ button { font: inherit; color: inherit; }
         Feedback or bug? Raise it on GitHub
         <svg class="ic ic--sm"><use href="#i-link"/></svg>
       </a>
-      <p>Version 36f02fa 16 Nov 14:18</p>
+      <p>Version e82816f 18 Nov 13:42</p>
     </section>
   </div>
 </div>
