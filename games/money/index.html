@@ -13,7 +13,33 @@
 <!-- Shell bar injected by build script -->
 
 <div id="mo-app">
-  <h1>Money</h1>
+
+  <!-- SCREEN 1: settings -->
+  <div id="mo-settings" class="kg-screen mo-screen">
+    <div class="kg-wrap">
+      <h1 class="kg-title kg-title--paint">
+        <span class="mk mo-mark" id="mo-mark" aria-hidden="true"></span>
+        Money
+      </h1>
+
+      <fieldset class="mo-fieldset">
+        <legend class="kg-label">What shall we do?</legend>
+        <div class="kg-seg mo-acts" id="mo-act-row" role="group" aria-label="What shall we do?"><!-- filled by main.js --></div>
+      </fieldset>
+
+      <fieldset class="mo-fieldset">
+        <legend class="kg-label">How far apart?</legend>
+        <div class="kg-seg mo-levels" id="mo-level-row" role="group" aria-label="How far apart?"><!-- filled by main.js --></div>
+      </fieldset>
+
+      <p class="mo-note" id="mo-note"></p>
+    </div>
+
+    <div class="kg-dock">
+      <button class="kg-btn kg-btn--block" id="mo-play-btn" type="button"><svg class="ic ic--lg" aria-hidden="true"><use href="#i-play"/></svg><span>Play!</span></button>
+    </div>
+  </div>
+
 </div>
 
 <script type="module" src="js/main.js"></script>
