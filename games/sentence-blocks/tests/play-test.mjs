@@ -17,7 +17,7 @@
 //  7. Keyboard only (Tab, Enter, Space).
 //  8. Layout: viewports x themes x ages: no horizontal scroll, target sizes, slots and tray in view, the answer never printed early.
 //  9. A clean console throughout.
-// 10. The hub: five tiles, the Sentence Blocks tile links to the game and shows the painted square.
+// 10. The hub: six tiles, the Sentence Blocks tile links to the game and shows the painted square.
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { DATA } from '../js/words.js';
@@ -331,7 +331,7 @@ for (const viewport of [{ width: 360, height: 640 }, { width: 390, height: 844 }
 {
   const { page, ctx } = await open({ url: HUB, saves: { Mia: OPEN } });
   const marks = await page.evaluate(() => [...document.querySelectorAll('.mark')].map((a) => ({ g: a.dataset.game, h: a.getAttribute('href') })));
-  check(marks.length === 5, 'the hub should show five tiles, found ' + marks.length);
+  check(marks.length === 6, 'the hub should show six tiles, found ' + marks.length);
   check(marks.some((m) => m.g === 'sentence-blocks' && m.h === 'sentence-blocks.html'), 'the Sentence Blocks tile does not link to the game');
   const before = await page.evaluate(() => document.querySelectorAll('.mark[data-game="sentence-blocks"] .kg-squares i.on').length);
   const gp = await ctx.newPage();

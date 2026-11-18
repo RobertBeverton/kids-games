@@ -17,6 +17,9 @@
 //     saves survive a reload and belong to the player, corrupt storage still lets the game start.
 //  6. No visible text or label anywhere contains afford/cheap/expensive/rich/poor/posh/dear.
 //  7. A clean console.
+//  8. The hub (docs/index.html; HUB=<url> to test another): six tiles, the Money tile links to money.html and shows its painted square, no sideways
+//     scroll and every tile fully on screen without scrolling at 360x640, 390x844, 768x1024, 1280x720 and 844x390, Day and Dusk, a five- and a nine-year-old,
+//     tile text readable on its paint (4.5:1). SHOTS=<folder> saves a screenshot of each.
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -26,6 +29,7 @@ const URL = process.env.PAGE || pathToFileURL(path.join(ROOT, 'docs', 'money.htm
 const SRC = pathToFileURL(path.join(ROOT, 'games', 'money', 'js')).href;
 const { ITEMS } = await import(SRC + '/items.js');
 const { LEVEL_IDS, ROUND_LENGTH, SORT, BUY, buyable, tooDear, sortMissesFor, priceTagText, formatPrice, howManyPool, wallFor, niceRound, pointsFor, MAX_POINTS, PRICE_TILES, PRICE_MIN_TILE, PRICE_MAX_TILE } = await import(SRC + '/engine.js');
+const HUB = process.env.HUB || pathToFileURL(path.join(ROOT, 'docs', 'index.html')).href;
 const failures = [];
 let checks = 0;
 const check = (cond, m) => { checks++; if (!cond) failures.push(m); };
@@ -514,6 +518,73 @@ await p2.click('#mo-stop');
 // The shell itself reports corrupt saved data with a console error (on purpose, shared code); that is expected in the corrupt-storage section.
 const realErrors = errors.filter((e) => !e.startsWith('KidsGames: corrupt data for key kidsgames_money_'));
 check(realErrors.length === 0, 'console/page errors: ' + realErrors.slice(0, 3).join(' | '));
+
+// ---- 8. the hub ----
+{
+  const VIEWPORTS = { '360x640': [360, 640], '390x844': [390, 844], '768x1024': [768, 1024], '1280x720': [1280, 720], '844x390': [844, 390] };
+  const lum = (c) => { const v = c.map((x) => { x /= 255; return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; }); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]; };
+  const rgb = (css) => (css.match(/[\d.]+/g) || [0, 0, 0]).slice(0, 3).map(Number);
+  const ratio = (a, b) => { const [x, y] = [lum(rgb(a)), lum(rgb(b))].sort((m, n) => n - m); return (x + 0.05) / (y + 0.05); };
+  for (const [vname, [w, h]] of Object.entries(VIEWPORTS)) {
+    for (const theme of ['colourful-light', 'colourful-dark']) {
+      for (const age of [5, 9]) {
+        const ctx = await browser.newContext({ viewport: { width: w, height: h } });
+        await ctx.addInitScript((age) => {
+          if (localStorage.getItem('kidsgames_players')) return;
+          localStorage.setItem('kidsgames_players', JSON.stringify({ Mia: { name: 'Mia', manualAge: age, theme: 'colourful-light', avatar: 0, createdAt: '2026-01-01' } }));
+          localStorage.setItem('kidsgames_activePlayer', JSON.stringify('Mia'));
+        }, age);
+        const hp = await ctx.newPage();
+        hp.on('pageerror', (e) => errors.push(String(e)));
+        await hp.goto(HUB);
+        await hp.waitForSelector('.mark--lead');
+        await hp.evaluate((t) => document.documentElement.setAttribute('data-theme', t), theme);
+        const tag = vname + ' ' + theme + ' age ' + age;
+        const m = await hp.evaluate(() => ({
+          tiles: [...document.querySelectorAll('.mark')].map((e) => { const r = e.getBoundingClientRect(); const cs = getComputedStyle(e); const nm = getComputedStyle(e.querySelector('.mark__name')); return { id: e.dataset.game, href: e.getAttribute('href'), x: r.left, y: r.top, r: r.right, b: r.bottom, w: r.width, h: r.height, fg: nm.color, bg: cs.backgroundColor, nameFits: e.querySelector('.mark__name').scrollWidth <= e.querySelector('.mark__name').clientWidth + 1 }; }),
+          sw: document.documentElement.scrollWidth, vw: innerWidth, sh: document.documentElement.scrollHeight, vh: innerHeight,
+        }));
+        check(m.tiles.length === 6, tag + ': expected six hub tiles, found ' + m.tiles.length);
+        check(m.sw <= m.vw + 1, tag + ': the hub scrolls sideways');
+        check(m.sh <= m.vh + 1, tag + ': the hub scrolls up and down (' + m.sh + ' > ' + m.vh + ')');
+        for (const t of m.tiles) {
+          check(t.x >= -1 && t.r <= m.vw + 1 && t.y >= -1 && t.b <= m.vh + 1, tag + ': tile ' + t.id + ' is not fully on screen');
+          check(t.w >= 44 && t.h >= 44, tag + ': tile ' + t.id + ' is too small: ' + Math.round(t.w) + 'x' + Math.round(t.h));
+          check(t.nameFits, tag + ': the name in tile ' + t.id + ' is cut off');
+          check(ratio(t.fg, t.bg) >= 4.5, tag + ': tile ' + t.id + ' text contrast ' + ratio(t.fg, t.bg).toFixed(2));
+        }
+        for (let i = 0; i < m.tiles.length; i++) for (let j = i + 1; j < m.tiles.length; j++) {
+          const a = m.tiles[i], b = m.tiles[j];
+          check(!(a.x < b.r - 1 && b.x < a.r - 1 && a.y < b.b - 1 && b.y < a.b - 1), tag + ': tiles ' + a.id + ' and ' + b.id + ' overlap');
+        }
+        const money = m.tiles.find((t) => t.id === 'money');
+        check(money && money.href === 'money.html', tag + ': the Money tile does not link to money.html');
+        if (process.env.SHOTS) { const fs = await import('node:fs'); fs.mkdirSync(process.env.SHOTS, { recursive: true }); await hp.screenshot({ path: path.join(process.env.SHOTS, `hub-${vname}-${theme === 'colourful-dark' ? 'dusk' : 'day'}-age${age}.png`) }); }
+        await ctx.close();
+      }
+    }
+  }
+  // the painted square: one finished round (recordSession is what the game's results call) adds one square to the Money tile
+  const ctx = await browser.newContext({ viewport: { width: 900, height: 1000 } });
+  await ctx.addInitScript(() => {
+    if (localStorage.getItem('kidsgames_players')) return;
+    localStorage.setItem('kidsgames_players', JSON.stringify({ Mia: { name: 'Mia', manualAge: 7, theme: 'colourful-light', avatar: 0, createdAt: '2026-01-01' } }));
+    localStorage.setItem('kidsgames_activePlayer', JSON.stringify('Mia'));
+  });
+  const hp = await ctx.newPage();
+  await hp.goto(HUB);
+  await hp.waitForSelector('.mark');
+  const painted = () => hp.evaluate(() => document.querySelectorAll('.mark[data-game="money"] .kg-squares i.on').length);
+  check((await painted()) === 0, 'hub: a new player should have no painted Money squares');
+  await hp.evaluate(() => KidsGames.recordSession('money'));
+  await hp.reload();
+  await hp.waitForSelector('.mark');
+  check((await painted()) === 1, 'hub: one finished Money round should paint one square');
+  await hp.click('.mark[data-game="money"]');
+  await hp.waitForURL(/money\.html/);
+  check(/money\.html$/.test(hp.url()), 'hub: tapping the Money tile should open money.html, got ' + hp.url());
+  await ctx.close();
+}
 
 await browser.close();
 if (failures.length) { console.error('FAIL (' + failures.length + '):\n - ' + failures.join('\n - ')); process.exit(1); }
