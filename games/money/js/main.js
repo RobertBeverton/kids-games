@@ -1,7 +1,7 @@
 // main.js: Money screens, input, saved data and sound. State lives in top-level bindings on purpose: the built page is one
 // classic script, and the Playwright test reads (and, for the 3,000-square check, sets) them.
 import { AS_OF, ITEMS } from './items.js';
-import { ACTIVITIES, LEVEL_IDS, ROUND_LENGTH, defaultsFor, normaliseSave, recordMisses, buildSession, wallFor, wallLayout, priceTagText, formatPrice, gradeSortTap, sortMissesFor } from './engine.js';
+import { ACTIVITIES, LEVEL_IDS, ROUND_LENGTH, defaultsFor, normaliseSave, recordMisses, buildSession, wallFor, wallLayout, priceTagText, formatPrice, gradeSortTap, sortMissesFor, gradeBuy } from './engine.js';
 import { pictureSvg } from './pictures.js';
 
 const GAME_ID = 'money';
@@ -17,7 +17,7 @@ const ACTIVITY_TEXT = {
 const LEVEL_TEXT = { easy: 'Easy', medium: 'Medium', hard: 'Hard' };
 // Activities that have a screen. Tapping a tile for one that is not here still chooses it (and saves the choice), but Play is
 // disabled with a short note instead of starting something unbuilt. Later tasks add their ids here.
-const IMPLEMENTED = new Set(['guess', 'sort']);
+const IMPLEMENTED = new Set(['guess', 'sort', 'buy']);
 const ITEM_IDS = ITEMS.map((i) => i.id);
 
 const $ = (id) => document.getElementById(id);
@@ -90,8 +90,8 @@ const ICON_TICK = '<svg class="ic" aria-hidden="true"><use href="#i-check"/></sv
 const ICON_CROSS = '<svg class="ic" aria-hidden="true"><use href="#i-close"/></svg>';
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-let mode = 'guess';   // the activity being played: 'guess' or 'sort'
-let session = null;   // { questions, index }: guess { left, right, dearId }, sort { items, order }
+let mode = 'guess';   // the activity being played: 'guess', 'sort' or 'buy'
+let session = null;   // { questions, index }: guess { left, right, dearId }, sort { items, order }, buy { budget, shelf, buyIds }
 let phase = 'ask';    // 'ask' (nothing tapped), 'find' (tapped wrong: the right one must be tapped), 'done' (Next shows)
 let shown = null;     // the Money Wall maths of the question on screen once it is revealed: { unit, items: [{ squares, dot }] }
 
@@ -123,7 +123,7 @@ function itemHtml(item) {
     (pic ? '<span class="mo-item__pic">' + pic + '</span>' : '') + '<span class="mo-item__name">' + esc(item.name) + '</span></button>' +
     '<div class="mo-reveal" hidden><div class="mo-slot" aria-hidden="true"></div><p class="mo-tag"></p></div></div>';
 }
-const PANES = { guess: 'mo-cards', sort: 'mo-sort' };
+const PANES = { guess: 'mo-cards', sort: 'mo-sort', buy: 'mo-buy' };
 function showQuestion() {
   const q = session.questions[session.index];
   phase = 'ask';
@@ -133,7 +133,9 @@ function showQuestion() {
   for (const m of Object.keys(PANES)) { $(PANES[m]).hidden = m !== mode; if (m !== mode) $(PANES[m]).innerHTML = ''; }
   $('mo-caption').classList.add('is-off');
   $('mo-next').hidden = true;
+  $('mo-done').hidden = true;
   if (mode === 'sort') showSort(q);
+  else if (mode === 'buy') showBuy(q);
   else {
     setPrompt('Which costs more?');
     $('mo-cards').innerHTML = itemHtml(q.left) + itemHtml(q.right);
@@ -212,6 +214,7 @@ function setMark(id, cls) {
 function showNext() {
   phase = 'done';
   $('mo-next-label').textContent = session.index + 1 >= ROUND_LENGTH ? 'Finish' : 'Next';
+  $('mo-done').hidden = true;
   $('mo-next').hidden = false;
   $('mo-next').focus();
 }
@@ -346,6 +349,62 @@ $('mo-sort').addEventListener('click', (e) => {
   const b = e.target.closest('.mo-sitem');
   if (b && !b.disabled && phase === 'ask') sortTap(b.dataset.id);
 });
+
+// ===== CAN YOU BUY IT? =====
+// The budget and the price tags are shown on purpose: this one is about a budget. Items toggle; Done grades them.
+let picked = new Set();
+const BUY_FLAG = { chosen: 'You tapped it', missed: 'You missed it' };
+function showBuy(q) {
+  picked = new Set();
+  setPrompt('Tap everything you can buy.');
+  const wallet = pictureSvg('wallet');   // '' until the wallet is drawn: the box and the numerals carry it alone
+  $('mo-buy').innerHTML = '<div class="mo-wallet" role="group" aria-label="You have ' + esc(formatPrice(q.budget)) + '">' +
+    (wallet ? '<span class="mo-wallet__pic">' + wallet + '</span>' : '') +
+    '<span class="mo-wallet__label" aria-hidden="true">You have</span><span class="mo-wallet__sum" aria-hidden="true">' + esc(formatPrice(q.budget)) + '</span></div>' +
+    '<div class="mo-shelf" id="mo-shelf">' + q.shelf.map((it) => {
+      const pic = pictureSvg(it.id), price = 'about ' + formatPrice(it.pence);
+      return '<button type="button" class="kg-tile mo-bitem" data-id="' + it.id + '" aria-pressed="false" aria-label="' + esc(it.name + ', ' + price) + '">' +
+        (pic ? '<span class="mo-bitem__pic">' + pic + '</span>' : '') +
+        '<span class="mo-bitem__text"><span class="mo-bitem__name">' + esc(it.name) + '</span><span class="mo-bitem__price">' + esc(price) + '</span>' +
+        '</span><span class="mo-bitem__status" hidden></span>' +
+        '<span class="mo-bmark" aria-hidden="true">' + ICON_TICK + '</span></button>';
+    }).join('') + '</div>';
+  $('mo-done').disabled = true;
+  $('mo-done').hidden = false;
+}
+function buyToggle(b) {
+  const id = b.dataset.id, on = !picked.has(id);
+  if (on) picked.add(id); else picked.delete(id);
+  b.setAttribute('aria-pressed', String(on));
+  $('mo-done').disabled = picked.size === 0;
+  sfx('tap');
+}
+function buyDone() {
+  const q = session.questions[session.index];
+  if (picked.size === 0 || phase !== 'ask') return;
+  const g = gradeBuy(q, [...picked]);
+  const flagged = new Set([...g.wronglyChosen, ...g.missed]);
+  $('mo-shelf').querySelectorAll('.mo-bitem').forEach((b) => {
+    const id = b.dataset.id, can = q.buyIds.includes(id), st = b.querySelector('.mo-bitem__status');
+    b.disabled = true;
+    b.classList.add(can ? 'is-can' : 'is-not');
+    if (flagged.has(id)) b.classList.add('is-flag');
+    st.hidden = false;
+    st.innerHTML = (can ? ICON_TICK : ICON_CROSS) + '<span>' + (can ? 'Can buy' : 'Not enough') + '</span>' +
+      (flagged.has(id) ? '<small>' + (can ? BUY_FLAG.missed : BUY_FLAG.chosen) + '</small>' : '');
+  });
+  const miss = [...g.wronglyChosen, ...g.missed];
+  if (miss.length) { save = recordMisses(save, miss); persist(); }
+  sfx(g.correct ? 'right' : 'wrong');
+  if (g.correct) setPrompt('Right', '', ICON_TICK); else setPrompt('Not quite', '', ICON_CROSS);
+  showNext();
+  say((g.correct ? 'Right. ' : 'Not quite. ') + q.shelf.map((it) => it.name + ', about ' + formatPrice(it.pence) + ', ' + (q.buyIds.includes(it.id) ? 'can buy.' : 'not enough.')).join(' '));
+}
+$('mo-buy').addEventListener('click', (e) => {
+  const b = e.target.closest('.mo-bitem');
+  if (b && !b.disabled && phase === 'ask') buyToggle(b);
+});
+$('mo-done').addEventListener('click', () => { sfx('tap'); buyDone(); });
 
 // ---- results (kept simple until the full results task) ----
 function showResults() {

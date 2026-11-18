@@ -7,9 +7,9 @@
 //
 //  1. The page title is "Money", the shell bar is there, the heading is there.
 //  2. Settings -> Which costs more? round (alternating right and wrong taps) -> results, at 360x640, with no scrolling, nothing priced before an answer.
-//  3. Put in order, every level, ten questions each, right path and wrong path, worked out from the SOURCE items and the
+//  3. Put in order and Can you buy it?, every level, ten questions each, right path and wrong path, worked out from the SOURCE items and the
 //     engine (not from page text): right taps accepted, wrong ones refused or marked, Next only when it should, no price or order number before
-//     the answer, results, Next/Done in view at 360x640.
+//     the answer in Put in order, prices shown in Can you buy it?, results, Next/Done in view at 360x640.
 //  4. No visible text or label anywhere contains afford/cheap/expensive/rich/poor/posh.
 //  5. A clean console.
 import path from 'node:path';
@@ -20,7 +20,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.
 const URL = process.env.PAGE || pathToFileURL(path.join(ROOT, 'docs', 'money.html')).href;
 const SRC = pathToFileURL(path.join(ROOT, 'games', 'money', 'js')).href;
 const { ITEMS } = await import(SRC + '/items.js');
-const { LEVEL_IDS, ROUND_LENGTH, SORT, sortMissesFor, priceTagText, formatPrice } = await import(SRC + '/engine.js');
+const { LEVEL_IDS, ROUND_LENGTH, SORT, BUY, buyable, tooDear, sortMissesFor, priceTagText, formatPrice } = await import(SRC + '/engine.js');
 const failures = [];
 const check = (cond, m) => { if (!cond) failures.push(m); };
 const browser = await chromium.launch({ channel: process.env.BROWSER_CHANNEL || 'msedge' });
@@ -189,6 +189,62 @@ for (const level of LEVEL_IDS) {
   await bannedCheck('sort results');
 }
 
+for (const level of LEVEL_IDS) {
+  await startActivity('buy', level);
+  for (let i = 0; i < ROUND_LENGTH; i++) {
+    const where = 'buy ' + level + ' q' + (i + 1);
+    const ids = await p2.locator('.mo-bitem').evaluateAll((bs) => bs.map((b) => b.dataset.id));
+    const budget = await p2.evaluate(() => session.questions[session.index].budget);
+    const can = ids.filter((id) => buyable(itemOf(id), level, budget)), dear = ids.filter((id) => tooDear(itemOf(id), level, budget));
+    check(ids.length === BUY[level].shelf, where + ': expected ' + BUY[level].shelf + ' items');
+    check(can.length >= 1 && dear.length >= 1 && can.length + dear.length === ids.length, where + ': shelf is not clearly buyable/too dear');
+    check((await p2.locator('.mo-wallet__sum').innerText()) === formatPrice(budget), where + ': budget numerals');
+    check((await p2.locator('#mo-prompt').innerText()).includes('Tap everything you can buy.'), where + ': prompt text');
+    for (const id of ids) {
+      const tagText = await p2.locator('.mo-bitem[data-id="' + id + '"] .mo-bitem__price').innerText();
+      check(tagText === 'about ' + formatPrice(itemOf(id).pence), where + ': the price tag of ' + id + ' is "' + tagText + '"');
+    }
+    check((await p2.locator('.mo-bitem[aria-pressed="false"]').count()) === ids.length, where + ': items should start unselected');
+    check(await p2.locator('#mo-done').isDisabled(), where + ': Done should be disabled with nothing selected');
+    check(!(await p2.locator('#mo-next').isVisible()), where + ': Next showed before Done');
+    await inView('#mo-done', where);
+    await noScroll(where);
+    await bannedCheck(where);
+    // toggling on and off
+    await p2.click('.mo-bitem[data-id="' + ids[0] + '"]');
+    check((await p2.locator('.mo-bitem[data-id="' + ids[0] + '"]').getAttribute('aria-pressed')) === 'true' && !(await p2.locator('#mo-done').isDisabled()), where + ': selecting did not enable Done');
+    await p2.click('.mo-bitem[data-id="' + ids[0] + '"]');
+    check(await p2.locator('#mo-done').isDisabled(), where + ': deselecting everything should disable Done again');
+    const wrongPath = i % 2 === 1;
+    const choice = wrongPath ? [dear[0]] : can;   // wrong path: tap only something too dear (chosen wrongly, and everything buyable missed)
+    for (const id of choice) {
+      if (i === 0 && id === choice[0]) { await p2.locator('.mo-bitem[data-id="' + id + '"]').focus(); await p2.keyboard.press('Space'); }   // keyboard: Space toggles
+      else await p2.click('.mo-bitem[data-id="' + id + '"]');
+    }
+    check((await p2.locator('.mo-bitem[aria-pressed="true"]').count()) === choice.length, where + ': selected count');
+    const before = (await saved()).misses;
+    await p2.click('#mo-done');
+    check(await p2.locator('#mo-done').isHidden(), where + ': Done should go after it is pressed');
+    check(await p2.locator('#mo-next').isVisible(), where + ': Next should show after Done');
+    for (const id of ids) {
+      const st = (await p2.locator('.mo-bitem[data-id="' + id + '"] .mo-bitem__status').innerText()).split('\n')[0].trim();
+      check(st === (can.includes(id) ? 'Can buy' : 'Not enough'), where + ': ' + id + ' status is "' + st + '"');
+    }
+    const flagged = await p2.locator('.mo-bitem.is-flag').count();
+    check(flagged === (wrongPath ? 1 + can.length : 0), where + ': flagged items ' + flagged);
+    const after = (await saved()).misses;
+    const expectedMiss = wrongPath ? [dear[0], ...can] : [];
+    check(expectedMiss.every((id) => (after[id] || 0) > (before[id] || 0)), where + ': misses not recorded');
+    check(wrongPath || JSON.stringify(after) === JSON.stringify(before), where + ': a right answer should record nothing');
+    check((await p2.locator('#mo-prompt').innerText()).startsWith(wrongPath ? 'Not quite' : 'Right'), where + ': verdict word');
+    await inView('#mo-next', where);
+    await noScroll(where);
+    await bannedCheck(where);
+    await p2.click('#mo-next');
+  }
+  check(await p2.locator('#mo-results').isVisible(), 'buy ' + level + ': results did not show');
+  await bannedCheck('buy results');
+}
 await p2.click('#mo-change');
 
 check(errors.length === 0, 'console/page errors: ' + errors.slice(0, 3).join(' | '));

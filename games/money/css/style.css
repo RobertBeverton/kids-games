@@ -124,9 +124,9 @@
 #mo-settings { min-height: calc(100dvh - var(--bar-h) - 1px); }
 #mo-results { min-height: calc(100dvh - var(--bar-h) - 1px); }
 
-/* ---- Put in order (same screen, another pane) ---- */
-.mo-sort { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; gap: var(--s1); }
-.mo-cards[hidden], .mo-sort[hidden], .mo-pool[hidden], .mo-walls[hidden], .mo-tag[hidden] { display: none; }
+/* ---- Put in order and Can you buy it? (same screen, other panes) ---- */
+.mo-sort, .mo-buy { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; gap: var(--s1); }
+.mo-cards[hidden], .mo-sort[hidden], .mo-buy[hidden], .mo-pool[hidden], .mo-walls[hidden], .mo-tag[hidden] { display: none; }
 .mo-nextdock { gap: var(--s3); }
 
 /* Put in order: numbered slots above, the items below. The slot numbers are only a picture of order; item labels carry none. */
@@ -154,10 +154,48 @@
 .mo-wp__name { flex: none; font-size: var(--t-small); font-weight: 700; }
 .mo-wp .mo-slot { min-height: 0; }
 
+/* Can you buy it? */
+.mo-wallet { flex: none; display: flex; align-items: center; justify-content: center; gap: var(--s3); min-height: 60px; padding: var(--s1) var(--s3); border: var(--line-w) solid var(--line); border-radius: var(--r-2); background: var(--ground-2); }
+.mo-wallet__pic { flex: none; width: 44px; height: 44px; }
+.mo-wallet__label { font-size: var(--t-small); color: var(--ink-2); font-weight: 700; }
+.mo-wallet__sum { font-size: var(--t-title); font-weight: 800; line-height: 1; letter-spacing: 0.01em; }
+.mo-shelf { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: var(--s2); align-content: start; }
+.mo-bitem { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--s2); align-items: center; justify-items: start; text-align: left; min-height: 56px; padding: var(--s1) var(--s3); font-size: var(--t-body); }
+.mo-bitem:not(:has(.mo-bitem__pic)) { grid-template-columns: minmax(0, 1fr) auto; }
+.mo-bitem__pic { width: 40px; height: 40px; display: block; }
+.mo-bitem__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.mo-bitem__name { font-weight: 700; line-height: 1.1; }
+.mo-bitem__price { font-size: var(--t-small); font-weight: 700; color: var(--ink-2); }
+.mo-bmark { width: 30px; height: 30px; border: 3px solid var(--line); border-radius: 8px; display: grid; place-items: center; background: var(--chalk); }
+.mo-bmark .ic { width: 20px; height: 20px; stroke-width: 6; visibility: hidden; }
+.mo-bitem[aria-pressed="true"] { border-width: 5px; background: var(--ground-2); }
+.mo-bitem[aria-pressed="true"] .mo-bmark { background: var(--line); color: var(--chalk); }
+.mo-bitem[aria-pressed="true"] .mo-bmark .ic { visibility: visible; }
+.mo-bitem:disabled { opacity: 1; color: var(--ink); cursor: default; }
+.mo-bitem:disabled .mo-bmark { display: none; }
+.mo-bitem__status { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 2px 4px; max-width: 150px; font-size: var(--t-small); font-weight: 700; text-align: right; line-height: 1.1; }
+.mo-bitem__status[hidden] { display: none; }
+.mo-bitem__status .ic { width: 20px; height: 20px; stroke-width: 6; flex: none; }
+.mo-bitem__status small { flex-basis: 100%; font-size: var(--t-small); font-weight: 400; color: var(--ink-2); }
+.mo-bitem.is-can { background: var(--right-wash); border-color: var(--right); border-width: 4px; }
+.mo-bitem.is-not { background: var(--chalk); border-color: var(--ink-2); color: var(--ink); }
+.mo-bitem.is-flag { border-style: dashed; border-width: 5px; border-color: var(--wrong); }
+@media (max-width: 479px) {
+  .mo-shelf { gap: 6px; }
+}
+@media (orientation: landscape) and (max-height: 560px) {
+  .mo-wallet { min-height: 44px; }
+  .mo-wallet__pic { width: 32px; height: 32px; }
+  .mo-wallet__sum { font-size: 1.5rem; }
+  .mo-bitem { min-height: 48px; }
+}
+@media (prefers-reduced-motion: reduce) { .mo-sitem.is-wrong { animation: none; } }
+@media (min-width: 900px) and (min-height: 700px) { .mo-wallet__sum { font-size: var(--t-display); } .mo-wallet { min-height: 84px; } .mo-wallet__pic { width: 64px; height: 64px; } }
+
 /* Five items at 360 by 640 are tight: one-line prompt, tighter rows. */
 @media (max-width: 479px) {
-  .mo-screen--game[data-mode="sort"] .mo-prompt { font-size: var(--t-body); min-height: 36px; }
-  .mo-screen--game[data-mode="sort"] .mo-prompt small { display: none; }
+  .mo-screen--game[data-mode="sort"] .mo-prompt, .mo-screen--game[data-mode="buy"] .mo-prompt { font-size: var(--t-body); min-height: 36px; }
+  .mo-screen--game[data-mode="sort"] .mo-prompt small, .mo-screen--game[data-mode="buy"] .mo-prompt small { display: none; }
   .mo-sitem.is-placed { font-size: var(--t-small); }
   .mo-nextdock, .mo-nextdock .kg-btn { min-height: 52px; }
 }
@@ -167,4 +205,5 @@
 .mo-sitem.is-placed::after { right: 8px; width: 18px; height: 18px; margin-top: -9px; }
 .mo-sitem.is-placed .mo-item__name { padding-right: 22px; line-height: 1.05; }
 
+.mo-bitem__status > span { white-space: nowrap; }
 @media (max-width: 479px) { .mo-sitem.is-placed .mo-item__pic { display: none; } }
