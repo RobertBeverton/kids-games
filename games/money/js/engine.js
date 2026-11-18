@@ -222,3 +222,76 @@ export function sortMissesFor(question, tapsLog) {
   }
   return misses;
 }
+
+// ---- "Can you buy it?": a budget and a shelf; tap everything you could buy ----
+// budgets are in pence (£5, £10 / £20, £50, £100, £200 / £200, £500, £1,000, £5,000)
+export const BUY = {
+  easy:   { budgets: [500, 1000],                 shelf: 3, aff: 2, un: 3,   maxTier: 1 },
+  medium: { budgets: [2000, 5000, 10000, 20000],  shelf: 4, aff: 1, un: 1.5, maxTier: 2 },
+  hard:   { budgets: [20000, 50000, 100000, 500000], shelf: 5, aff: 1, un: 1.1, maxTier: 2 },
+};
+export const BUY_SIZE_DEFEAT_MIN = 4;   // of 10 questions, at least this many where "skip the biggest, buy the rest" is wrong
+// Buyable: even its highest plausible price, times the level's margin, fits. Too dear: even its lowest plausible price is well over.
+// Anything in between is arguable and is never shown with that budget.
+export const buyable = (item, level, budget) => item.hi * BUY[level].aff <= budget;
+export const tooDear = (item, level, budget) => item.lo >= budget * BUY[level].un;
+
+// A round of ROUND_LENGTH questions { budget, shelf: [items], buyIds: [ids] }.
+// With few budgets (easy has two) a budget is used ceil(ROUND_LENGTH / budgets) times, so "no budget more than 4 times" cannot hold there.
+export function buildBuySession(items, level, rng, comeBack = []) {
+  const cfg = BUY[level], pool = items.filter((i) => i.tier <= cfg.maxTier);
+  const buyIds = (q) => q.shelf.filter((i) => buyable(i, level, q.budget)).map((i) => i.id);
+  const sizeGuess = (shelf) => { const m = Math.max(...shelf.map((i) => i.size)); return shelf.filter((i) => i.size < m).map((i) => i.id).sort().join('|'); };
+  for (let attempt = 0; attempt < 200; attempt++) {
+    const budgets = shuffle(Array.from({ length: ROUND_LENGTH }, (_, i) => cfg.budgets[i % cfg.budgets.length]), rng);
+    const uses = new Map(), forced = budgets.map(() => []);
+    // missed items come back: put each on a shelf whose budget makes it clearly buyable or clearly too dear
+    for (const id of comeBack.slice(0, MAX_COME_BACK)) {
+      const it = pool.find((i) => i.id === id);
+      if (!it) continue;
+      const slot = budgets.findIndex((b, k) => forced[k].length === 0 && (buyable(it, level, b) || tooDear(it, level, b)));
+      if (slot >= 0) forced[slot].push(it);
+    }
+    // Scarce budgets first (fewest items on their thinner side), so common items are not used up before they are needed.
+    const scarcity = (b) => Math.min(pool.filter((i) => buyable(i, level, b)).length, pool.filter((i) => tooDear(i, level, b)).length);
+    const order = budgets.map((b, k) => k).sort((x, y) => scarcity(budgets[x]) - scarcity(budgets[y]));
+    const questions = new Array(ROUND_LENGTH);
+    let failed = false;
+    for (const k of order) {
+      const budget = budgets[k];
+      const later = ROUND_LENGTH - 1 - order.indexOf(k);   // questions still to come: each needs one of each side
+      const free = (i) => (uses.get(i.id) || 0) < MAX_ITEM_USES && !forced[k].includes(i);
+      const buy = shuffle(pool.filter((i) => buyable(i, level, budget) && free(i)), rng);
+      const dear = shuffle(pool.filter((i) => tooDear(i, level, budget) && free(i)), rng);
+      const shelf = forced[k].slice();
+      const have = (f) => shelf.filter((i) => f(i, level, budget)).length;
+      // pick how many to buy (1 .. shelf-1), then top up; the forced item counts on its own side
+      // Keep room for the later questions: each needs at least one buyable and one too-dear item.
+      const room = (list) => Math.max(1, list.reduce((n, i) => n + MAX_ITEM_USES - (uses.get(i.id) || 0), 0) - later);
+      const lo = Math.max(1, cfg.shelf - 1 - room(dear) + 1), hi = Math.min(cfg.shelf - 1, room(buy));
+      const want = lo >= hi ? Math.min(Math.max(lo, 1), cfg.shelf - 1) : lo + Math.floor(rng() * (hi - lo + 1));
+      while (shelf.length < cfg.shelf) {
+        const needBuy = Math.max(0, want - have(buyable)), needDear = Math.max(0, cfg.shelf - want - have(tooDear));
+        const fromBuy = needBuy > 0 && (needDear === 0 || rng() < needBuy / (needBuy + needDear));
+        const src = (fromBuy ? buy : dear).length ? (fromBuy ? buy : dear) : (fromBuy ? dear : buy);
+        if (!src.length) { failed = true; break; }
+        shelf.push(src.pop());
+      }
+      if (failed) break;
+      if (!shelf.some((i) => buyable(i, level, budget)) || !shelf.some((i) => tooDear(i, level, budget))) { failed = true; break; }
+      for (const i of shelf) uses.set(i.id, (uses.get(i.id) || 0) + 1);
+      const shown = shuffle(shelf, rng);
+      questions[k] = { budget, shelf: shown, buyIds: buyIds({ budget, shelf: shown }) };
+    }
+    if (failed) continue;
+    if (questions.filter((q) => sizeGuess(q.shelf) !== q.buyIds.slice().sort().join('|')).length < BUY_SIZE_DEFEAT_MIN) continue;
+    return questions;
+  }
+  throw new Error('buildBuySession: could not build ' + ROUND_LENGTH + ' questions for ' + level);
+}
+
+export function gradeBuy(question, selectedIds) {
+  const wronglyChosen = selectedIds.filter((id) => !question.buyIds.includes(id));
+  const missed = question.buyIds.filter((id) => !selectedIds.includes(id));
+  return { correct: !wronglyChosen.length && !missed.length, wronglyChosen, missed };
+}
