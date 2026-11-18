@@ -1,7 +1,7 @@
 // Usage: node games/money/tests/contact-sheet.mjs <out.html> [<out.png>]
 // Writes ONE html file with every picture and chrome drawing at 56px and 160px, Day and Dusk, with its name underneath.
 // Set PLAYWRIGHT_CORE (path or URL of playwright-core's index.mjs) to also screenshot it to <out.png>.
-// Set BROWSER_CHANNEL (default msedge) to choose the browser.
+// Set SHEET=chrome to show only the chrome drawings. Set BROWSER_CHANNEL (default msedge) to choose the browser.
 import fs from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { PICTURES, CHROME, pictureSvg } from '../js/pictures.js';
@@ -16,7 +16,7 @@ const tokens = fs.readFileSync(new URL('../../../shared/tokens.css', import.meta
   .replace(/:root, :root\[data-theme="colourful-light"\]/g, '.day');
 const names = Object.fromEntries(ITEMS.map((i) => [i.id, i.name]));
 const cell = (id) => `<figure class="cs"><div class="s56">${pictureSvg(id)}</div><div class="s160">${pictureSvg(id)}</div><figcaption>${names[id] || id}<br><small>${id}</small></figcaption></figure>`;
-const ids = [...Object.keys(PICTURES), ...Object.keys(CHROME)];
+const ids = process.env.SHEET === 'chrome' ? Object.keys(CHROME) : [...Object.keys(PICTURES), ...Object.keys(CHROME)];
 const panel = (theme, label) => `<section class="${theme}"><h2>${label}</h2><div class="row">${ids.map(cell).join('')}</div></section>`;
 const html = `<!doctype html><html><meta charset=utf-8><title>Money pictures</title><style>${tokens}
 body{margin:0;font:14px sans-serif}section{background:var(--ground);color:var(--ink);padding:16px}h2{margin:0 0 10px}

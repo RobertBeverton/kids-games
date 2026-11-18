@@ -44,8 +44,16 @@ export const PICTURES = {
   'house': '<path d="M8 48L48 14L88 48"/><path d="M68 32V18H76V38"/><path d="M18 40V86H78V40"/><rect x="40" y="56" width="16" height="30" rx="2"/><rect class="d" x="23" y="50" width="12" height="12"/><rect class="d" x="61" y="50" width="12" height="12"/><circle class="dot" cx="52" cy="72" r="2"/>',
 };
 
-// Wallet, the five activity tiles and the hub mark (m-money) are drawn in a later review.
-export const CHROME = {};
+// The wallet (budget box), the five activity tiles and the hub mark (m-money).
+export const CHROME = {
+  'wallet': '<rect x="8" y="26" width="80" height="56" rx="9"/><path d="M14 26L66 12Q76 10 76 20V26"/><rect x="58" y="46" width="30" height="18" rx="9"/><circle class="dot" cx="68" cy="55" r="3"/>',
+  'activity-guess': '<path d="M39 20Q39 8 48 8Q58 8 58 18Q58 26 48 30V34"/><circle class="dot" cx="48" cy="42" r="3"/><rect x="6" y="50" width="38" height="38" rx="7"/><rect x="52" y="50" width="38" height="38" rx="7"/><circle class="d" cx="25" cy="69" r="9"/><path class="d" d="M71 60L80 78H62Z"/>',
+  'activity-sort': '<rect x="6" y="52" width="16" height="16" rx="3"/><rect x="31" y="44" width="23" height="24" rx="3"/><rect x="62" y="34" width="30" height="34" rx="3"/><path d="M8 82H86M76 73L86 82L76 91"/>',
+  'activity-buy': '<path d="M28 26L40 38L68 10"/><rect x="6" y="48" width="42" height="34" rx="7"/><path class="d" d="M6 57H48"/><circle class="dot" cx="38" cy="68" r="3"/><circle cx="72" cy="64" r="17"/><path class="d" d="M63 58q2-5 7-6"/>',
+  'activity-howmany': '<circle cx="24" cy="60" r="15"/><path class="d" d="M15 54q2-5 7-6"/><rect class="d" x="44" y="72" width="14" height="14" rx="2"/><rect class="d" x="60" y="72" width="14" height="14" rx="2"/><rect class="d" x="76" y="72" width="14" height="14" rx="2"/><rect class="d" x="52" y="56" width="14" height="14" rx="2"/><rect class="d" x="68" y="56" width="14" height="14" rx="2"/><rect class="d" x="60" y="40" width="14" height="14" rx="2"/>',
+  'activity-price': '<circle cx="48" cy="22" r="15"/><path class="d" d="M39 16q2-5 7-6"/><rect class="d" x="8" y="52" width="24" height="16" rx="4"/><circle class="dot" cx="14" cy="60" r="2.4"/><rect class="d" x="37" y="52" width="24" height="16" rx="4"/><circle class="dot" cx="43" cy="60" r="2.4"/><rect class="d" x="66" y="52" width="24" height="16" rx="4"/><circle class="dot" cx="72" cy="60" r="2.4"/><rect class="d" x="8" y="73" width="24" height="16" rx="4"/><circle class="dot" cx="14" cy="81" r="2.4"/><rect class="d" x="37" y="73" width="24" height="16" rx="4"/><circle class="dot" cx="43" cy="81" r="2.4"/><rect class="d" x="66" y="73" width="24" height="16" rx="4"/><circle class="dot" cx="72" cy="81" r="2.4"/>',
+  'm-money': '<circle cx="48" cy="48" r="38"/><circle class="d" cx="48" cy="48" r="30"/><path d="M58 36Q58 24 48 24Q38 24 38 36V52Q38 60 31 66H63M31 47H54"/>',
+};
 
 export function pictureSvg(id) {
   const inner = PICTURES[id] || CHROME[id];
