@@ -1,7 +1,7 @@
 // main.js: Money screens, input, saved data and sound. State lives in top-level bindings on purpose: the built page is one
 // classic script, and the Playwright test reads (and, for the 3,000-square check, sets) them.
 import { AS_OF, ITEMS } from './items.js';
-import { ACTIVITIES, LEVEL_IDS, ROUND_LENGTH, defaultsFor, normaliseSave, recordMisses, buildSession, wallFor, wallLayout, priceTagText, formatPrice } from './engine.js';
+import { ACTIVITIES, LEVEL_IDS, ROUND_LENGTH, defaultsFor, normaliseSave, recordMisses, buildSession, wallFor, wallLayout, priceTagText, formatPrice, gradeSortTap, sortMissesFor } from './engine.js';
 import { pictureSvg } from './pictures.js';
 
 const GAME_ID = 'money';
@@ -9,7 +9,7 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 // Short tile names. `pic` is the chrome picture id looked up in pictures.js (absent until those are drawn: the tile then shows its name only).
 const ACTIVITY_TEXT = {
   guess: { name: 'Which costs more?', pic: 'activity-guess' },
-  sort: { name: 'Cheapest first', pic: 'activity-sort' },
+  sort: { name: 'Put in order', pic: 'activity-sort' },
   buy: { name: 'Can you buy it?', pic: 'activity-buy' },
   howmany: { name: 'How many coins?', pic: 'activity-howmany' },
   price: { name: "What's the price?", pic: 'activity-price' },
@@ -17,7 +17,7 @@ const ACTIVITY_TEXT = {
 const LEVEL_TEXT = { easy: 'Easy', medium: 'Medium', hard: 'Hard' };
 // Activities that have a screen. Tapping a tile for one that is not here still chooses it (and saves the choice), but Play is
 // disabled with a short note instead of starting something unbuilt. Later tasks add their ids here.
-const IMPLEMENTED = new Set(['guess']);
+const IMPLEMENTED = new Set(['guess', 'sort']);
 const ITEM_IDS = ITEMS.map((i) => i.id);
 
 const $ = (id) => document.getElementById(id);
@@ -85,21 +85,23 @@ $('mo-level-row').addEventListener('click', (e) => {
   $('mo-level-row').querySelector('[data-level="' + save.level + '"]').focus();
 });
 
-// ===== WHICH COSTS MORE? =====
+// ===== SHARED GAME PARTS (all activities) =====
 const ICON_TICK = '<svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>';
 const ICON_CROSS = '<svg class="ic" aria-hidden="true"><use href="#i-close"/></svg>';
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-let session = null;   // { questions: [{ left, right, dearId }], index }
+let mode = 'guess';   // the activity being played: 'guess' or 'sort'
+let session = null;   // { questions, index }: guess { left, right, dearId }, sort { items, order }
 let phase = 'ask';    // 'ask' (nothing tapped), 'find' (tapped wrong: the right one must be tapped), 'done' (Next shows)
 let shown = null;     // the Money Wall maths of the question on screen once it is revealed: { unit, items: [{ squares, dot }] }
 
 function startSession() {
   try {
-    session = { questions: buildSession('guess', save.level, ITEMS, Math.random, save), index: 0 };
+    mode = save.activity;
+    session = { questions: buildSession(mode, save.level, ITEMS, Math.random, save), index: 0 };
   } catch (e) {
     console.error(e);
-    if (window.KidsGames) window.KidsGames.say('Sorry, that did not start. Try another level.');
+    say('Sorry, that did not start. Try another level.');
     return;
   }
   showScreen('mo-game');
@@ -113,6 +115,7 @@ function renderProgress() {
 function setPrompt(word, sub, glyph) {
   $('mo-prompt').innerHTML = (glyph || '') + '<span class="mo-prompt__word">' + esc(word) + '</span>' + (sub ? '<small>' + esc(sub) + '</small>' : '');
 }
+// ----- Which costs more? -----
 // An item with no drawing yet is a plain tile with its name. The aria-label is the name only: no price before the answer.
 function itemHtml(item) {
   const pic = pictureSvg(item.id);
@@ -120,15 +123,21 @@ function itemHtml(item) {
     (pic ? '<span class="mo-item__pic">' + pic + '</span>' : '') + '<span class="mo-item__name">' + esc(item.name) + '</span></button>' +
     '<div class="mo-reveal" hidden><div class="mo-slot" aria-hidden="true"></div><p class="mo-tag"></p></div></div>';
 }
+const PANES = { guess: 'mo-cards', sort: 'mo-sort' };
 function showQuestion() {
   const q = session.questions[session.index];
   phase = 'ask';
   shown = null;
+  $('mo-game').dataset.mode = mode;
   renderProgress();
-  setPrompt('Which costs more?');
-  $('mo-cards').innerHTML = itemHtml(q.left) + itemHtml(q.right);
+  for (const m of Object.keys(PANES)) { $(PANES[m]).hidden = m !== mode; if (m !== mode) $(PANES[m]).innerHTML = ''; }
   $('mo-caption').classList.add('is-off');
   $('mo-next').hidden = true;
+  if (mode === 'sort') showSort(q);
+  else {
+    setPrompt('Which costs more?');
+    $('mo-cards').innerHTML = itemHtml(q.left) + itemHtml(q.right);
+  }
 }
 
 // ---- the Money Wall: CSS only. One masked block (a tiled square with a gap) plus one short row for the remainder; no element per square. ----
@@ -167,7 +176,7 @@ function buildWall(item, cell) {
 // One cell size for both walls (same scale), as big as fits the smaller slot, at most WALL_CELL_MAX.
 function layoutWalls() {
   if (!shown) return;
-  const slots = [...document.querySelectorAll('.mo-slot')];
+  const slots = [...$(PANES[mode]).querySelectorAll('.mo-slot')];
   let cols = 1, rows = 1;
   for (const it of shown.items) {
     if (it.dot) continue;
@@ -193,6 +202,7 @@ function reveal(q) {
   layoutWalls();
 }
 const tagsSpeech = (q) => q.left.name + ', ' + priceTagText(q.left.pence) + '. ' + q.right.name + ', ' + priceTagText(q.right.pence) + '.';
+const say = (t) => { if (window.KidsGames) window.KidsGames.say(t); };
 function setMark(id, cls) {
   const b = $('mo-cards').querySelector('.mo-item[data-id="' + id + '"]');
   b.classList.remove('is-hint');
@@ -201,14 +211,13 @@ function setMark(id, cls) {
 }
 function showNext() {
   phase = 'done';
-  $('mo-next-label').textContent = session.index + 1 >= ROUND_LENGTH ? 'Done' : 'Next';
+  $('mo-next-label').textContent = session.index + 1 >= ROUND_LENGTH ? 'Finish' : 'Next';
   $('mo-next').hidden = false;
   $('mo-next').focus();
 }
 
 function answer(id) {
   const q = session.questions[session.index];
-  const say = (t) => { if (window.KidsGames) window.KidsGames.say(t); };
   if (phase === 'ask') {
     if (id === q.dearId) {
       sfx('right');
@@ -247,7 +256,7 @@ $('mo-next').addEventListener('click', () => {
   session.index += 1;
   if (session.index >= ROUND_LENGTH) { showResults(); return; }
   showQuestion();
-  const first = $('mo-cards').querySelector('.mo-item');
+  const first = $(PANES[mode]).querySelector('button:not(:disabled)');
   if (first) first.focus();
 });
 $('mo-stop').addEventListener('click', () => { sfx('tap'); session = null; shown = null; showScreen('mo-settings'); });
@@ -257,6 +266,85 @@ window.addEventListener('resize', () => {
   if (relayoutQueued || !shown) return;
   relayoutQueued = true;
   requestAnimationFrame(() => { relayoutQueued = false; layoutWalls(); });
+});
+
+// ===== PUT IN ORDER =====
+// The child taps the items from the one that costs least up. `placed` is the ids already in their slots; `tapsLog` is every tap
+// ({ position, tappedId }) for sortMissesFor. Nothing here shows a price or an order number until the set is finished.
+let placed = [], tapsLog = [];
+const sortItemHtml = (item) => {
+  const pic = pictureSvg(item.id);
+  return '<button type="button" class="kg-tile mo-item mo-sitem" data-id="' + item.id + '" aria-label="' + esc(item.name) + '">' +
+    (pic ? '<span class="mo-item__pic">' + pic + '</span>' : '') + '<span class="mo-item__name">' + esc(item.name) + '</span></button>';
+};
+function showSort(q) {
+  placed = [];
+  tapsLog = [];
+  setPrompt('Tap the one that costs least.');
+  $('mo-sort').classList.remove('is-revealed');
+  const last = q.items.length - 1;
+  // The end labels (a word and a glyph) sit in the first and last empty slots and give way to the item that lands there.
+  const endLabel = (i) => i === 0 ? '<span class="mo-slabel">▲ costs least</span>' : i === last ? '<span class="mo-slabel">▼ costs most</span>' : '';
+  $('mo-sort').innerHTML = '<div class="mo-slots">' +
+    q.items.map((x, i) => '<div class="mo-srow"><span class="mo-snum" aria-hidden="true">' + (i + 1) + '</span><div class="mo-sbody">' + endLabel(i) + '</div><p class="mo-tag" hidden></p></div>').join('') +
+    '</div>' +
+    '<div class="mo-pool" id="mo-pool">' + q.items.map(sortItemHtml).join('') + '</div>' +
+    '<div class="mo-walls" id="mo-walls" hidden></div>';
+}
+function sortTap(id) {
+  const q = session.questions[session.index];
+  const before = sortMissesFor(q, tapsLog).length;
+  const pos = placed.length;
+  tapsLog.push({ position: pos, tappedId: id });
+  const fresh = sortMissesFor(q, tapsLog).slice(before);
+  if (fresh.length) { save = recordMisses(save, fresh); persist(); }
+  const btn = $('mo-sort').querySelector('.mo-sitem[data-id="' + id + '"]');
+  $('mo-sort').querySelectorAll('.mo-sitem.is-wrong').forEach((b) => b.classList.remove('is-wrong'));
+  if (!gradeSortTap(q, placed, id).correct) {
+    sfx('wrong');
+    void btn.offsetWidth;   // restart the nudge if the same item is tapped twice
+    btn.classList.add('is-wrong');
+    setPrompt('Not this one', 'Tap the one that costs least', ICON_CROSS);
+    say('Not this one. Tap the one that costs least.');
+    return;
+  }
+  sfx('right');
+  placed.push(id);
+  btn.classList.add('is-placed');
+  btn.disabled = true;
+  $('mo-sort').querySelector('.mo-slots').children[pos].querySelector('.mo-sbody').appendChild(btn);
+  if (placed.length < q.items.length) {
+    setPrompt('Right', 'Now the next one that costs least', ICON_TICK);
+    const next = $('mo-pool').querySelector('.mo-sitem:not(:disabled)');
+    if (next) next.focus();
+    return;
+  }
+  revealSort(q);
+}
+function revealSort(q) {
+  const ordered = q.order.map((id) => q.items.find((i) => i.id === id));
+  const low = ordered[0], high = ordered[ordered.length - 1];
+  shown = wallFor([low.pence, high.pence]);   // walls for the two ends only; the middle items get a tag
+  setPrompt('Right', '', ICON_TICK);
+  $('mo-pool').hidden = true;
+  $('mo-sort').classList.add('is-revealed');
+  $('mo-sort').querySelectorAll('.mo-srow').forEach((row, i) => {
+    const tag = row.querySelector('.mo-tag');
+    tag.textContent = priceTagText(ordered[i].pence);
+    tag.hidden = false;
+  });
+  const walls = $('mo-walls');
+  walls.innerHTML = [low, high].map((it) => '<div class="mo-wp"><span class="mo-wp__name">' + esc(it.name) + '</span><div class="mo-slot" aria-hidden="true"></div></div>').join('');
+  walls.hidden = false;
+  $('mo-caption').textContent = 'each square = ' + formatPrice(shown.unit);
+  $('mo-caption').classList.remove('is-off');
+  layoutWalls();
+  showNext();
+  say('Right. ' + ordered.map((it) => it.name + ', ' + priceTagText(it.pence) + '.').join(' '));
+}
+$('mo-sort').addEventListener('click', (e) => {
+  const b = e.target.closest('.mo-sitem');
+  if (b && !b.disabled && phase === 'ask') sortTap(b.dataset.id);
 });
 
 // ---- results (kept simple until the full results task) ----

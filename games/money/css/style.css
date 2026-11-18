@@ -123,3 +123,48 @@
 /* Rounding: the shell bar plus a full-height screen can overshoot the viewport by a pixel and make a one-pixel scroll. */
 #mo-settings { min-height: calc(100dvh - var(--bar-h) - 1px); }
 #mo-results { min-height: calc(100dvh - var(--bar-h) - 1px); }
+
+/* ---- Put in order (same screen, another pane) ---- */
+.mo-sort { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; gap: var(--s1); }
+.mo-cards[hidden], .mo-sort[hidden], .mo-pool[hidden], .mo-walls[hidden], .mo-tag[hidden] { display: none; }
+.mo-nextdock { gap: var(--s3); }
+
+/* Put in order: numbered slots above, the items below. The slot numbers are only a picture of order; item labels carry none. */
+.mo-slots { flex: none; display: flex; flex-direction: column; gap: 4px; }
+.mo-srow { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: var(--s2); align-items: center; min-height: 40px; }
+.is-revealed .mo-srow { grid-template-columns: 24px minmax(0, 48%) minmax(0, 1fr); }
+.mo-snum { font-weight: 700; font-size: var(--t-body); text-align: center; color: var(--ink-2); }
+.mo-sbody { min-width: 0; min-height: 40px; display: flex; align-items: center; }
+.mo-sbody:not(:has(.mo-sitem)) { border: 3px dashed var(--ink-2); border-radius: var(--r-2); padding: 0 var(--s2); }
+.mo-slabel { font-size: var(--t-small); font-weight: 700; color: var(--ink-2); }
+.mo-sbody:has(.mo-sitem) .mo-slabel { display: none; }
+.mo-sort .mo-tag { margin: 0; font-size: var(--t-small); line-height: 1.15; }
+.mo-pool { flex: 1 1 auto; min-height: 0; display: flex; flex-wrap: wrap; justify-content: center; align-content: center; gap: var(--s2); }
+.mo-sitem { flex: 1 1 96px; max-width: 170px; min-height: 64px; flex-direction: column; gap: 2px; padding: var(--s1); font-size: var(--t-small); }
+.mo-sitem .mo-item__pic { flex: none; width: 32px; height: 32px; }
+.mo-sitem.is-placed { flex: 1 1 auto; max-width: none; width: 100%; min-height: 40px; flex-direction: row; justify-content: flex-start; gap: var(--s2); padding: 4px var(--s2); text-align: left; border-width: 3px; opacity: 1; background: var(--right-wash); border-color: var(--right); color: var(--ink); }
+.mo-sitem.is-placed .mo-item__pic { width: 28px; height: 28px; }
+.mo-sitem.is-placed::after { content: ""; position: absolute; top: 50%; right: 10px; width: 22px; height: 22px; margin-top: -11px; background: var(--right);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath d='M9 26l11 11L40 13' fill='none' stroke='black' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath d='M9 26l11 11L40 13' fill='none' stroke='black' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat; }
+.mo-sitem.is-placed .mo-item__name { padding-right: 28px; }
+.mo-sitem.is-wrong::after { top: 4px; right: 4px; width: 22px; height: 22px; }
+.mo-walls { flex: 1 1 0; min-height: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3); }
+.mo-wp { min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 2px; }
+.mo-wp__name { flex: none; font-size: var(--t-small); font-weight: 700; }
+.mo-wp .mo-slot { min-height: 0; }
+
+/* Five items at 360 by 640 are tight: one-line prompt, tighter rows. */
+@media (max-width: 479px) {
+  .mo-screen--game[data-mode="sort"] .mo-prompt { font-size: var(--t-body); min-height: 36px; }
+  .mo-screen--game[data-mode="sort"] .mo-prompt small { display: none; }
+  .mo-sitem.is-placed { font-size: var(--t-small); }
+  .mo-nextdock, .mo-nextdock .kg-btn { min-height: 52px; }
+}
+.mo-sitem { padding-top: 14px; }
+.mo-sitem.is-wrong::after { top: 2px; right: 2px; width: 16px; height: 16px; }
+.mo-sitem.is-placed { padding-top: 4px; }
+.mo-sitem.is-placed::after { right: 8px; width: 18px; height: 18px; margin-top: -9px; }
+.mo-sitem.is-placed .mo-item__name { padding-right: 22px; line-height: 1.05; }
+
+@media (max-width: 479px) { .mo-sitem.is-placed .mo-item__pic { display: none; } }
