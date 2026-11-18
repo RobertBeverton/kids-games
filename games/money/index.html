@@ -40,6 +40,35 @@
     </div>
   </div>
 
+  <!-- SCREEN 2: Which costs more? -->
+  <div id="mo-game" class="kg-screen mo-screen mo-screen--game" hidden>
+    <div class="kg-wrap mo-play">
+      <div class="kg-hud">
+        <button type="button" class="kg-iconbtn" id="mo-stop" aria-label="Stop playing"><svg class="ic" aria-hidden="true"><use href="#i-close"/></svg></button>
+        <span class="kg-squares mo-progress" id="mo-progress" role="img"></span>
+        <span class="kg-hud__fill"></span>
+      </div>
+      <h2 class="mo-prompt" id="mo-prompt">Which costs more?</h2>
+      <div class="mo-cards" id="mo-cards" role="group" aria-label="Choices"></div>
+      <p class="mo-caption is-off" id="mo-caption"></p>
+      <div class="mo-nextdock">
+        <button type="button" class="kg-btn" id="mo-next" hidden><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg><span id="mo-next-label">Next</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: results (kept simple for now) -->
+  <div id="mo-results" class="kg-screen mo-screen" hidden>
+    <div class="kg-wrap" style="align-items:center;text-align:center">
+      <h2 class="kg-title" id="mo-results-title">Well done!</h2>
+      <span class="kg-squares mo-done-squares" id="mo-done-squares" role="img" aria-label="Ten questions done"></span>
+      <div class="kg-actions mo-results-actions">
+        <button type="button" class="kg-btn" id="mo-again"><svg class="ic" aria-hidden="true"><use href="#i-replay"/></svg><span>Play again</span></button>
+        <button type="button" class="kg-btn kg-btn--ghost" id="mo-change"><svg class="ic" aria-hidden="true"><use href="#i-back"/></svg><span>Change</span></button>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script type="module" src="js/main.js"></script>

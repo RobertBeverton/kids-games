@@ -48,5 +48,78 @@
   #mo-settings .kg-dock .kg-btn { min-height: 48px; }
   #mo-settings .kg-dock { padding-block: var(--s1); }
 }
+
+/* ---- Which costs more? ---- */
+.mo-screen--game { height: calc(100dvh - var(--bar-h) - 1px); min-height: 0; padding: var(--s2) var(--s4) calc(var(--s2) + var(--safe-b)); align-items: stretch; }
+.mo-play { height: 100%; min-height: 0; gap: var(--s2); max-width: 960px; }
+.mo-prompt { margin: 0; flex: none; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: var(--s1) var(--s2); min-height: 56px; text-align: center; font-size: var(--t-lead); line-height: 1.15; }
+.mo-prompt .ic { width: 32px; height: 32px; flex: none; stroke-width: 3; }
+.mo-prompt small { flex-basis: 100%; font-size: var(--t-small); font-weight: 400; color: var(--ink-2); }
+.mo-cards { flex: 1 1 0; min-height: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gap-tile); }
+.mo-card { min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: var(--s2); }
+
+/* The item: its drawing and its name. */
+.mo-item { flex: 1 1 auto; min-height: 0; flex-direction: column; gap: var(--s2); padding: var(--s3); font-size: var(--t-lead); }
+.mo-item__pic { flex: 1 1 0; min-height: 0; width: 100%; max-width: 220px; display: block; }
+.mo-item__name { flex: none; }
+.mo-item:disabled { opacity: 1; color: var(--ink); cursor: default; }
+.mo-item:disabled:not(.is-right):not(.is-wrong) { color: var(--ink-2); background: var(--ground-2); }
+.mo-item.is-hint { border-style: dashed; border-width: 5px; }
+/* Right and wrong: the shell's wash, thick keyline and tick/cross glyph, here with a word in the prompt as well. */
+.mo-card.is-revealed .mo-item { flex: 0 0 auto; }
+.mo-card.is-revealed .mo-item__pic { flex: none; height: 64px; }
+.mo-card.is-revealed .mo-item { font-size: var(--t-body); padding: var(--s2); }
+
+/* The reveal: the wall, then the tag. */
+.mo-reveal { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; gap: var(--s1); }
+.mo-reveal[hidden] { display: none; }
+.mo-slot { flex: 1 1 0; min-height: 56px; position: relative; overflow: hidden; }
+.mo-tag { flex: none; margin: 0; font-size: var(--t-small); line-height: 1.25; font-weight: 700; }
+.mo-caption { flex: none; margin: 0; text-align: center; font-size: var(--t-small); color: var(--ink-2); min-height: 1.25em; }
+.mo-caption.is-off { visibility: hidden; }
+
+/* The Money Wall is CSS only: a block whose ink layer and gold layer are one tiled square (set from main.js), plus a remainder row. */
+.mo-wallbox { position: absolute; left: 3px; top: 3px; display: flex; flex-direction: column; align-items: flex-start; }
+.mo-wall { position: relative; background: var(--line); -webkit-mask: var(--m-ink) 0 0 / var(--c) var(--c); mask: var(--m-ink) 0 0 / var(--c) var(--c); }
+.mo-wall::before { content: ""; position: absolute; inset: 0; background: var(--paint-yellow); -webkit-mask: var(--m-gold) 0 0 / var(--c) var(--c); mask: var(--m-gold) 0 0 / var(--c) var(--c); }
+.mo-wall--solid { -webkit-mask: none; mask: none; background: var(--paint-yellow); outline: 2px solid var(--line); }
+.mo-wall--solid::before { display: none; }
+.mo-dot { display: block; width: 14px; height: 14px; border-radius: 50%; background: var(--paint-yellow); border: 2px solid var(--line); margin: 2px; }
+
+.mo-nextdock { flex: none; display: flex; justify-content: center; min-height: 56px; }
+.mo-nextdock .kg-btn[hidden] { display: none; }
+.mo-nextdock .kg-btn { min-width: 200px; min-height: 56px; }
+
+/* Narrow portrait: the two items stack, each a row with the drawing on the left and the reveal on the right. */
+@media (max-width: 479px) {
+  .mo-cards { grid-template-columns: minmax(0, 1fr); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: var(--s2); }
+}
+/* Stacked, or a phone held sideways: a card is a row (item left, reveal right). */
+@media (max-width: 479px), (orientation: landscape) and (max-height: 560px) {
+  .mo-card { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: var(--s2); }
+  .mo-card.is-revealed { grid-template-columns: minmax(96px, 34%) minmax(0, 1fr); }
+  .mo-card.is-revealed .mo-item { flex: 1 1 auto; font-size: var(--t-small); padding: var(--s1); }
+  .mo-card.is-revealed .mo-item__pic { flex: 1 1 0; height: auto; }
+  .mo-tag { font-size: 0.9375rem; }
+}
+@media (orientation: landscape) and (max-height: 560px) {
+  .mo-screen--game { padding-top: var(--s1); }
+  .mo-play { gap: var(--s1); }
+  .mo-prompt { min-height: 40px; font-size: var(--t-body); flex-wrap: nowrap; }
+  .mo-prompt small { flex-basis: auto; }
+  .mo-prompt .ic { width: 26px; height: 26px; }
+  .mo-nextdock, .mo-nextdock .kg-btn { min-height: 48px; }
+}
+@media (min-width: 900px) and (min-height: 700px) {
+  .mo-item { font-size: var(--t-title); }
+  .mo-prompt { font-size: var(--t-title); }
+}
+
+/* Results */
+.mo-done-squares { gap: 6px; }
+.mo-done-squares i { width: 28px; height: 28px; }
+.mo-results-actions { width: 100%; max-width: 520px; justify-content: center; }
+
 /* Rounding: the shell bar plus a full-height screen can overshoot the viewport by a pixel and make a one-pixel scroll. */
 #mo-settings { min-height: calc(100dvh - var(--bar-h) - 1px); }
+#mo-results { min-height: calc(100dvh - var(--bar-h) - 1px); }
