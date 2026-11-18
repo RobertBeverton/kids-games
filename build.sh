@@ -2,7 +2,7 @@
 # build.sh — Builds all games into docs/ for GitHub Pages deployment.
 #
 # Usage: bash build.sh
-# Output: docs/index.html (hub), docs/type-trainer.html, docs/opposites.html, docs/sentence-blocks.html
+# Output: docs/index.html (hub), docs/type-trainer.html, docs/opposites.html, docs/sentence-blocks.html, docs/money.html
 
 set -euo pipefail
 
@@ -52,7 +52,7 @@ for f in "${JS_FILES[@]}"; do
   fi
 done
 
-for game in opposites maths memory-match sentence-blocks; do
+for game in opposites maths memory-match sentence-blocks money; do
   if [ ! -f "games/$game/index.html" ]; then
     echo "Error: games/$game/index.html not found." >&2
     exit 1
@@ -101,6 +101,14 @@ else
 fi
 echo ""
 
+# --- Money: unit tests (items, rules of each activity, saved data) ---
+if command -v node >/dev/null 2>&1; then
+  (cd games/money/tests && node --test ./*.test.js) || { echo "Error: Money tests failed." >&2; exit 1; }
+else
+  echo "  [WARN] node not found: skipped the Money tests"
+fi
+echo ""
+
 # --- Create docs directory ---
 mkdir -p "$DOCS_DIR"
 
@@ -122,7 +130,9 @@ SHELL_JS_TEMP=$(mktemp)
 JS_COMBINED=$(mktemp)
 _cleanup() {
   rm -f "${TOKENS_BUILT:-}" "$JS_TEMP" "$CSS_TEMP" "$SHELL_JS_TEMP" "$JS_COMBINED" \
-        "${MATHS_JS_TEMP:-}" "${MATHS_CSS_TEMP:-}" "${MATHS_JS_COMBINED:-}" \n        "${SB_JS_TEMP:-}" "${SB_CSS_TEMP:-}" "${SB_JS_COMBINED:-}"
+        "${MATHS_JS_TEMP:-}" "${MATHS_CSS_TEMP:-}" "${MATHS_JS_COMBINED:-}" \
+        "${SB_JS_TEMP:-}" "${SB_CSS_TEMP:-}" "${SB_JS_COMBINED:-}" \
+        "${MO_JS_TEMP:-}" "${MO_CSS_TEMP:-}" "${MO_JS_COMBINED:-}"
 }
 trap _cleanup EXIT
 
@@ -542,6 +552,93 @@ else
 fi
 
 # ==========================================================================
+# BUILD 6: Money (inline CSS + JS into single HTML), built like Sentence Blocks.
+# Later tasks add items.js, engine.js and pictures.js to the list, in the order items.js, engine.js, pictures.js, main.js.
+# JS order matters: dependencies first, main.js last. The unit tests in games/money/tests run earlier in this script.
+# ==========================================================================
+MO_GAME_DIR="games/money"
+MO_JS_FILES=(
+  "js/main.js"
+)
+
+MO_JS_TEMP=$(mktemp)
+MO_CSS_TEMP=$(mktemp)
+MO_JS_COMBINED=$(mktemp)
+
+echo ""
+echo "--- Building Money ---"
+
+for f in "${MO_JS_FILES[@]}"; do
+  echo "  Inlining $MO_GAME_DIR/$f"
+  echo "// --- $(basename "$f") ---" >> "$MO_JS_TEMP"
+  awk '
+    /^import / || /^import\{/ {
+      if ($0 ~ /;/) { next }
+      while ((getline line) > 0) { if (line ~ /;/) break }
+      next
+    }
+    /^export\s*\{\s*\}\s*;?\s*$/ { next }
+    /^export default / { sub(/^export default /, ""); print; next }
+    /^export / { sub(/^export /, ""); print; next }
+    { print }
+  ' "$MO_GAME_DIR/$f" >> "$MO_JS_TEMP"
+  echo "" >> "$MO_JS_TEMP"
+done
+
+cat "$TOKENS_BUILT" shared/shell.css "$MO_GAME_DIR/css/style.css" > "$MO_CSS_TEMP"
+cat "$SHELL_JS_TEMP" "$MO_JS_TEMP" > "$MO_JS_COMBINED"
+
+echo "Assembling money HTML..."
+
+awk -v css_file="$MO_CSS_TEMP" -v js_file="$MO_JS_COMBINED" -v shell_file="shared/shell.html" '
+  /<link[^>]*shared\/tokens\.css[^>]*>/ { next }
+  /<link[^>]*shared\/shell\.css[^>]*>/ { next }
+  /<link[^>]*css\/style\.css[^>]*>/ {
+    print "  <style>"
+    while ((getline line < css_file) > 0) { print line }
+    close(css_file)
+    print "  </style>"
+    next
+  }
+  /<body/ {
+    print
+    while ((getline line < shell_file) > 0) { print line }
+    close(shell_file)
+    next
+  }
+  /<script[^>]*type="module"[^>]*src=.*main\.js/ || /<script[^>]*src=.*main\.js[^>]*type="module"/ {
+    print "  <script>"
+    while ((getline line < js_file) > 0) { print line }
+    close(js_file)
+    print "  </script>"
+    next
+  }
+  { print }
+' "$MO_GAME_DIR/index.html" > "$DOCS_DIR/money.html"
+
+MO_SIZE=$(wc -c < "$DOCS_DIR/money.html" | tr -d ' ')
+echo "Money built: $DOCS_DIR/money.html ($MO_SIZE bytes)"
+
+if grep -q 'kg-shell' "$DOCS_DIR/money.html"; then
+  echo "  [ok] Shell bar injected"
+else
+  echo "  [WARN] Shell bar missing"
+fi
+
+# main.js marker for now (no engine yet); switch to a function from items.js/engine.js once Task 3 lands.
+if grep -q '// --- main.js ---' "$DOCS_DIR/money.html"; then
+  echo "  [ok] JS inlined"
+else
+  echo "  [WARN] JS not found in output"
+fi
+
+if [ "$(grep -c '^import ' "$DOCS_DIR/money.html" || true)" = "0" ] && [ "$(grep -c '^export ' "$DOCS_DIR/money.html" || true)" = "0" ]; then
+  echo "  [ok] No residual import/export statements"
+else
+  echo "  [WARN] Residual import/export statements in money.html"
+fi
+
+# ==========================================================================
 # BUILD 3: Landing Page (inline shared tokens)
 # ==========================================================================
 echo ""
@@ -604,6 +701,7 @@ echo "  $DOCS_DIR/number-bonds.html   — (redirect to Maths)"
 echo "  $DOCS_DIR/maths.html          — Maths"
 echo "  $DOCS_DIR/memory-match.html   — Memory Match"
 echo "  $DOCS_DIR/sentence-blocks.html — Sentence Blocks"
+echo "  $DOCS_DIR/money.html          — Money"
 echo ""
 echo "Test by opening docs/index.html in a browser."
 
@@ -623,12 +721,13 @@ if [ "${1:-}" = "--release" ]; then
     "$DOCS_DIR/maths.html"
     "$DOCS_DIR/memory-match.html"
     "$DOCS_DIR/sentence-blocks.html"
+    "$DOCS_DIR/money.html"
   )
 
   if command -v zip >/dev/null 2>&1; then
     # Create a README for the zip
     echo "Open index.html in your web browser to play." > "$RELEASE_DIR/README.txt"
-    (cd "$DOCS_DIR" && zip -r "../$ZIP_PATH" index.html type-trainer.html opposites.html number-bonds.html maths.html memory-match.html sentence-blocks.html)
+    (cd "$DOCS_DIR" && zip -r "../$ZIP_PATH" index.html type-trainer.html opposites.html number-bonds.html maths.html memory-match.html sentence-blocks.html money.html)
     (cd "$RELEASE_DIR" && zip "$ZIP_NAME" README.txt && rm README.txt)
   elif command -v powershell >/dev/null 2>&1; then
     # Fallback: use PowerShell Compress-Archive (Windows)

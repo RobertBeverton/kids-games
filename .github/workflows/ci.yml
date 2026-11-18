@@ -5,10 +5,10 @@ name: CI
 # so merging a PR is enough to publish (GitHub Pages serves master:/docs).
 #
 # The browser step is the slow part, so:
-#  - it runs one parallel job per game, so the wait is the slowest game, not the sum of all four;
+#  - it runs one parallel job per game, so the wait is the slowest game, not the sum of all of them;
 #  - on a pull request it only runs the games whose own folder changed, unless something every game shares changed
-#    (shared/, hub.html, build.sh, tools/, .github/), in which case it runs all four;
-#  - on a push to master it always runs all four, and Maths samples 350 questions per combination instead of the 60 used on a pull request.
+#    (shared/, hub.html, build.sh, tools/, .github/), in which case it runs all of them;
+#  - on a push to master it always runs all of them, and Maths samples 350 questions per combination instead of the 60 used on a pull request.
 on:
   pull_request:
     branches: [master]
@@ -71,7 +71,7 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha }}
           HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
-          games="opposites maths memory-match sentence-blocks"
+          games="opposites maths memory-match sentence-blocks money"
           to_json() { printf '%s\n' "$@" | grep -v '^$' | awk 'BEGIN{printf "["} {printf "%s\"%s\"", (NR>1?",":""), $0} END{printf "]"}'; }
           if [ "$EVENT" != "pull_request" ]; then
             echo "not a pull request: testing every game"

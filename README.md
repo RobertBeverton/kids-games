@@ -30,6 +30,9 @@ bash build.sh                                  # fails if the list is invalid or
 
 `games/opposites/tests/play-test.mjs` plays the built page in a real browser and checks that nothing wrong is accepted and nothing right is rejected (see its header for how to run it).
 
+### Money
+A game about what things cost: which costs more, cheapest to dearest, can you buy it, how many £1 coins, and guess the price. Work in progress.
+
 ## Tech
 
 - Vanilla HTML5 / CSS3 / JavaScript — no dependencies, no framework
@@ -51,7 +54,7 @@ Games live under `games/<name>/`. Open any game's `index.html` in a browser for 
 
 ```bash
 bash build.sh
-# Produces docs/index.html (hub), docs/type-trainer.html, docs/opposites.html, docs/maths.html, docs/memory-match.html, docs/sentence-blocks.html
+# Produces docs/index.html (hub), docs/type-trainer.html, docs/opposites.html, docs/maths.html, docs/memory-match.html, docs/sentence-blocks.html, docs/money.html
 # (docs/number-bonds.html is only a redirect to Maths)
 ```
 
