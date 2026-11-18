@@ -423,11 +423,22 @@ export function recordMisses(save, ids) {
   return { ...save, misses, recent, best: { ...save.best } };
 }
 
-// Up to MAX_COME_BACK recently missed ids that still exist.
-export function comeBackIds(save, validIds) {
+// Up to MAX_COME_BACK recently missed ids that still exist, newest first. `fit` (optional: a predicate on an id, or an array of ids)
+// narrows them to what the activity can use BEFORE the cut to MAX_COME_BACK, so ids it cannot use never take a slot.
+export function comeBackIds(save, validIds, fit) {
   const ids = new Set(validIds);
-  return save.recent.filter((id) => ids.has(id)).slice(0, MAX_COME_BACK);
+  const ok = !fit ? () => true : typeof fit === 'function' ? fit : ((set) => (id) => set.has(id))(new Set(fit));
+  return save.recent.filter((id) => ids.has(id) && ok(id)).slice(0, MAX_COME_BACK);
 }
+
+// The items an activity can use at a level (what its builder draws from).
+const POOLS = {
+  guess: (items, level) => items.filter((i) => i.tier <= LEVELS[level].maxTier),
+  sort: (items, level) => items.filter((i) => i.tier <= SORT[level].maxTier),
+  buy: (items, level) => items.filter((i) => i.tier <= BUY[level].maxTier),
+  howmany: (items, level) => howManyPool(items, level),
+  price: (items, level) => items.filter((i) => i.tier <= LEVELS[level].maxTier),
+};
 
 // A new save whose best for `level` is the larger of the old best and `total` (0 to BEST_MAX; nonsense counts as 0).
 export function recordBest(save, level, total) {
@@ -444,6 +455,6 @@ const BUILDERS = { guess: buildGuessSession, sort: buildSortSession, buy: buildB
 export function buildSession(activity, level, items, rng, save) {
   const build = BUILDERS[activity];
   if (!build) throw new Error('buildSession: unknown activity ' + activity);
-  const comeBack = save ? comeBackIds(save, items.map((i) => i.id)) : [];
+  const comeBack = save ? comeBackIds(save, items.map((i) => i.id), POOLS[activity](items, level).map((i) => i.id)) : [];
   return build(items, level, rng, comeBack);
 }

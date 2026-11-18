@@ -114,6 +114,27 @@ describe('comeBackIds', () => {
   });
 });
 
+describe('comeBackIds with a filter', () => {
+  const recent = ['sweets', 'balloon', 'football', 'sweets2', 'phone', 'trainers', 'bike'];
+  const s = { ...FRESH, recent };
+  const ids = [...IDS, 'sweets2'];
+  it('an id outside the filter does not use a slot, newest first, at most MAX_COME_BACK', () => {
+    assert.deepEqual(comeBackIds(s, ids, ['football', 'phone', 'trainers', 'bike']), ['football', 'phone', 'trainers']);
+    assert.deepEqual(comeBackIds(s, ids, (id) => id !== 'sweets' && id !== 'balloon'), ['football', 'sweets2', 'phone']);
+    assert.deepEqual(comeBackIds(s, ids, []), []);
+  });
+  it('keeps the old behaviour without a filter', () => {
+    assert.deepEqual(comeBackIds(s, ids), ['sweets', 'balloon', 'football']);
+  });
+  it('buildSession uses the activity pool first: sweets and balloon do not block How many', () => {
+    const save = { ...FRESH, recent: ['sweets', 'balloon', 'football', 'phone', 'trainers'] };
+    for (let seed = 1; seed <= 50; seed++) {
+      const q = buildSession('howmany', 'hard', ITEMS, rng(seed), save).map((x) => x.item.id);
+      for (const id of ['football', 'phone', 'trainers']) assert.ok(q.includes(id), seed + ' ' + id);
+    }
+  });
+});
+
 describe('recordBest', () => {
   it('never lowers a best, and returns a new save', () => {
     let s = recordBest(FRESH, 'easy', 20);
