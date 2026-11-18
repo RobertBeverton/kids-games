@@ -17,7 +17,7 @@ const ACTIVITY_TEXT = {
 const LEVEL_TEXT = { easy: 'Easy', medium: 'Medium', hard: 'Hard' };
 // Activities that have a screen. Tapping a tile for one that is not here still chooses it (and saves the choice), but Play is
 // disabled with a short note instead of starting something unbuilt. Later tasks add their ids here.
-const IMPLEMENTED = new Set(['guess', 'sort', 'buy']);
+const IMPLEMENTED = new Set(['guess', 'sort', 'buy', 'howmany']);
 const ITEM_IDS = ITEMS.map((i) => i.id);
 
 const $ = (id) => document.getElementById(id);
@@ -90,8 +90,8 @@ const ICON_TICK = '<svg class="ic" aria-hidden="true"><use href="#i-check"/></sv
 const ICON_CROSS = '<svg class="ic" aria-hidden="true"><use href="#i-close"/></svg>';
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-let mode = 'guess';   // the activity being played: 'guess', 'sort' or 'buy'
-let session = null;   // { questions, index }: guess { left, right, dearId }, sort { items, order }, buy { budget, shelf, buyIds }
+let mode = 'guess';   // the activity being played: guess, sort, buy, howmany or price
+let session = null;   // { questions, index }: guess { left, right, dearId }, sort { items, order }, buy { budget, shelf, buyIds }, howmany { item, options, correctCount }
 let phase = 'ask';    // 'ask' (nothing tapped), 'find' (tapped wrong: the right one must be tapped), 'done' (Next shows)
 let shown = null;     // the Money Wall maths of the question on screen once it is revealed: { unit, items: [{ squares, dot }] }
 
@@ -123,7 +123,7 @@ function itemHtml(item) {
     (pic ? '<span class="mo-item__pic">' + pic + '</span>' : '') + '<span class="mo-item__name">' + esc(item.name) + '</span></button>' +
     '<div class="mo-reveal" hidden><div class="mo-slot" aria-hidden="true"></div><p class="mo-tag"></p></div></div>';
 }
-const PANES = { guess: 'mo-cards', sort: 'mo-sort', buy: 'mo-buy' };
+const PANES = { guess: 'mo-cards', sort: 'mo-sort', buy: 'mo-buy', howmany: 'mo-howmany' };
 function showQuestion() {
   const q = session.questions[session.index];
   phase = 'ask';
@@ -136,6 +136,7 @@ function showQuestion() {
   $('mo-done').hidden = true;
   if (mode === 'sort') showSort(q);
   else if (mode === 'buy') showBuy(q);
+  else if (mode === 'howmany') showHowMany(q);
   else {
     setPrompt('Which costs more?');
     $('mo-cards').innerHTML = itemHtml(q.left) + itemHtml(q.right);
@@ -405,6 +406,76 @@ $('mo-buy').addEventListener('click', (e) => {
   if (b && !b.disabled && phase === 'ask') buyToggle(b);
 });
 $('mo-done').addEventListener('click', () => { sfx('tap'); buyDone(); });
+
+// ===== SHARED: the thing being asked about =====
+// Its drawing and name; a plain name tile when there is no drawing yet. Nothing here carries a price.
+function subjectHtml(item) {
+  const pic = pictureSvg(item.id);
+  return '<div class="mo-subject' + (pic ? '' : ' mo-subject--plain') + '">' + (pic ? '<span class="mo-subject__pic">' + pic + '</span>' : '') +
+    '<span class="mo-subject__name">' + esc(item.name) + '</span></div>';
+}
+const wallsHtml = (labels) => labels.map((t) => '<div class="mo-wp"><span class="mo-wp__name">' + esc(t) + '</span><div class="mo-slot" aria-hidden="true"></div></div>').join('');
+function setCaption(unit) {
+  $('mo-caption').textContent = 'each square = ' + formatPrice(unit);
+  $('mo-caption').classList.remove('is-off');
+}
+
+// ===== HOW MANY £1 COINS? =====
+// Three counts as large buttons. The label is the number alone (no hint of which is right); a wrong tap shows the right one, which must be tapped.
+const countText = (n) => n.toLocaleString('en-GB');
+function showHowMany(q) {
+  setPrompt('About how many £1 coins is this?');
+  $('mo-howmany').classList.remove('is-revealed');
+  $('mo-howmany').innerHTML = subjectHtml(q.item) +
+    '<div class="mo-counts">' + q.options.map((n, i) => '<button type="button" class="kg-tile mo-count" data-i="' + i + '" aria-label="' + countText(n) + '">' + countText(n) + '</button>').join('') + '</div>' +
+    '<div class="mo-reveal" hidden><div class="mo-slot" aria-hidden="true"></div><p class="mo-tag"></p></div>';
+}
+function revealHowMany(q) {
+  shown = wallFor([q.item.pence]);
+  $('mo-howmany').classList.add('is-revealed');
+  $('mo-howmany').querySelector('.mo-reveal').hidden = false;
+  $('mo-howmany').querySelector('.mo-tag').textContent = priceTagText(q.item.pence);
+  setCaption(shown.unit);
+  layoutWalls();
+}
+function howManyTap(b) {
+  const q = session.questions[session.index], btns = [...$('mo-howmany').querySelectorAll('.mo-count')];
+  const rightBtn = btns[q.options.indexOf(q.correctCount)], isRight = b === rightBtn;
+  const finish = () => { btns.forEach((x) => { x.disabled = true; }); rightBtn.classList.remove('is-hint'); rightBtn.classList.add('is-right'); };
+  if (phase === 'ask' && isRight) {
+    sfx('right');
+    finish();
+    setPrompt('Right', '', ICON_TICK);
+    revealHowMany(q);
+    showNext();
+    say('Right. ' + q.item.name + ', ' + priceTagText(q.item.pence) + '.');
+  } else if (phase === 'ask') {
+    sfx('wrong');
+    save = recordMisses(save, [q.item.id]);
+    persist();
+    b.classList.add('is-wrong');
+    b.disabled = true;
+    setPrompt('Not this one', 'Tap the right number', ICON_CROSS);
+    revealHowMany(q);
+    phase = 'find';
+    rightBtn.classList.add('is-hint');
+    rightBtn.focus();
+    say('Not this one. Tap the right number. ' + q.item.name + ', ' + priceTagText(q.item.pence) + '.');
+  } else if (phase === 'find' && isRight) {
+    sfx('right');
+    finish();
+    setPrompt('This is the one', '', ICON_TICK);
+    showNext();
+  } else if (phase === 'find') {
+    sfx('wrong');   // another wrong number: nudge it, no second miss for the same question
+    b.classList.add('is-wrong');
+    b.disabled = true;
+  }
+}
+$('mo-howmany').addEventListener('click', (e) => {
+  const b = e.target.closest('.mo-count');
+  if (b && !b.disabled) howManyTap(b);
+});
 
 // ---- results (kept simple until the full results task) ----
 function showResults() {

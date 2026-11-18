@@ -125,8 +125,8 @@
 #mo-results { min-height: calc(100dvh - var(--bar-h) - 1px); }
 
 /* ---- Put in order and Can you buy it? (same screen, other panes) ---- */
-.mo-sort, .mo-buy { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; gap: var(--s1); }
-.mo-cards[hidden], .mo-sort[hidden], .mo-buy[hidden], .mo-pool[hidden], .mo-walls[hidden], .mo-tag[hidden] { display: none; }
+.mo-sort, .mo-buy, .mo-howmany { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; gap: var(--s1); }
+.mo-cards[hidden], .mo-sort[hidden], .mo-buy[hidden], .mo-howmany[hidden], .mo-pool[hidden], .mo-walls[hidden], .mo-tag[hidden] { display: none; }
 .mo-nextdock { gap: var(--s3); }
 
 /* Put in order: numbered slots above, the items below. The slot numbers are only a picture of order; item labels carry none. */
@@ -207,3 +207,38 @@
 
 .mo-bitem__status > span { white-space: nowrap; }
 @media (max-width: 479px) { .mo-sitem.is-placed .mo-item__pic { display: none; } }
+
+/* ---- How many £1 coins? (same screen, one more pane) ---- */
+.mo-howmany { gap: var(--s2); }
+.mo-subject { flex: 1 1 0; min-height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--s2); padding: var(--s2) var(--s3);
+  background: var(--chalk); border: var(--line-w) solid var(--line); border-radius: var(--r-2); font-size: var(--t-lead); font-weight: 700; line-height: 1.1; text-align: center; }
+.mo-subject__pic { flex: 1 1 0; min-height: 0; width: 100%; max-width: 200px; display: block; }
+.mo-subject__name { flex: none; }
+.mo-howmany.is-revealed .mo-subject { flex: 0 0 auto; flex-direction: row; gap: var(--s3); padding: var(--s1) var(--s3); font-size: var(--t-body); }
+.mo-howmany.is-revealed .mo-subject__pic { flex: none; width: 40px; height: 40px; }
+.mo-howmany.is-revealed .mo-subject { min-height: 0; }
+.mo-howmany.is-revealed .mo-count { min-height: 44px; font-size: var(--t-body); }
+
+/* The three counts: a column of wide buttons on a narrow phone, a row otherwise. */
+.mo-counts { flex: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s2); }
+.mo-count { min-height: 56px; padding: var(--s1) var(--s3); font-size: var(--t-lead); font-variant-numeric: tabular-nums; }
+.mo-count:disabled:not(.is-right):not(.is-wrong) { color: var(--ink-2); background: var(--ground-2); }
+.mo-count:disabled { opacity: 1; }
+.mo-count.is-hint { border-style: dashed; border-width: 5px; }
+.mo-howmany .mo-reveal { flex: 1 1 0; }
+@media (min-width: 480px) {
+  .mo-counts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .mo-count { min-height: 72px; font-size: var(--t-title); }
+}
+
+@media (orientation: landscape) and (max-height: 560px) {
+  .mo-count { min-height: 48px; }
+  .mo-subject { flex-direction: row; }
+  .mo-subject__pic { width: 48px; height: 48px; flex: none; }
+}
+@media (max-width: 479px) {
+  .mo-screen--game[data-mode="howmany"] .mo-prompt { font-size: var(--t-body); min-height: 36px; }
+  .mo-screen--game[data-mode="howmany"] .mo-prompt small { display: none; }
+  .mo-subject { font-size: var(--t-body); }
+}
+

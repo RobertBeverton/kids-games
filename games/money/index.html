@@ -40,7 +40,7 @@
     </div>
   </div>
 
-  <!-- SCREEN 2: the game (Which costs more?, Put in order, Can you buy it?) -->
+  <!-- SCREEN 2: the game (all five activities, one pane each) -->
   <div id="mo-game" class="kg-screen mo-screen mo-screen--game" hidden>
     <div class="kg-wrap mo-play">
       <div class="kg-hud">
@@ -52,6 +52,7 @@
       <div class="mo-cards" id="mo-cards" role="group" aria-label="Choices"></div>
       <div class="mo-sort" id="mo-sort" role="group" aria-label="Put in order" hidden></div>
       <div class="mo-buy" id="mo-buy" role="group" aria-label="Things to buy" hidden></div>
+      <div class="mo-howmany" id="mo-howmany" role="group" aria-label="How many coins" hidden></div>
       <p class="mo-caption is-off" id="mo-caption"></p>
       <div class="mo-nextdock">
         <button type="button" class="kg-btn" id="mo-done" hidden disabled><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><span>Done</span></button>
@@ -60,7 +61,7 @@
     </div>
   </div>
 
-  <!-- SCREEN 3: results (kept simple for now) -->
+  <!-- SCREEN 3: results -->
   <div id="mo-results" class="kg-screen mo-screen" hidden>
     <div class="kg-wrap" style="align-items:center;text-align:center">
       <h2 class="kg-title" id="mo-results-title">Well done!</h2>
