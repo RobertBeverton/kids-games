@@ -469,6 +469,7 @@ build_simple_game "games/memory-match/index.html"   "$DOCS_DIR/memory-match.html
 SB_GAME_DIR="games/sentence-blocks"
 SB_JS_FILES=(
   "js/engine.js"
+  "js/pictures.js"
   "js/words.js"
   "js/scenes.js"
   "js/pictures.js"
@@ -560,6 +561,7 @@ MO_GAME_DIR="games/money"
 MO_JS_FILES=(
   "js/items.js"
   "js/engine.js"
+  "js/pictures.js"
   "js/main.js"
 )
 
