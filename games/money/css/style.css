@@ -8,6 +8,7 @@
 .mo-screen[hidden] { display: none !important; }
 .mo-fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .mo-mark { display: inline-block; }
+#mo-settings .kg-title .mk { width: 56px; height: 56px; }
 .mo-mark[hidden] { display: none; }
 .mo-mark .mo-pic { stroke: var(--ink); }
 
@@ -17,8 +18,8 @@
 #mo-settings .kg-label { margin-bottom: var(--s2); }
 .mo-acts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s2); }
 .mo-acts .mo-act:last-child { grid-column: 1 / -1; }
-.mo-act { flex: none; flex-direction: row; justify-content: flex-start; gap: var(--s3); min-height: 64px; padding: var(--s2) var(--s3); text-align: left; font-size: var(--t-small); line-height: 1.15; }
-.mo-act__pic { flex: none; width: 40px; height: 40px; }
+.mo-act { flex: none; flex-direction: row; justify-content: flex-start; gap: var(--s2); min-height: 64px; padding: var(--s2); text-align: left; font-size: var(--t-small); line-height: 1.15; }
+.mo-act__pic { flex: none; width: 36px; height: 36px; }
 .mo-act__name { min-width: 0; }
 .mo-levels { flex-wrap: nowrap; gap: var(--s2); }
 .mo-level { flex: 1 1 0; min-width: 0; flex-direction: column; gap: var(--s2); min-height: 64px; padding: var(--s2) var(--s1); font-size: var(--t-small); }
