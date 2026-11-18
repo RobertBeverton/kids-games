@@ -147,6 +147,8 @@ function showQuestion() {
     setPrompt('Which costs more?');
     $('mo-cards').innerHTML = itemHtml(q.left) + itemHtml(q.right);
   }
+  // Focus goes to the first button, which reads only its name: announce the question itself (the prompt text never carries a price).
+  say($('mo-prompt').textContent);
 }
 
 // ---- the Money Wall: CSS only. One masked block (a tiled square with a gap) plus one short row for the remainder; no element per square. ----
@@ -325,6 +327,7 @@ function sortTap(id) {
   $('mo-sort').querySelector('.mo-slots').children[pos].querySelector('.mo-sbody').appendChild(btn);
   if (placed.length < q.items.length) {
     setPrompt('Right', 'Now the next one that costs least', ICON_TICK);
+    say('Right. Now the next one that costs least.');
     const next = $('mo-pool').querySelector('.mo-sitem:not(:disabled)');
     if (next) next.focus();
     return;
@@ -476,6 +479,7 @@ function howManyTap(b) {
     sfx('wrong');   // another wrong number: nudge it, no second miss for the same question
     b.classList.add('is-wrong');
     b.disabled = true;
+    rightBtn.focus();   // the tapped button was focused and is now disabled: keep focus on the page
   }
 }
 $('mo-howmany').addEventListener('click', (e) => {

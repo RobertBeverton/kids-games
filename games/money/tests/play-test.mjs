@@ -64,6 +64,9 @@ const noScroll = async (where) => {
   const [sh, ih] = await p2.evaluate(() => [document.documentElement.scrollHeight, innerHeight]);
   check(sh <= ih, where + ': the page scrolls (' + sh + ' > ' + ih + ')');
 };
+// The screen-reader live region (#kg-live): KidsGames.say fills it after a short delay. Before an answer it must hold the question's prompt and nothing else.
+const liveText = async () => { await p2.waitForTimeout(150); return (await p2.locator('#kg-live').textContent()).trim(); };
+const focusNotBody = async () => p2.evaluate(() => document.activeElement && document.activeElement !== document.body);
 check((await p2.locator('.mo-act').count()) === 5, 'settings: expected five activity tiles');
 check((await p2.locator('.mo-level').count()) === 3, 'settings: expected three levels');
 check((await p2.locator('.mo-act[aria-pressed="true"]').getAttribute('data-activity')) === 'guess', 'settings: a five-year-old should start on Which costs more?');
@@ -78,8 +81,10 @@ for (let i = 0; i < 10; i++) {
   const labels = await p2.locator('.mo-item').evaluateAll((bs) => bs.map((b) => b.getAttribute('aria-label')));
   check(labels.every((l) => !/[0-9£]/.test(l)), 'question ' + (i + 1) + ': a button label shows a price: ' + labels.join(' | '));
   check((await p2.locator('.mo-reveal:visible').count()) === 0, 'question ' + (i + 1) + ': a reveal shows before the answer');
+  check((await liveText()) === 'Which costs more?', 'question ' + (i + 1) + ': the live region should announce the prompt only: "' + (await liveText()) + '"');
   const wrong = i % 2 === 1;
   await p2.click('.mo-item[data-id="' + (wrong ? q.other : q.dear) + '"]');
+  if (wrong) check(await focusNotBody(), 'question ' + (i + 1) + ': focus fell to the page after a wrong tap');
   check((await p2.locator('#mo-next').isVisible()) === !wrong, 'question ' + (i + 1) + ': Next should ' + (wrong ? 'wait for the right tap' : 'show'));
   if (wrong) await p2.click('.mo-item[data-id="' + q.dear + '"]');
   const box = await p2.locator('#mo-next').boundingBox();
@@ -150,6 +155,7 @@ for (const level of LEVEL_IDS) {
     });
     check(leaks.length === 0, where + ': leak before answering: ' + leaks.slice(0, 2).join(' | '));
     check((await p2.locator('#mo-prompt').innerText()).includes('Tap the one that costs least.'), where + ': prompt text');
+    check((await liveText()) === 'Tap the one that costs least.', where + ': the live region should announce the prompt only (no price, no order number): "' + (await liveText()) + '"');
     const wrongPath = i % 2 === 1;
     const log = [];
     if (wrongPath) {
@@ -160,6 +166,7 @@ for (const level of LEVEL_IDS) {
       check((await p2.locator('.mo-sbody .mo-sitem').count()) === 0, where + ': a wrong tap was accepted');
       check((await p2.locator('.mo-sitem[data-id="' + bad + '"].is-wrong').count()) === 1, where + ': wrong item not marked');
       check((await p2.locator('#mo-prompt').innerText()).includes('Not this one'), where + ': wrong tap should say "Not this one"');
+      check(await focusNotBody(), where + ': focus fell to the page after a wrong tap');
       check(!(await p2.locator('#mo-next').isVisible()), where + ': Next showed early');
       await p2.click('.mo-sitem[data-id="' + bad + '"]');   // the same wrong tap again: still refused, still one miss at this position
       log.push({ position: 0, tappedId: bad });
@@ -175,6 +182,7 @@ for (const level of LEVEL_IDS) {
       if (i === 0 && k === 0) { await p2.locator('.mo-sitem[data-id="' + order[0] + '"]').focus(); await p2.keyboard.press('Enter'); }   // keyboard: Enter works
       else await p2.click('.mo-sitem[data-id="' + order[k] + '"]');
       check((await p2.locator('.mo-sbody .mo-sitem').count()) === k + 1, where + ': right tap ' + (k + 1) + ' was not placed');
+      if (i === 0 && k === 0) { const lt = await liveText(); check(/^Right\./.test(lt) && !/[0-9£]|about/i.test(lt), where + ': a correct tap should be announced without a price: "' + lt + '"'); }
       check((await p2.locator('#mo-next').isVisible()) === (k === order.length - 1), where + ': Next visibility after tap ' + (k + 1));
     }
     // reveal: the correct order with tags, walls for the two ends only
@@ -210,6 +218,7 @@ for (const level of LEVEL_IDS) {
     check(can.length >= 1 && dear.length >= 1 && can.length + dear.length === ids.length, where + ': shelf is not clearly buyable/too dear');
     check((await p2.locator('.mo-wallet__sum').innerText()) === formatPrice(budget), where + ': budget numerals');
     check((await p2.locator('#mo-prompt').innerText()).includes('Tap everything you can buy.'), where + ': prompt text');
+    check((await liveText()) === 'Tap everything you can buy.', where + ': the live region should announce the prompt: "' + (await liveText()) + '"');
     for (const id of ids) {
       const tagText = await p2.locator('.mo-bitem[data-id="' + id + '"] .mo-bitem__price').innerText();
       check(tagText === 'about ' + formatPrice(itemOf(id).pence), where + ': the price tag of ' + id + ' is "' + tagText + '"');
@@ -292,6 +301,7 @@ for (const level of LEVEL_IDS) {
     check(nums.includes(right), where + ': the right count ' + right + ' is not among ' + texts.join(' | '));
     check(texts.every((t, k) => t === nums[k].toLocaleString('en-GB')) && labels.join() === texts.join(), where + ': counts need thousands commas, and labels must be the number only: ' + labels.join(' | '));
     check((await p2.locator('#mo-prompt').innerText()).trim() === 'About how many £1 coins is this?', where + ': prompt');
+    check((await liveText()) === 'About how many £1 coins is this?', where + ': the live region should announce the prompt only (no price or count): "' + (await liveText()) + '"');
     const leaks = await attrLeaks('#mo-howmany');
     check(leaks.length === 0, where + ': leak before answering: ' + leaks.slice(0, 2).join(' | '));
     check((await p2.locator('#mo-howmany .mo-reveal').isVisible()) === false && !(await p2.locator('#mo-next').isVisible()), where + ': a reveal or Next shows before the answer');
@@ -306,7 +316,9 @@ for (const level of LEVEL_IDS) {
       check((await p2.locator('#mo-prompt').innerText()).includes('Not this one'), where + ': wrong tap should say "Not this one"');
       check(await p2.locator('#mo-howmany .mo-reveal').isVisible(), where + ': the reveal should show right away');
       check((await missTotal()) === missesBefore + 1 && (await saved()).misses[item.id] >= 1, where + ': the miss was not saved');
+      check(await focusNotBody(), where + ': focus fell to the page after a wrong count');
       await p2.locator('.mo-count').nth(wrongIdx[1]).click();   // another wrong count: still refused, no second miss
+      check(await focusNotBody(), where + ': focus fell to the page after a second wrong count');
       check(!(await p2.locator('#mo-next').isVisible()) && (await missTotal()) === missesBefore + 1, where + ': a second wrong tap should change nothing');
     }
     if (i === 0) { await p2.locator('.mo-count').nth(rightIdx).focus(); await p2.keyboard.press('Enter'); }   // keyboard: Enter works
@@ -368,6 +380,7 @@ const playPrice = async (level, path) => {
     const pts = pence.map((v) => pointsFor(item, v)), bestIdx = pence.indexOf(base);
     check(pts.filter((x) => x === MAX_POINTS).length <= 3 && pts.some((x) => x <= 1), where + ': fairness: at most three full-points tiles, and one that earns 0 or 1');
     check((await p2.locator('#mo-prompt').innerText()).trim() === 'What is the price?', where + ': prompt');
+    check((await liveText()) === 'What is the price?', where + ': the live region should announce the prompt only (no price): "' + (await liveText()) + '"');
     // nothing marks a tile before the tap
     const leaks = await attrLeaks('#mo-price');
     check(leaks.length === 0, where + ': leak before answering: ' + leaks.slice(0, 2).join(' | '));
