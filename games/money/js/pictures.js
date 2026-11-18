@@ -28,6 +28,13 @@ export const PICTURES = {
   'trainers': '<path d="M12 74L14 36H30L35 50Q42 56 50 52L58 58Q76 60 85 68Q89 72 86 74Z"/><path d="M10 74H88V84Q88 88 84 88H14Q10 88 10 84Z"/><path class="d" d="M39 56l4-7M47 60l4-7M55 64l4-6"/><path class="d" d="M20 66Q44 60 68 72"/>',
   'scooter': '<path d="M24 70H72V77H24Z"/><circle cx="18" cy="84" r="8"/><circle cx="78" cy="84" r="8"/><path d="M66 14L75 77"/><path d="M54 14H80"/><circle class="dot" cx="18" cy="84" r="2.5"/><circle class="dot" cx="78" cy="84" r="2.5"/><path class="d" d="M12 76Q20 66 30 70"/>',
   'tent': '<path d="M48 14L8 80H88Z"/><path d="M48 40L36 80H60Z"/><path class="d" d="M48 40L30 80"/><path class="d" d="M26 50L10 58M70 50L86 58"/><circle class="dot" cx="9" cy="59" r="3"/><circle class="dot" cx="87" cy="59" r="3"/><path class="d" d="M2 86H94"/>',
+  // ----- Batch 4 -----
+  'bike': '<circle cx="22" cy="66" r="14"/><circle cx="74" cy="66" r="14"/><path d="M22 66L38 42H66L74 66M46 66L38 42M46 66L66 42M22 66H46"/><path d="M31 37H46M66 42L62 29M55 29H71"/><path class="d" d="M46 66L51 76M47 76H56"/><circle class="dot" cx="22" cy="66" r="2.5"/><circle class="dot" cx="74" cy="66" r="2.5"/>',
+  'tablet': '<rect x="6" y="20" width="84" height="56" rx="7"/><rect class="d" x="12" y="26" width="64" height="44" rx="2"/><circle class="dot" cx="83" cy="48" r="2.8"/><path class="d" d="M20 62L34 34M30 64L40 46"/>',
+  'trampoline': '<ellipse cx="48" cy="40" rx="40" ry="13"/><ellipse class="d" cx="48" cy="40" rx="30" ry="8"/><path class="d" d="M21.2 44.5L12.9 45.8M27.5 46.6L21.1 49.1M36.9 48L33.5 51.2M48 48.5L48 52M59.1 48L62.5 51.2M68.5 46.6L74.9 49.1M74.8 44.5L83.1 45.8"/><path d="M10 46L6 86M86 46L90 86M30 52L28 86M66 52L68 86"/>',
+  'console': '<path d="M30 30H66Q74 30 80 44L86 70Q88 80 80 80Q74 80 70 72L66 66H30L26 72Q22 80 16 80Q8 80 10 70L16 44Q22 30 30 30Z"/><circle class="d" cx="28" cy="46" r="6"/><circle class="d" cx="58" cy="57" r="6"/><path class="d" d="M40 51V63M34 57H46"/><circle class="dot" cx="70" cy="38" r="2.8"/><circle class="dot" cx="70" cy="50" r="2.8"/><circle class="dot" cx="64" cy="44" r="2.8"/><circle class="dot" cx="76" cy="44" r="2.8"/>',
+  'phone': '<rect x="26" y="6" width="44" height="84" rx="9"/><rect class="d" x="32" y="17" width="32" height="56" rx="2"/><path class="d" d="M42 11.5H54"/><circle class="dot" cx="48" cy="81" r="3"/>',
+  'tv': '<rect x="6" y="12" width="84" height="56" rx="5"/><rect class="d" x="13" y="19" width="70" height="42" rx="2"/><path class="d" d="M22 54L36 28M32 56L40 42"/><path d="M48 68V82M28 86H68"/>',
 };
 
 // Wallet, the five activity tiles and the hub mark (m-money) are drawn in a later review.
