@@ -14,7 +14,7 @@ export const ITEMS = [
   { id: 'beach-ball',    name: 'Beach ball',      pence: 400,       lo: 200,       hi: 600,       size: 2, tier: 1, group: 'ball' },
   { id: 'cardboard-box', name: 'Cardboard box',   pence: 100,       lo: 50,        hi: 300,       size: 3, tier: 1 },
   // Treats
-  { id: 'pizza',         name: 'Pizza',           pence: 1400,      lo: 900,       hi: 2500,      size: 2, tier: 1 },
+  { id: 'pizza',         name: 'Pizza slice',     pence: 300,       lo: 200,       hi: 500,       size: 1, tier: 1, group: 'snack' },
   { id: 'football',      name: 'Football',        pence: 1000,      lo: 600,       hi: 1500,      size: 2, tier: 1, group: 'ball' },
   { id: 'teddy',         name: 'Teddy bear',      pence: 1200,      lo: 800,       hi: 2000,      size: 2, tier: 1 },
   { id: 'paddling-pool', name: 'Paddling pool',   pence: 3000,      lo: 2000,      hi: 6000,      size: 3, tier: 1 },

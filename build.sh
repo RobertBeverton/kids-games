@@ -469,7 +469,6 @@ build_simple_game "games/memory-match/index.html"   "$DOCS_DIR/memory-match.html
 SB_GAME_DIR="games/sentence-blocks"
 SB_JS_FILES=(
   "js/engine.js"
-  "js/pictures.js"
   "js/words.js"
   "js/scenes.js"
   "js/pictures.js"
@@ -692,6 +691,14 @@ for f in "$DOCS_DIR"/*.html; do
 done
 echo "Build version stamped: $BUILD_VERSION"
 echo ""
+
+# --- Every built page must compile (catches a file listed twice in a game's JS list, which the unit tests cannot see) ---
+if command -v node >/dev/null 2>&1; then
+  echo "Checking that every built page compiles..."
+  node tools/check-built-pages.mjs "$DOCS_DIR" || { echo "Error: a built page does not compile." >&2; exit 1; }
+else
+  echo "  [WARN] node not found: skipped the built-page compile check"
+fi
 
 # ==========================================================================
 # Summary
