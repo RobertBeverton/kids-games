@@ -1,0 +1,274 @@
+/* Money: styles. Shared parts live in shared/shell.css (kg-*). Paint is pink (data-paint="pink" on body). */
+
+/* Pictures: a bold main stroke, thinner detail lines, filled dots. They follow the text colour, so they invert on a selected tile. */
+.mo-pic { display: block; width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+.mo-pic .d { stroke-width: 3; }
+.mo-pic .dot { fill: currentColor; stroke: none; }
+
+.mo-screen[hidden] { display: none !important; }
+.mo-fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.mo-mark { display: inline-block; }
+#mo-settings .kg-title .mk { width: 56px; height: 56px; }
+.mo-mark[hidden] { display: none; }
+.mo-mark .mo-pic { stroke: var(--ink); }
+
+/* ---- Settings ---- */
+#mo-settings { flex-direction: column; align-items: center; justify-content: space-between; padding: 0; }
+#mo-settings .kg-wrap { padding: var(--s4) var(--s4) var(--s3); gap: var(--s3); }
+#mo-settings .kg-label { margin-bottom: var(--s2); }
+.mo-acts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s2); }
+.mo-acts .mo-act:last-child { grid-column: 1 / -1; }
+.mo-act { flex: none; flex-direction: row; justify-content: flex-start; gap: var(--s2); min-height: 64px; padding: var(--s2); text-align: left; font-size: var(--t-small); line-height: 1.15; }
+.mo-act__pic { flex: none; width: 36px; height: 36px; }
+.mo-act__name { min-width: 0; }
+.mo-levels { flex-wrap: nowrap; gap: var(--s2); }
+.mo-level { flex: 1 1 0; min-width: 0; flex-direction: column; gap: var(--s2); min-height: 64px; padding: var(--s2) var(--s1); font-size: var(--t-small); }
+.mo-level .kg-squares { gap: 4px; }
+.mo-level .kg-squares i { width: 14px; height: 14px; border-color: currentColor; }
+.mo-level .kg-squares i.on { background: currentColor; }
+.mo-note { margin: 0; font-size: var(--t-small); color: var(--ink-2); text-align: center; }
+#mo-settings .kg-dock .kg-btn { min-height: 64px; }
+@media (min-width: 560px) and (min-height: 760px) {
+  .mo-act { min-height: 88px; font-size: var(--t-body); }
+  .mo-act__pic { width: 56px; height: 56px; }
+  .mo-level { min-height: 84px; }
+  #mo-settings .kg-wrap { gap: var(--s5); padding-top: var(--s5); }
+  #mo-settings .kg-dock .kg-btn { min-height: 76px; }
+}
+/* Wide but short (a phone or tablet held sideways): tiles in three columns, so everything fits. */
+@media (min-width: 640px) and (max-height: 700px) {
+  #mo-settings .kg-wrap { max-width: 960px; gap: var(--s1); padding-top: var(--s1); padding-bottom: var(--s1); }
+  #mo-settings .kg-title { font-size: 1.5rem; }
+  .mo-acts { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .mo-acts .mo-act:last-child { grid-column: auto; }
+  .mo-act { flex-direction: column; justify-content: center; text-align: center; min-height: 54px; gap: 2px; padding: var(--s1); }
+  .mo-act__pic { width: 32px; height: 32px; }
+  .mo-level { min-height: 44px; flex-direction: row; gap: var(--s3); padding-block: 0; }
+  #mo-settings .kg-label { margin-bottom: 2px; }
+  #mo-settings .kg-dock { padding-block: var(--s2); }
+  #mo-settings .kg-dock .kg-btn { min-height: 48px; }
+  #mo-settings .kg-dock { padding-block: var(--s1); }
+}
+
+/* ---- Which costs more? ---- */
+.mo-screen--game { height: calc(100dvh - var(--bar-h) - 1px); min-height: 0; padding: var(--s2) var(--s4) calc(var(--s2) + var(--safe-b)); align-items: stretch; }
+.mo-play { height: 100%; min-height: 0; gap: var(--s2); max-width: 960px; }
+.mo-prompt { margin: 0; flex: none; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: var(--s1) var(--s2); min-height: 56px; text-align: center; font-size: var(--t-lead); line-height: 1.15; }
+.mo-prompt .ic { width: 32px; height: 32px; flex: none; stroke-width: 3; }
+.mo-prompt small { flex-basis: 100%; font-size: var(--t-small); font-weight: 400; color: var(--ink-2); }
+.mo-cards { flex: 1 1 0; min-height: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gap-tile); }
+.mo-card { min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: var(--s2); }
+
+/* The item: its drawing and its name. */
+.mo-item { flex: 1 1 auto; min-height: 0; flex-direction: column; gap: var(--s2); padding: var(--s3); font-size: var(--t-lead); }
+.mo-item__pic { flex: 1 1 0; min-height: 0; width: 100%; max-width: 220px; display: block; }
+.mo-item__name { flex: none; }
+.mo-item:disabled { opacity: 1; color: var(--ink); cursor: default; }
+.mo-item:disabled:not(.is-right):not(.is-wrong) { color: var(--ink-2); background: var(--ground-2); }
+.mo-item.is-hint { border-style: dashed; border-width: 5px; }
+/* Right and wrong: the shell's wash, thick keyline and tick/cross glyph, here with a word in the prompt as well. */
+.mo-card.is-revealed .mo-item { flex: 0 0 auto; }
+.mo-card.is-revealed .mo-item__pic { flex: none; height: 64px; }
+.mo-card.is-revealed .mo-item { font-size: var(--t-body); padding: var(--s2); }
+
+/* The reveal: the wall, then the tag. */
+.mo-reveal { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; gap: var(--s1); }
+.mo-reveal[hidden] { display: none; }
+.mo-slot { flex: 1 1 0; min-height: 56px; position: relative; overflow: hidden; }
+.mo-tag { flex: none; margin: 0; font-size: var(--t-small); line-height: 1.25; font-weight: 700; }
+.mo-caption { flex: none; margin: 0; text-align: center; font-size: var(--t-small); color: var(--ink-2); min-height: 1.25em; }
+.mo-caption.is-off { visibility: hidden; }
+
+/* The Money Wall is CSS only: a block whose ink layer and gold layer are one tiled square (set from main.js), plus a remainder row. */
+.mo-wallbox { position: absolute; left: 3px; top: 3px; display: flex; flex-direction: column; align-items: flex-start; }
+.mo-wall { position: relative; background: var(--line); -webkit-mask: var(--m-ink) 0 0 / var(--c) var(--c); mask: var(--m-ink) 0 0 / var(--c) var(--c); }
+.mo-wall::before { content: ""; position: absolute; inset: 0; background: var(--paint-yellow); -webkit-mask: var(--m-gold) 0 0 / var(--c) var(--c); mask: var(--m-gold) 0 0 / var(--c) var(--c); }
+.mo-wall--solid { -webkit-mask: none; mask: none; background: var(--paint-yellow); outline: 2px solid var(--line); }
+.mo-wall--solid::before { display: none; }
+.mo-dot { display: block; width: 14px; height: 14px; border-radius: 50%; background: var(--paint-yellow); border: 2px solid var(--line); margin: 2px; }
+
+.mo-nextdock { flex: none; display: flex; justify-content: center; min-height: 56px; }
+.mo-nextdock .kg-btn[hidden] { display: none; }
+.mo-nextdock .kg-btn { min-width: 200px; min-height: 56px; }
+
+/* Narrow portrait: the two items stack, each a row with the drawing on the left and the reveal on the right. */
+@media (max-width: 479px) {
+  .mo-cards { grid-template-columns: minmax(0, 1fr); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: var(--s2); }
+}
+/* Stacked, or a phone held sideways: a card is a row (item left, reveal right). */
+@media (max-width: 479px), (orientation: landscape) and (max-height: 560px) {
+  .mo-card { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: var(--s2); }
+  .mo-card.is-revealed { grid-template-columns: minmax(96px, 34%) minmax(0, 1fr); }
+  .mo-card.is-revealed .mo-item { flex: 1 1 auto; font-size: var(--t-small); padding: var(--s1); }
+  .mo-card.is-revealed .mo-item__pic { flex: 1 1 0; height: auto; }
+  .mo-tag { font-size: 0.9375rem; }
+}
+@media (orientation: landscape) and (max-height: 560px) {
+  .mo-screen--game { padding-top: var(--s1); }
+  .mo-play { gap: var(--s1); }
+  .mo-prompt { min-height: 40px; font-size: var(--t-body); flex-wrap: nowrap; }
+  .mo-prompt small { flex-basis: auto; }
+  .mo-prompt .ic { width: 26px; height: 26px; }
+  .mo-nextdock, .mo-nextdock .kg-btn { min-height: 48px; }
+}
+@media (min-width: 900px) and (min-height: 700px) {
+  .mo-item { font-size: var(--t-title); }
+  .mo-prompt { font-size: var(--t-title); }
+}
+
+/* Results */
+.mo-done-squares { gap: 6px; }
+.mo-done-squares i { width: 28px; height: 28px; }
+.mo-results-actions { width: 100%; max-width: 520px; justify-content: center; }
+
+/* Rounding: the shell bar plus a full-height screen can overshoot the viewport by a pixel and make a one-pixel scroll. */
+#mo-settings { min-height: calc(100dvh - var(--bar-h) - 1px); }
+#mo-results { min-height: calc(100dvh - var(--bar-h) - 1px); }
+
+/* ---- Put in order and Can you buy it? (same screen, other panes) ---- */
+.mo-sort, .mo-buy, .mo-howmany, .mo-price { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; gap: var(--s1); }
+.mo-cards[hidden], .mo-sort[hidden], .mo-buy[hidden], .mo-howmany[hidden], .mo-price[hidden], .mo-pool[hidden], .mo-walls[hidden], .mo-tag[hidden] { display: none; }
+.mo-nextdock { gap: var(--s3); }
+
+/* Put in order: numbered slots above, the items below. The slot numbers are only a picture of order; item labels carry none. */
+.mo-slots { flex: none; display: flex; flex-direction: column; gap: 4px; }
+.mo-srow { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: var(--s2); align-items: center; min-height: 40px; }
+.is-revealed .mo-srow { grid-template-columns: 24px minmax(0, 48%) minmax(0, 1fr); }
+.mo-snum { font-weight: 700; font-size: var(--t-body); text-align: center; color: var(--ink-2); }
+.mo-sbody { min-width: 0; min-height: 40px; display: flex; align-items: center; }
+.mo-sbody:not(:has(.mo-sitem)) { border: 3px dashed var(--ink-2); border-radius: var(--r-2); padding: 0 var(--s2); }
+.mo-slabel { font-size: var(--t-small); font-weight: 700; color: var(--ink-2); }
+.mo-sbody:has(.mo-sitem) .mo-slabel { display: none; }
+.mo-sort .mo-tag { margin: 0; font-size: var(--t-small); line-height: 1.15; }
+.mo-pool { flex: 1 1 auto; min-height: 0; display: flex; flex-wrap: wrap; justify-content: center; align-content: center; gap: var(--s2); }
+.mo-sitem { flex: 1 1 96px; max-width: 170px; min-height: 64px; flex-direction: column; gap: 2px; padding: var(--s1); font-size: var(--t-small); }
+.mo-sitem .mo-item__pic { flex: none; width: 32px; height: 32px; }
+.mo-sitem.is-placed { flex: 1 1 auto; max-width: none; width: 100%; min-height: 40px; flex-direction: row; justify-content: flex-start; gap: var(--s2); padding: 4px var(--s2); text-align: left; border-width: 3px; opacity: 1; background: var(--right-wash); border-color: var(--right); color: var(--ink); }
+.mo-sitem.is-placed .mo-item__pic { width: 28px; height: 28px; }
+.mo-sitem.is-placed::after { content: ""; position: absolute; top: 50%; right: 10px; width: 22px; height: 22px; margin-top: -11px; background: var(--right);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath d='M9 26l11 11L40 13' fill='none' stroke='black' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath d='M9 26l11 11L40 13' fill='none' stroke='black' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat; }
+.mo-sitem.is-placed .mo-item__name { padding-right: 28px; }
+.mo-sitem.is-wrong::after { top: 4px; right: 4px; width: 22px; height: 22px; }
+.mo-walls { flex: 1 1 0; min-height: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s3); }
+.mo-wp { min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 2px; }
+.mo-wp__name { flex: none; font-size: var(--t-small); font-weight: 700; }
+.mo-wp .mo-slot { min-height: 0; }
+
+/* Can you buy it? */
+.mo-wallet { flex: none; display: flex; align-items: center; justify-content: center; gap: var(--s3); min-height: 60px; padding: var(--s1) var(--s3); border: var(--line-w) solid var(--line); border-radius: var(--r-2); background: var(--ground-2); }
+.mo-wallet__pic { flex: none; width: 44px; height: 44px; }
+.mo-wallet__label { font-size: var(--t-small); color: var(--ink-2); font-weight: 700; }
+.mo-wallet__sum { font-size: var(--t-title); font-weight: 800; line-height: 1; letter-spacing: 0.01em; }
+.mo-shelf { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: var(--s2); align-content: start; }
+.mo-bitem { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--s2); align-items: center; justify-items: start; text-align: left; min-height: 56px; padding: var(--s1) var(--s3); font-size: var(--t-body); }
+.mo-bitem:not(:has(.mo-bitem__pic)) { grid-template-columns: minmax(0, 1fr) auto; }
+.mo-bitem__pic { width: 40px; height: 40px; display: block; }
+.mo-bitem__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.mo-bitem__name { font-weight: 700; line-height: 1.1; }
+.mo-bitem__price { font-size: var(--t-small); font-weight: 700; color: var(--ink-2); }
+.mo-bmark { width: 30px; height: 30px; border: 3px solid var(--line); border-radius: 8px; display: grid; place-items: center; background: var(--chalk); }
+.mo-bmark .ic { width: 20px; height: 20px; stroke-width: 6; visibility: hidden; }
+.mo-bitem[aria-pressed="true"] { border-width: 5px; background: var(--ground-2); }
+.mo-bitem[aria-pressed="true"] .mo-bmark { background: var(--line); color: var(--chalk); }
+.mo-bitem[aria-pressed="true"] .mo-bmark .ic { visibility: visible; }
+.mo-bitem:disabled { opacity: 1; color: var(--ink); cursor: default; }
+.mo-bitem:disabled .mo-bmark { display: none; }
+.mo-bitem__status { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 2px 4px; max-width: 150px; font-size: var(--t-small); font-weight: 700; text-align: right; line-height: 1.1; }
+.mo-bitem__status[hidden] { display: none; }
+.mo-bitem__status .ic { width: 20px; height: 20px; stroke-width: 6; flex: none; }
+.mo-bitem__status small { flex-basis: 100%; font-size: var(--t-small); font-weight: 400; color: var(--ink-2); }
+.mo-bitem.is-can { background: var(--right-wash); border-color: var(--right); border-width: 4px; }
+.mo-bitem.is-not { background: var(--chalk); border-color: var(--ink-2); color: var(--ink); }
+.mo-bitem.is-flag { border-style: dashed; border-width: 5px; border-color: var(--wrong); }
+@media (max-width: 479px) {
+  .mo-shelf { gap: 6px; }
+}
+@media (orientation: landscape) and (max-height: 560px) {
+  .mo-wallet { min-height: 44px; }
+  .mo-wallet__pic { width: 32px; height: 32px; }
+  .mo-wallet__sum { font-size: 1.5rem; }
+  .mo-bitem { min-height: 48px; }
+}
+@media (prefers-reduced-motion: reduce) { .mo-sitem.is-wrong { animation: none; } }
+@media (min-width: 900px) and (min-height: 700px) { .mo-wallet__sum { font-size: var(--t-display); } .mo-wallet { min-height: 84px; } .mo-wallet__pic { width: 64px; height: 64px; } }
+
+/* Five items at 360 by 640 are tight: one-line prompt, tighter rows. */
+@media (max-width: 479px) {
+  .mo-screen--game[data-mode="sort"] .mo-prompt, .mo-screen--game[data-mode="buy"] .mo-prompt { font-size: var(--t-body); min-height: 36px; }
+  .mo-screen--game[data-mode="sort"] .mo-prompt small, .mo-screen--game[data-mode="buy"] .mo-prompt small { display: none; }
+  .mo-sitem.is-placed { font-size: var(--t-small); }
+  .mo-nextdock, .mo-nextdock .kg-btn { min-height: 52px; }
+}
+.mo-sitem { padding-top: 14px; }
+.mo-sitem.is-wrong::after { top: 2px; right: 2px; width: 16px; height: 16px; }
+.mo-sitem.is-placed { padding-top: 4px; }
+.mo-sitem.is-placed::after { right: 8px; width: 18px; height: 18px; margin-top: -9px; }
+.mo-sitem.is-placed .mo-item__name { padding-right: 22px; line-height: 1.05; }
+
+.mo-bitem__status > span { white-space: nowrap; }
+@media (max-width: 479px) { .mo-sitem.is-placed .mo-item__pic { display: none; } }
+
+/* ---- How many £1 coins? and What's the price? (same screen, two more panes) ---- */
+.mo-howmany, .mo-price { gap: var(--s2); }
+.mo-subject { flex: 1 1 0; min-height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--s2); padding: var(--s2) var(--s3);
+  background: var(--chalk); border: var(--line-w) solid var(--line); border-radius: var(--r-2); font-size: var(--t-lead); font-weight: 700; line-height: 1.1; text-align: center; }
+.mo-subject__pic { flex: 1 1 0; min-height: 0; width: 100%; max-width: 200px; display: block; }
+.mo-subject__name { flex: none; }
+.mo-howmany.is-revealed .mo-subject, .mo-price.is-revealed .mo-subject { flex: 0 0 auto; flex-direction: row; gap: var(--s3); padding: var(--s1) var(--s3); font-size: var(--t-body); }
+.mo-howmany.is-revealed .mo-subject__pic, .mo-price.is-revealed .mo-subject__pic { flex: none; width: 40px; height: 40px; }
+.mo-howmany.is-revealed .mo-subject, .mo-price.is-revealed .mo-subject { min-height: 0; }
+.mo-howmany.is-revealed .mo-count { min-height: 44px; font-size: var(--t-body); }
+
+/* The three counts: a column of wide buttons on a narrow phone, a row otherwise. */
+.mo-counts { flex: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s2); }
+.mo-count { min-height: 56px; padding: var(--s1) var(--s3); font-size: var(--t-lead); font-variant-numeric: tabular-nums; }
+.mo-count:disabled:not(.is-right):not(.is-wrong) { color: var(--ink-2); background: var(--ground-2); }
+.mo-count:disabled { opacity: 1; }
+.mo-count.is-hint { border-style: dashed; border-width: 5px; }
+.mo-howmany .mo-reveal { flex: 1 1 0; }
+@media (min-width: 480px) {
+  .mo-counts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .mo-count { min-height: 72px; font-size: var(--t-title); }
+}
+
+/* The six price tiles: three rows of two on a narrow phone, two rows of three otherwise. Rising left to right, then down. */
+.mo-ptiles { flex: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s2); }
+.mo-ptile { flex-direction: column; gap: 2px; min-height: 56px; padding: var(--s1) var(--s2); font-size: var(--t-body); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.mo-ptile:disabled { opacity: 1; color: var(--ink); }
+.mo-ptile:disabled:not(.is-chosen):not(.is-best) { background: var(--ground-2); }
+.mo-ptile__pts { display: flex; align-items: center; gap: var(--s2); font-size: var(--t-small); font-weight: 700; line-height: 1; }
+.mo-ptile__pts[hidden] { display: none; }
+.mo-ptile__pts .kg-squares { gap: 3px; }
+.mo-ptile__pts .kg-squares i { width: 12px; height: 12px; border-width: 2px; border-color: currentColor; }
+.mo-ptile__pts .kg-squares i.on { background: currentColor; }
+/* the typical price: a ring round the tile; the child's pick: a thick keyline on the tile itself */
+.mo-ptile.is-best { outline: 4px solid var(--ink); outline-offset: 2px; background: var(--paint-yellow); color: var(--on-yellow); }
+.mo-ptile.is-chosen { border-width: 6px; background: var(--chalk); }
+.mo-ptile.is-best.is-chosen { background: var(--paint-yellow); }
+.mo-ptag { text-align: center; }
+.mo-price .mo-walls { gap: var(--s3); }
+@media (min-width: 480px) {
+  .mo-ptiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .mo-ptile { min-height: 72px; font-size: var(--t-lead); }
+}
+@media (min-width: 900px) and (min-height: 700px) { .mo-ptile { font-size: var(--t-title); min-height: 88px; } .mo-subject { font-size: var(--t-title); } }
+@media (orientation: landscape) and (max-height: 560px) {
+  .mo-count, .mo-ptile { min-height: 48px; }
+  .mo-subject { flex-direction: row; }
+  .mo-subject__pic { width: 48px; height: 48px; flex: none; }
+}
+@media (max-width: 479px) {
+  .mo-screen--game[data-mode="howmany"] .mo-prompt, .mo-screen--game[data-mode="price"] .mo-prompt { font-size: var(--t-body); min-height: 36px; }
+  .mo-screen--game[data-mode="howmany"] .mo-prompt small, .mo-screen--game[data-mode="price"] .mo-prompt small { display: none; }
+  .mo-subject { font-size: var(--t-body); }
+  .mo-price.is-revealed .mo-subject { display: none; }   /* the name moves into the tag line below, to leave room for the walls */
+}
+
+/* Points in the progress row, and the results score */
+.mo-points { font-weight: 800; font-size: var(--t-small); white-space: nowrap; }
+.mo-points[hidden] { display: none; }
+.mo-score { margin: 0; font-size: var(--t-lead); font-weight: 800; }
+.mo-best { margin: 0; font-size: var(--t-body); color: var(--ink-2); font-weight: 700; }
+.mo-score[hidden], .mo-best[hidden] { display: none; }
+.mo-newbest { color: var(--ink); background: var(--paint-yellow); padding: 2px var(--s2); border-radius: var(--r-sq); border: 2px solid var(--line); margin-left: var(--s2); }

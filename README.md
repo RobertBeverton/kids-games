@@ -30,6 +30,25 @@ bash build.sh                                  # fails if the list is invalid or
 
 `games/opposites/tests/play-test.mjs` plays the built page in a real browser and checks that nothing wrong is accepted and nothing right is rejected (see its header for how to run it).
 
+### Money
+A game about how much things cost, for children who are starting to meet money. Every question shows drawings of everyday things (sweets, a bike, a car, a house), and every answer is followed by a "Money Wall": a wall of squares where each square is a £1 coin (or £10 or £100 for the big prices), so a child can see how much more a car is than a comic. There are five activities, chosen on the first screen by large picture tiles:
+
+- **Which costs more?** Two things; tap the one that costs more.
+- **Put in order** Three to five things; tap them from the one that costs least to the one that costs most.
+- **Can you buy it?** A wallet with some money in it and a few things with prices; tap everything you can buy.
+- **How many £1 coins?** About how many £1 coins is this thing? Pick from three counts.
+- **What's the price?** Guess the price by tapping one of a row of price tags; the closer the guess the more points.
+
+Easy, Medium and Hard are about how far apart the answers are (a bike against a sweet, or two things that cost nearly the same). A round is ten questions. There are no timers and no leaderboards. Points appear only in What's the price? (0 to 3 a question, a total out of 30 and a best total per level); the other four activities show none. After a wrong answer the right one is shown and has to be tapped. Choices, misses and bests are remembered per player, on this device only. A finished round paints one square on the hub tile.
+
+Prices are typical UK prices, checked on the web and rounded: estimates, not quotes. The page says "about" before every price and shows the as-of date ("Typical UK prices, checked Nov 2026.").
+
+A new player starts at the level and activity for their age (Easy and Which costs more up to age 6; Medium and Put in order at 7 and 8; Hard and Can you buy it from 9); nothing is locked.
+
+Everything the game can ask about lives in `games/money/js/items.js`, as plain data a grown-up can read and edit. Each item has an `id`, a `name`, `pence` (a typical price in whole pence), `lo` and `hi` (the range you would plausibly pay), `size` (how big it is in real life: 1 small, 2 medium, 3 large; the game makes sure the dearer thing is not always the bigger one), `tier` (1 = a five-year-old knows it, 2 = older children) and an optional `group` (items in one group are never asked about together because they look or cost too alike). `AS_OF` is the month the prices were checked: change it when you re-check them. Every item needs a drawing in `games/money/js/pictures.js`; the item tests fail if the data is invalid (a price under £1, a range that does not contain the price, a duplicate, an item with no drawing). After editing, run the tests and `bash build.sh`.
+
+Tests (`games/money/tests`, run by `bash build.sh`; or `cd games/money/tests && node --test ./*.test.js`): the item data, the question and wall engines, the saved data and the drawings. `play-test.mjs` plays the built page in a real browser, every activity and level, and checks the hub tile (see its header for how to run it).
+
 ## Tech
 
 - Vanilla HTML5 / CSS3 / JavaScript — no dependencies, no framework
@@ -51,7 +70,7 @@ Games live under `games/<name>/`. Open any game's `index.html` in a browser for 
 
 ```bash
 bash build.sh
-# Produces docs/index.html (hub), docs/type-trainer.html, docs/opposites.html, docs/maths.html, docs/memory-match.html, docs/sentence-blocks.html
+# Produces docs/index.html (hub), docs/type-trainer.html, docs/opposites.html, docs/maths.html, docs/memory-match.html, docs/sentence-blocks.html, docs/money.html
 # (docs/number-bonds.html is only a redirect to Maths)
 ```
 
