@@ -558,6 +558,8 @@ fi
 # ==========================================================================
 MO_GAME_DIR="games/money"
 MO_JS_FILES=(
+  "js/items.js"
+  "js/engine.js"
   "js/main.js"
 )
 
@@ -626,7 +628,7 @@ else
 fi
 
 # main.js marker for now (no engine yet); switch to a function from items.js/engine.js once Task 3 lands.
-if grep -q '// --- main.js ---' "$DOCS_DIR/money.html"; then
+if grep -q "buildGuessSession" "$DOCS_DIR/money.html"; then
   echo "  [ok] JS inlined"
 else
   echo "  [WARN] JS not found in output"
