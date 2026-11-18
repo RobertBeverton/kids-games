@@ -28,7 +28,8 @@ let save = normaliseSave(null, ITEM_IDS);   // this player's saved data: choices
 // ===== SAVED DATA (per player, via the shell) =====
 function loadSaved() {
   const KG = window.KidsGames;
-  const raw = KG ? KG.loadGameData(GAME_ID) : null;
+  let raw = null;
+  try { raw = KG ? KG.loadGameData(GAME_ID) : null; } catch (e) { raw = null; }   // corrupt or missing storage: start from the defaults
   save = normaliseSave(raw, ITEM_IDS);
   // A first-time player has no valid choices yet: start from the age defaults. Saved choices always win.
   const d = defaultsFor(KG ? KG.player : null), r = raw && typeof raw === 'object' ? raw : {};
@@ -36,7 +37,7 @@ function loadSaved() {
   if (!LEVEL_IDS.includes(r.level)) save.level = d.level;
   renderSettings();
 }
-function persist() { if (window.KidsGames) window.KidsGames.saveGameData(GAME_ID, save); }
+function persist() { try { if (window.KidsGames) window.KidsGames.saveGameData(GAME_ID, save); } catch (e) { /* storage full or blocked: play on */ } }
 function showScreen(id) { for (const s of ['mo-settings', 'mo-game', 'mo-results']) $(s).hidden = s !== id; }
 
 // ===== SETTINGS =====
@@ -263,12 +264,12 @@ $('mo-cards').addEventListener('click', (e) => {
 $('mo-next').addEventListener('click', () => {
   sfx('tap');
   session.index += 1;
-  if (session.index >= ROUND_LENGTH) { showResults(); return; }
+  if (session.index >= ROUND_LENGTH) { finishRound(); return; }
   showQuestion();
   const first = $(PANES[mode]).querySelector('button:not(:disabled)');
   if (first) first.focus();
 });
-$('mo-stop').addEventListener('click', () => { sfx('tap'); session = null; shown = null; showScreen('mo-settings'); });
+$('mo-stop').addEventListener('click', () => { sfx('tap'); leaveRound(); });   // Stop counts nothing: no progress square, no best
 $('mo-play-btn').addEventListener('click', () => { if (IMPLEMENTED.has(save.activity)) { sfx('start'); startSession(); } });
 let relayoutQueued = false;
 window.addEventListener('resize', () => {
@@ -527,22 +528,45 @@ $('mo-price').addEventListener('click', (e) => {
   if (b && !b.disabled && phase === 'ask') priceTap(b);
 });
 
-// ---- results (kept simple until the full results task) ----
-function showResults() {
+// ===== RESULTS, PROGRESS AND SAVING =====
+// A round counts (one hub square, a best total) only when the child gets here: ten questions answered and Finish pressed. Stop never counts.
+function leaveRound() { session = null; shown = null; roundPoints = 0; showScreen('mo-settings'); }
+function finishRound() {
+  const played = mode, level = session.level;
+  let newBest = false;
+  if (played === 'price') {
+    const before = save.best[level];
+    save = recordBest(save, level, roundPoints);
+    newBest = before > 0 && roundPoints > before;   // a first round has nothing to beat
+  }
+  persist();   // settings, misses, recent and best, through the shell's per-player save
+  try { if (window.KidsGames) window.KidsGames.recordSession(GAME_ID); } catch (e) { /* no progress square, but play goes on */ }
+  showResults(played, level, newBest);
+}
+function showResults(played, level, newBest) {
   shown = null;
   $('mo-done-squares').innerHTML = squaresHtml(ROUND_LENGTH, ROUND_LENGTH);
+  const isPrice = played === 'price';
+  $('mo-score').hidden = !isPrice;
+  $('mo-best').hidden = !isPrice;
+  if (isPrice) {
+    $('mo-score').textContent = 'Points: ' + roundPoints + ' out of ' + ROUND_LENGTH * MAX_POINTS;
+    $('mo-best').innerHTML = esc('Your best on ' + LEVEL_TEXT[level] + ': ' + save.best[level]) + (newBest ? ' <strong class="mo-newbest">New best!</strong>' : '');
+  }
   showScreen('mo-results');
   sfx('win');
   $('mo-again').focus();
 }
 $('mo-again').addEventListener('click', () => { sfx('start'); startSession(); });
-$('mo-change').addEventListener('click', () => { sfx('tap'); session = null; showScreen('mo-settings'); });
+$('mo-change').addEventListener('click', () => { sfx('tap'); leaveRound(); });
 
 // ===== START =====
 loadSaved();
 if (window.KidsGames) {
   // The player can change after the page loads (first visit, switching player): load their choices.
   window.KidsGames.onPlayerChange(function () {
-    if (!$('mo-settings').hidden) loadSaved();
+    // A round in progress belongs to the player who started it: drop it, so nothing is saved under the new player's name.
+    if ($('mo-settings').hidden) leaveRound();
+    loadSaved();
   });
 }

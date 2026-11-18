@@ -255,6 +255,7 @@ await p2.click('#mo-change');
 
 // ---- 5 and 6: How many £1 coins? and What's the price?, every level; results, progress and saving ----
 const itemByName = (n) => ITEMS.find((i) => i.name === n);
+const progressCount = () => p2.evaluate(() => (JSON.parse(localStorage.getItem('kidsgames_progress_Kit')) || {}).money || 0);
 const missTotal = async () => Object.values((await saved()).misses || {}).reduce((a, b) => a + b, 0);
 const parsePence = (t) => (t.endsWith('p') ? parseInt(t, 10) : Math.round(parseFloat(t.slice(1).replace(/,/g, '')) * 100));
 const pointsWord = (n) => n + (n === 1 ? ' point' : ' points');
@@ -271,6 +272,7 @@ const attrLeaks = (sel) => p2.evaluate((sel) => {
 
 const hmBest = {};
 for (const level of LEVEL_IDS) {
+  const before = await progressCount();
   await startActivity('howmany', level);
   const pool = howManyPool(ITEMS, level), seen = new Set();
   for (let i = 0; i < ROUND_LENGTH; i++) {
@@ -317,6 +319,7 @@ for (const level of LEVEL_IDS) {
     await p2.click('#mo-next');
   }
   check(await p2.locator('#mo-results').isVisible(), 'howmany ' + level + ': results did not show');
+  check((await progressCount()) === before + 1, 'howmany ' + level + ': a finished round should add exactly one progress square');
   check(await p2.locator('#mo-score').isHidden() && await p2.locator('#mo-best').isHidden() && !/point|best|out of|\d/i.test(await p2.locator('#mo-results').innerText()), 'howmany ' + level + ': results must show no score');
   await bannedCheck('howmany results');
 }
@@ -337,8 +340,10 @@ for (const [id, wantUnit, wantSquares] of [['house', 10000, null], ['ice-cream',
 }
 
 // ---- What's the price? ----
+let expectedBest = { easy: 0, medium: 0, hard: 0 };
 // Plays one whole round. path: 'mixed' (right tile on even questions, the worst on odd), 'best' or 'worst'. Returns the expected total.
 const playPrice = async (level, path) => {
+  const before = await progressCount();
   await startActivity('price', level);
   let total = 0;
   const seen = new Set();
@@ -399,9 +404,26 @@ const playPrice = async (level, path) => {
     await bannedCheck(where);
     await p2.click('#mo-next');
   }
+  check(await p2.locator('#mo-results').isVisible(), 'price ' + level + ': results did not show');
+  check((await progressCount()) === before + 1, 'price ' + level + ' ' + path + ': a finished round should add exactly one progress square');
+  const prevBest = expectedBest[level];
+  expectedBest[level] = Math.max(prevBest, total);
+  check((await p2.locator('#mo-score').innerText()) === 'Points: ' + total + ' out of ' + ROUND_LENGTH * MAX_POINTS, 'price ' + level + ' ' + path + ': results score is "' + (await p2.locator('#mo-score').innerText()) + '", expected ' + total);
+  check((await p2.locator('#mo-best').innerText()).includes('best') && (await p2.locator('#mo-best').innerText()).includes(': ' + expectedBest[level]), 'price ' + level + ': best line is "' + (await p2.locator('#mo-best').innerText()) + '"');
+  const wantNew = prevBest > 0 && total > prevBest;
+  check((await p2.locator('.mo-newbest').count()) === (wantNew ? 1 : 0), 'price ' + level + ' ' + path + ': "New best!" should ' + (wantNew ? '' : 'not ') + 'show (earlier best ' + prevBest + ', total ' + total + ')');
+  check((await saved()).best[level] === expectedBest[level], 'price ' + level + ': saved best is ' + (await saved()).best[level] + ', expected ' + expectedBest[level]);
+  check((await p2.locator('#mo-results-title').innerText()).trim() === 'Well done!', 'price results title');
+  await bannedCheck('price results');
+  await inView('#mo-again', 'price results');
+  await noScroll('price results');
   return total;
 };
 for (const level of LEVEL_IDS) await playPrice(level, 'mixed');
+await playPrice('easy', 'worst');   // a lower total: the best stays, no "New best!"
+await playPrice('easy', 'best');    // a full-marks total: beats the earlier best above 0, so "New best!"
+check(expectedBest.easy === ROUND_LENGTH * MAX_POINTS, 'the ring tile should always earn 3 points: easy best is ' + expectedBest.easy);
+
 // a house (seven-digit tiles) and a £1 sweet at 360 x 640: six tiles of 48px or more, nothing clipped, points and walls in view
 await startActivity('price', 'hard');
 for (const id of ['house', 'sweets']) {
@@ -418,6 +440,76 @@ await p2.setViewportSize({ width: 900, height: 700 });
 await p2.evaluate(() => showQuestion());
 check(await p2.locator('.mo-ptile').evaluateAll((bs) => new Set(bs.map((b) => Math.round(b.getBoundingClientRect().y))).size === 2), 'wide screen: six tiles should be two rows of three');
 await p2.setViewportSize({ width: 360, height: 640 });
+
+// ---- progress and saving ----
+// Stop adds no hub square but keeps the misses already made (a wrong count, then a worst tile).
+for (const act of ['howmany', 'price']) {
+  await startActivity(act, 'easy');
+  const before = await progressCount(), missesBefore = await missTotal();
+  if (act === 'howmany') {
+    const item = itemByName((await p2.locator('.mo-subject__name').innerText()).trim());
+    const nums = (await p2.locator('.mo-count').allInnerTexts()).map((t) => Number(t.replace(/,/g, '')));
+    await p2.locator('.mo-count').nth(nums.findIndex((n) => n !== item.pence / 100)).click();
+  } else {
+    const worst = await p2.evaluate(() => { const q = session.questions[session.index]; return q.points.indexOf(Math.min(...q.points)); });
+    await p2.locator('.mo-ptile').nth(worst).click();
+  }
+  await p2.click('#mo-stop');
+  check(await p2.locator('#mo-settings').isVisible(), act + ': Stop should go to settings');
+  check((await progressCount()) === before, act + ': Stop must not add a progress square');
+  check((await missTotal()) > missesBefore, act + ': Stop must keep the misses already made');
+  const bestNow = (await saved()).best;
+  check(JSON.stringify(bestNow) === JSON.stringify(expectedBest), act + ': Stop must not change the best: ' + JSON.stringify(bestNow));
+}
+check((await p2.evaluate(() => KidsGames.lastGame)) === 'money', 'the last game played should be money');
+
+// saves survive a reload
+const beforeReload = await saved();
+await p2.reload();
+await p2.waitForSelector('#mo-settings');
+const afterReload = await saved();
+check(JSON.stringify(afterReload) === JSON.stringify(beforeReload), 'a reload changed the saved data');
+check(JSON.stringify(afterReload.best) === JSON.stringify(expectedBest) && Object.keys(afterReload.misses).length > 0 && afterReload.recent.length > 0, 'best, misses and recent should survive a reload: ' + JSON.stringify(afterReload));
+check((await p2.locator('.mo-act[aria-pressed="true"]').getAttribute('data-activity')) === afterReload.activity && (await p2.locator('.mo-level[aria-pressed="true"]').getAttribute('data-level')) === afterReload.level, 'settings after a reload do not match the saved choice');
+check((await progressCount()) >= 3 * 5, 'progress squares should have survived the reload');
+
+// saves belong to the player: a second player starts clean, and switching mid-round drops the round without writing under the new name
+await p2.evaluate(() => { const pl = JSON.parse(localStorage.getItem('kidsgames_players')); pl.Lou = { name: 'Lou', manualAge: 9, theme: 'colourful-light', avatar: 1, createdAt: '2026-01-02' }; localStorage.setItem('kidsgames_players', JSON.stringify(pl)); });
+await p2.reload();
+await p2.waitForSelector('#mo-settings');
+await startActivity('howmany', 'easy');
+await p2.locator('.mo-count').first().click();   // maybe wrong, maybe right: either way a round is open
+const kitBefore = await saved();
+await p2.click('#kg-player-btn');
+await p2.click('.kg-player-card[data-player="Lou"]');
+check(await p2.locator('#mo-settings').isVisible(), 'switching player mid-round should return to settings');
+check((await p2.locator('.mo-act[aria-pressed="true"]').getAttribute('data-activity')) === 'buy' && (await p2.locator('.mo-level[aria-pressed="true"]').getAttribute('data-level')) === 'hard', 'a nine-year-old should start on Can you buy it? at Hard');
+const lou = await p2.evaluate(() => JSON.parse(localStorage.getItem('kidsgames_money_Lou')));
+check(!lou || (Object.keys(lou.misses || {}).length === 0 && !lou.best), 'nothing of Kit\'s round should be saved under Lou: ' + JSON.stringify(lou));
+check(JSON.stringify(await saved()) === JSON.stringify(kitBefore), 'Kit\'s save changed while Lou was playing');
+await startActivity('price', 'medium');
+check((await p2.evaluate(() => KidsGames.player.name)) === 'Lou', 'the active player should be Lou');
+await p2.click('#mo-stop');
+await p2.click('#kg-player-btn');
+await p2.click('.kg-player-card[data-player="Kit"]');
+check((await p2.locator('.mo-act[aria-pressed="true"]').getAttribute('data-activity')) === kitBefore.activity, 'switching back should bring Kit\'s choices back');
+
+// corrupt or missing storage never stops play
+for (const junk of ['{{{ not json', '[1,2,3]', '"just a string"', '{"best":{"easy":"x"},"misses":5,"recent":"no","activity":"nope","level":7}', 'null']) {
+  await p2.evaluate((junk) => localStorage.setItem('kidsgames_money_Kit', junk), junk);
+  await p2.reload();
+  await p2.waitForSelector('#mo-settings');
+  check(await p2.locator('#mo-play-btn').isEnabled(), 'corrupt storage (' + junk + '): Play should be enabled');
+  await p2.click('#mo-play-btn');
+  check(await p2.locator('#mo-game').isVisible(), 'corrupt storage (' + junk + '): the game did not start');
+  await p2.click('#mo-stop');
+}
+await p2.evaluate(() => localStorage.removeItem('kidsgames_money_Kit'));
+await p2.reload();
+await p2.waitForSelector('#mo-settings');
+await p2.click('#mo-play-btn');
+check(await p2.locator('#mo-game').isVisible(), 'missing storage: the game did not start');
+await p2.click('#mo-stop');
 
 // The shell itself reports corrupt saved data with a console error (on purpose, shared code); that is expected in the corrupt-storage section.
 const realErrors = errors.filter((e) => !e.startsWith('KidsGames: corrupt data for key kidsgames_money_'));

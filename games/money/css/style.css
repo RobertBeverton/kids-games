@@ -264,6 +264,10 @@
   .mo-price.is-revealed .mo-subject { display: none; }   /* the name moves into the tag line below, to leave room for the walls */
 }
 
-/* Points in the progress row */
+/* Points in the progress row, and the results score */
 .mo-points { font-weight: 800; font-size: var(--t-small); white-space: nowrap; }
 .mo-points[hidden] { display: none; }
+.mo-score { margin: 0; font-size: var(--t-lead); font-weight: 800; }
+.mo-best { margin: 0; font-size: var(--t-body); color: var(--ink-2); font-weight: 700; }
+.mo-score[hidden], .mo-best[hidden] { display: none; }
+.mo-newbest { color: var(--ink); background: var(--paint-yellow); padding: 2px var(--s2); border-radius: var(--r-sq); border: 2px solid var(--line); margin-left: var(--s2); }
