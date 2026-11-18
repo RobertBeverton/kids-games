@@ -295,3 +295,77 @@ export function gradeBuy(question, selectedIds) {
   const missed = question.buyIds.filter((id) => !selectedIds.includes(id));
   return { correct: !wronglyChosen.length && !missed.length, wronglyChosen, missed };
 }
+
+// ---- "How many £1 coins?": three counts, pick the one that matches the price ----
+export const HOWMANY_CAP = { easy: 60000, medium: 600000, hard: Infinity };   // pence
+export const HOWMANY_MIN = 300;           // pence: whole pounds of £3 or more
+export const HOWMANY_BIG = 100;           // a count this large keeps "the smallest number" from always winning
+export const HOWMANY_TOP_MIN = 2;         // of 10 questions, at least this many have the right answer as the largest number
+export const HOWMANY_BIG_MIN = 4;         // of 10 questions, at least this many use a count of HOWMANY_BIG or more
+export const howManyPool = (items, level) =>
+  items.filter((i) => i.pence % 100 === 0 && i.pence >= HOWMANY_MIN && i.pence <= HOWMANY_CAP[level]);
+// The smaller and larger neighbours a count can have: whole numbers of 1 or more, 10 or 100 times away.
+const smallerCounts = (c) => [c / 10, c / 100].filter((x) => Number.isInteger(x) && x >= 1);
+const largerCounts = (c) => [c * 10, c * 100];
+// Where the right answer can sit numerically: 'lowest' always; 'middle' needs a smaller neighbour; 'highest' needs two (a count divisible by 100).
+export const howManyRanks = (c) => ['lowest', ...(smallerCounts(c).length >= 1 ? ['middle'] : []), ...(smallerCounts(c).length >= 2 ? ['highest'] : [])];
+// Two distinct wrong counts that put the right one at the given rank among the three.
+export function howManyOptions(count, rank, rng) {
+  const sm = shuffle(smallerCounts(count), rng), lg = shuffle(largerCounts(count), rng);
+  const wrong = rank === 'highest' ? sm.slice(0, 2) : rank === 'middle' ? [sm[0], lg[0]] : lg.slice(0, 2);
+  if (wrong.length < 2 || wrong.includes(undefined)) throw new Error('howManyOptions: ' + count + ' cannot be ' + rank);
+  return wrong;
+}
+// A round of ROUND_LENGTH questions { item, options: [3 counts], correctCount }, ten different items.
+// At least HOWMANY_TOP_MIN questions have the right answer as the largest number (only counts divisible by 100 can).
+export function buildHowManySession(items, level, rng, comeBack = []) {
+  const pool = howManyPool(items, level), picked = [];
+  const isBig = (it) => it.pence / 100 >= HOWMANY_BIG, canTop = (it) => howManyRanks(it.pence / 100).includes('highest');
+  for (const id of comeBack.slice(0, MAX_COME_BACK)) { const it = pool.find((i) => i.id === id); if (it && !picked.includes(it)) picked.push(it); }
+  const rest = shuffle(pool, rng);
+  for (const it of rest) { if (picked.filter(canTop).length >= HOWMANY_TOP_MIN) break; if (canTop(it) && !picked.includes(it)) picked.push(it); }
+  for (const it of rest) { if (picked.filter(isBig).length >= HOWMANY_BIG_MIN) break; if (isBig(it) && !picked.includes(it)) picked.push(it); }
+  for (const it of rest) { if (picked.length >= ROUND_LENGTH) break; if (!picked.includes(it)) picked.push(it); }
+  if (picked.length < ROUND_LENGTH || picked.filter(isBig).length < HOWMANY_BIG_MIN || picked.filter(canTop).length < HOWMANY_TOP_MIN) throw new Error('buildHowManySession: not enough items for ' + level);
+  const chosen = shuffle(picked.slice(0, ROUND_LENGTH), rng);
+  let tops = 0;
+  const ranked = chosen.map((item) => {
+    const feasible = howManyRanks(item.pence / 100);
+    let rank;
+    if (canTop(item) && tops < HOWMANY_TOP_MIN) { rank = 'highest'; tops++; } else {
+      // Items that can sit higher usually do, since small counts can only be the lowest and would otherwise crowd it.
+      const from = feasible.length > 1 && rng() < 0.5 ? feasible.slice(1) : feasible;
+      rank = from[Math.floor(rng() * from.length)];
+    }
+    return { item, rank };
+  });
+  // Balanced shuffle: each of the three screen positions holds the right answer 3 or 4 times in 10 (a random position gets the fourth).
+  const slots = shuffle([0, 1, 2, 0, 1, 2, 0, 1, 2, Math.floor(rng() * 3)], rng);
+  return ranked.map(({ item, rank }, k) => {
+    const correctCount = item.pence / 100, options = shuffle(howManyOptions(correctCount, rank, rng), rng);
+    options.splice(slots[k], 0, correctCount);
+    return { item, options, correctCount };
+  });
+}
+
+// ---- the Money Wall: one square is one unit; the unit grows by ten until the dearest fits ----
+export const WALL_MAX = 3000;     // squares
+// pences: the prices shown together, in pence. The unit is £1, then £10, then £100... the first that fits the dearest in WALL_MAX squares.
+export function wallFor(pences) {
+  const top = Math.max(...pences);
+  let unit = 100;                       // pence per square
+  while (top / unit > WALL_MAX) unit *= 10;
+  return { unit, items: pences.map((p) => { const n = p / unit; return n < 0.5 ? { squares: 0, dot: true } : { squares: Math.round(n), dot: false }; }) };
+}
+// cols x fullRows plus a partial last row, roughly square
+export function wallLayout(squares) {
+  const cols = Math.ceil(Math.sqrt(squares)), fullRows = Math.floor(squares / cols);
+  return { cols, fullRows, rest: squares - fullRows * cols };
+}
+// 300000 -> "about £3,000, which is 3,000 pound coins"; 150 -> "about £1.50"
+export function priceTagText(pence) {
+  const p = formatPrice(pence);
+  if (pence % 100 !== 0 || pence < 100) return 'about ' + p;
+  const pounds = pence / 100;
+  return 'about ' + p + ', which is ' + group3(pounds) + (pounds === 1 ? ' pound coin' : ' pound coins');
+}
